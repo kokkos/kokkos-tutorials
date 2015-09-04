@@ -1,0 +1,98 @@
+This tutorial is intended for a 1 to 1.5 day tutorial depending on
+how many of the exercises are done as hands-on. The material was 
+developed by Jeff Amelang, Carter Edwards and Christian Trott. 
+The main directory contains the presentation and an Exercises
+directory. 
+
+The Exercises directory contains examples including solutions.
+Each example has different variants for Serial, OpenMP and Kokkos. 
+Often more than a single Kokkos variant is present, which represent
+different steps in Kokkos port as for example:
+  - minimal CPU: add parallel dispatch without changing data structures
+  - minimal GPU: add data structure changes to allow running on GPU
+  - Hierarchical Parallelism: utilize the team interface
+
+////////////////////////////////////////////////////////////////////
+
+Building:
+
+The subdirectories contain Makefiles which utilize the embedded 
+Makefile system of Kokkos. Assuming that your Kokkos root directory
+is ${HOME}/kokkos (i.e. you cloned the github.com/kokkos/kokkos 
+repository into your home directory) and you have an AVX capable 
+CPU you can build the OpenMP variant with:
+
+make -j
+
+This will generate an executable named "example_name.host"
+
+To build with Cuda type: 
+
+make -j KOKKOS_DEVICES=Cuda
+
+This will generate an executable named "example_name.cuda"
+
+To build for Intel Xeon Phi (Knights Corner) build with:
+
+make -j KOKKOS_ARCH=KNC
+
+To build for Intel Power8 build with:
+
+make -j KOKKOS_ARCH=Power8
+
+To build for Power8 with NVIDIA (Kepler) GPUs use:
+make -j KOKKOS_DEVICES=Cuda,OpenMP KOKKOS_ARCH=Power8,Kepler35
+
+In order to change the compiler add "CXX=compiler", and
+if your clone of Kokkos is not in ${HOME}/kokkos add 
+"KOKKOS_PATH=/full/path/to/kokkos". Here is an example building for 
+Intel Haswell architecture with the Intel compiler:
+
+make -j KOKKOS_ARCH=HSW CXX=icpc KOKKOS_PATH=/shared/github/kokkos
+
+If you want to use UVM allocations for Cuda by default you need to add:
+
+KOKKOS_CUDA_OPTIONS=enable_lambda,force_uvm
+
+All thos options can also be added to the beginning of the Makefile.
+For more information refer to the Kokkos Programming Guide which is
+part of the main Kokkos repository. 
+
+/////////////////////////////////////////////////////////////////////
+
+Running:
+
+The examples can simply be run with ./example_name.host.
+They will typically print the run configuration and some performance 
+data. All examples accept the -help and -h command line flag, which 
+will print a message about other options to change parameters such as
+problem size. 
+
+To run efficiently with OpenMP you want to set correct settings for 
+thread affinity. If you want to run single socket Sandy Bridge (8 cores)
+the settings are without hyperthreads:
+
+export OMP_NUM_THREADS=8
+export GOMP_CPU_AFFINITY=0-7
+
+To run with hyperthreads active it is:
+
+export OMP_NUM_THREADS=16
+export GOMP_CPU_AFFINITY=0-7,16-23
+
+To run with dual socket you would set without hyperthreads:
+
+export OMP_NUM_THREADS=16
+export GOMP_CPU_AFFINITY=0-15
+
+And with hyperthreads:
+
+export OMP_NUM_THREADS=32
+export GOMP_CPU_AFFINITY=0-31
+
+For Cuda you only need to set something when running with UVM:
+
+export CUDA_MANAGED_FORCE_DEVICE_ALLOC=1
+export CUDA_LAUNCH_BLOCKING=1
+
+

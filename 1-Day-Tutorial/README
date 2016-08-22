@@ -36,7 +36,7 @@ To build for Intel Xeon Phi (Knights Corner) build with:
 
 make -j KOKKOS_ARCH=KNC
 
-To build for Intel Power8 build with:
+To build for IBM Power8 build with:
 
 make -j KOKKOS_ARCH=Power8
 

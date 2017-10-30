@@ -3,8 +3,16 @@
 This repository contains tutorials for the Kokkos C++ programming
 model (github.com/kokkos/kokkos). 
 
-The most up to date tutorial is currently GTC2017.
+Tutorials in the **Intro-Short** directory cover
+ * simple data parallel patterns and policies
+ * multidimensional array views
+ * execution and memory spaces
 
-Please read the README/Presentation for each individual tutorial for more detailed
-information.
+Tutorials in the **Intro-Full** directory cover
+ * simple data parallel patterns and policies
+ * multidimensional array views
+ * execution and memory spaces
+ * thread safety and atomic operations
+ * hierarchical data parallel patterns
+
 

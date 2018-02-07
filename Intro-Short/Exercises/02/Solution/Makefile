@@ -11,7 +11,7 @@ default: build
 ifneq (,$(findstring Cuda,$(KOKKOS_DEVICES)))
 CXX = ${KOKKOS_PATH}/config/nvcc_wrapper
 EXE = ${EXE_NAME}.cuda
-KOKKOS_ARCH = "SNB,Kepler37"
+KOKKOS_ARCH = "SNB,Volta70"
 KOKKOS_CUDA_OPTIONS = "enable_lambda,force_uvm"
 else
 CXX = g++

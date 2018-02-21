@@ -1,5 +1,5 @@
 for file in $1/*/*/Makefile
 do
-  sed -i.bak 's|SNB,Volta70|'$2'|g' $file
+  sed -i.bak 's|'$2'|'$3'|g' $file
   rm ${file}.bak
 done

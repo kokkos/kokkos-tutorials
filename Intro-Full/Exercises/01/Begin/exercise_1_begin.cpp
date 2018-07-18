@@ -96,7 +96,9 @@ int main( int argc, char* argv[] )
   checkSizes( N, M, S, nrepeat );
 
   // EXERCISE: Initialize Kokkos runtime.
+  //           Include braces to encapsulate code between initialize and finalize calls
   // Kokkos::initialize( argc, argv );
+  // {
 
   // Allocate y, x vectors and Matrix A:
   double * const y = new double[ N ];
@@ -177,6 +179,7 @@ int main( int argc, char* argv[] )
   delete[] x;
 
   // EXERCISE: finalize Kokkos runtime
+  // }
   // Kokkos::finalize();
 
   return 0;

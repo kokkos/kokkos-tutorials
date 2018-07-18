@@ -90,6 +90,7 @@ int main( int argc, char* argv[] )
   checkSizes( N, M, S, nrepeat );
 
   Kokkos::initialize( argc, argv );
+  {
 
   // Allocate y, x vectors and Matrix A:
   double * const y = new double[ N ];
@@ -165,6 +166,7 @@ int main( int argc, char* argv[] )
   delete[] y;
   delete[] x;
 
+  }
   Kokkos::finalize();
 
   return 0;

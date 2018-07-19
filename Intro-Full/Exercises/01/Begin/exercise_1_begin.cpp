@@ -126,6 +126,7 @@ int main( int argc, char* argv[] )
   }
 
   // Timer products.
+  //Kokkos::Timer timer;
   struct timeval begin, end;
 
   gettimeofday( &begin, NULL );
@@ -160,6 +161,7 @@ int main( int argc, char* argv[] )
   gettimeofday( &end, NULL );
 
   // Calculate time.
+  //double time = timer.seconds();
   double time = 1.0 * ( end.tv_sec - begin.tv_sec ) +
                 1.0e-6 * ( end.tv_usec - begin.tv_usec );
 

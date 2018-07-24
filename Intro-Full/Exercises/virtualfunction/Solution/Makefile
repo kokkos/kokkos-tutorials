@@ -1,4 +1,4 @@
-KOKKOS_PATH = ${HOME}/kokkos/kokkos
+KOKKOS_PATH = ${HOME}/Kokkos/kokkos
 KOKKOS_DEVICES = "Cuda,OpenMP"
 EXE_NAME = "virtual_function"
 
@@ -11,7 +11,7 @@ default: build
 ifneq (,$(findstring Cuda,$(KOKKOS_DEVICES)))
 CXX = ${KOKKOS_PATH}/bin/nvcc_wrapper
 EXE = ${EXE_NAME}.cuda
-KOKKOS_ARCH = "BDW,Volat70"
+KOKKOS_ARCH = "BDW,Volta70"
 KOKKOS_CUDA_OPTIONS = "enable_lambda,rdc"
 override LINKFLAGS += --remove-duplicate-link-files
 else
@@ -26,27 +26,24 @@ LINKFLAGS =
 
 DEPFLAGS = -M
 
-vpath %.cpp $(sort $(dir $(SRC)))
 
-OBJ = $(notdir $(SRC:.cpp=.o))
+OBJ = $(SRC:.cpp=.o)
 LIB =
 
 include $(KOKKOS_PATH)/Makefile.kokkos
 
-$(warning $(OBJ) $(EXE) $(sort $(dir $(SRC))))
-
 build: $(EXE)
 
-$(EXE): $(OBJ) $(KOKKOS_LINK_DEPENDS) 
+$(EXE): $(OBJ) $(KOKKOS_LINK_DEPENDS)
 	$(LINK) $(KOKKOS_LDFLAGS) $(LINKFLAGS) $(EXTRA_PATH) $(OBJ) $(KOKKOS_LIBS) $(LIB) -o $(EXE)
 
 clean: kokkos-clean
-	rm -f *.o *.cuda *.host *.a *.h *.tmp *.x
+	rm -f *.o *.cuda *.host
 
 # Compilation rules
 
-%.o:%.cpp $(KOKKOS_CPP_DEPENDS) $(HDR)
-	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) $(EXTRA_INC) -c $< -o $(notdir $@)
+%.o:%.cpp $(KOKKOS_CPP_DEPENDS)
+	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) $(EXTRA_INC) -c $<
 
 test: $(EXE)
 	./$(EXE)

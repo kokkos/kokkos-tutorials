@@ -1,6 +1,5 @@
 KOKKOS_PATH = ${HOME}/kokkos/kokkos
-#KOKKOS_DEVICES = "Cuda,OpenMP"
-KOKKOS_DEVICES = "Serial"
+KOKKOS_DEVICES = "Cuda,OpenMP"
 EXE_NAME = "dualview"
 
 
@@ -14,17 +13,14 @@ default: build
 ifneq (,$(findstring Cuda,$(KOKKOS_DEVICES)))
 CXX = ${KOKKOS_PATH}/bin/nvcc_wrapper
 EXE = ${EXE_NAME}.cuda
-#KOKKOS_ARCH = "BDW,Pascal60"
-#KOKKOS_ARCH = "POWER8,Kepler37"
+KOKKOS_ARCH = "BDW,Pascal60"
 KOKKOS_CUDA_OPTIONS = "enable_lambda"
 else
 CXX = g++
 EXE = ${EXE_NAME}.host
-#KOKKOS_ARCH = "SNB"
-KOKKOS_ARCH = "POWER8"
+KOKKOS_ARCH = "BDW"
 endif
 
-#CXXFLAGS = -O3 -DKOKKOS_ENABLE_DEBUG_BOUNDS_CHECK 
 CXXFLAGS = -O3 -UKOKKOS_ENABLE_DEPRECATED_CODE
 
 override CXXFLAGS += -I./

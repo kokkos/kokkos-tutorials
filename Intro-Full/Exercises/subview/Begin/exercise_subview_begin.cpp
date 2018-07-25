@@ -96,6 +96,7 @@ int main( int argc, char* argv[] )
   checkSizes( N, M, S, nrepeat );
 
   Kokkos::initialize( argc, argv );
+  {
 
   // typedef Kokkos::Serial   ExecSpace;
   // typedef Kokkos::Threads  ExecSpace;
@@ -199,6 +200,7 @@ int main( int argc, char* argv[] )
   printf( "  N( %d ) M( %d ) nrepeat ( %d ) problem( %g MB ) time( %g s ) bandwidth( %g GB/s )\n",
           N, M, nrepeat, Gbytes * 1000, time, Gbytes * nrepeat / time );
 
+  }
   Kokkos::finalize();
 
   return 0;

@@ -192,7 +192,6 @@ int main( int argc, char* argv[] )
           N, M, nrepeat, Gbytes * 1000, time, Gbytes * nrepeat / time );
 
   }
-
   Kokkos::finalize();
 
   return 0;

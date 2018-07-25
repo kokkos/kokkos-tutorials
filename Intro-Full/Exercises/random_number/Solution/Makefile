@@ -1,9 +1,7 @@
-#KOKKOS_PATH = ${HOME}/Kokkos/kokkos
-KOKKOS_PATH = ${PWD}/../kokkos
+KOKKOS_PATH = ${HOME}/Kokkos/kokkos
 SRC = $(wildcard *.cpp)
 
-#KOKKOS_DEVICES = "Cuda,OpenMP"
-KOKKOS_DEVICES = "Serial"
+KOKKOS_DEVICES = "Cuda,OpenMP"
 
 default: build
 	echo "Start Build"

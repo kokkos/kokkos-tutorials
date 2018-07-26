@@ -1,3 +1,4 @@
 #!/usr/bin/env bash
 
 export PATH=${HOME}/kokkos/bin:${PWD}/bin:${PATH}
+export LD_LIBRARY_PATH=${PWD}/lib:${LD_LIBRARY_PATH}

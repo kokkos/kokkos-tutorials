@@ -1,0 +1,10 @@
+#!/bin/bash -ex
+cmake3 $HOME/Kokkos/kokkos \
+-DCMAKE_INSTALL_PREFIX=$HOME/Kokkos/kokkos-cmake-install \
+-DKOKKOS_ENABLE_CUDA=ON \
+-DKOKKOS_ENABLE_SERIAL=ON \
+-DCMAKE_CXX_COMPILER=$HOME/Kokkos/kokkos/bin/nvcc_wrapper \
+-DKOKKOS_ARCH="BDW,Volta70" \
+-DKOKKOS_ENABLE_DEPRECATED_CODE=OFF \
+-DKOKKOS_ENABLE_CUDA_LAMBDA=ON \
+-DCMAKE_CXX_FLAGS="-O3 -g"

@@ -1,0 +1,10 @@
+#!/bin/bash -ex
+$HOME/Kokkos/kokkos/generate_makefile.bash \
+--prefix=$HOME/Kokkos/kokkos-gmake-install \
+--with-cuda \
+--with-serial \
+--compiler=$HOME/Kokkos/kokkos/bin/nvcc_wrapper \
+--arch="BDW,Volta70" \
+--with-options="disable_deprecated_code" \
+--with-cuda-options="enable_lambda" \
+--cxxflags="-O3 -g"

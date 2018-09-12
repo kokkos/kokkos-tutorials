@@ -84,12 +84,12 @@ Result simple_model(int n_teams) {
     typedef Kokkos::View<double*> view_t;
     view_t x("x", n_points);
 
-    // will fix team count and use Kokkos::AUTO() - this policy is the only one used in the model
+    // will fix team count and use Kokkos::AUTO - this policy is the only one used in the model
     auto policy = Kokkos::TeamPolicy<>(n_teams, Kokkos::AUTO);
     typedef typename Kokkos::TeamPolicy<>::member_type member_type;
 
     // initialize the coordinates in a parallel_for - we want UVM off to work
-    Kokkos::parallel_for(n_points, KOKKOS_LAMBDA (int i) {
+    Kokkos::parallel_for("initialize points", n_points, KOKKOS_LAMBDA (int i) {
       // purpose is to make a simple shift so coords are not ordered
       // after scaling 0-1 do x^2 to make an uneven distribution
       // that results in the proper cut shift being 0.25 since
@@ -122,10 +122,10 @@ Result simple_model(int n_teams) {
     while(!bDone) {
       // we will reduce the total weight to the left of the cut over the teams
       double storeWeightLeft = 0;
-      Kokkos::parallel_reduce(policy, KOKKOS_LAMBDA(member_type teamMember , double & weightLeft) {
+      Kokkos::parallel_reduce("main loop", policy, KOKKOS_LAMBDA(member_type teamMember, double & weightLeft) {
         // inner loop reduces the total weight over the threads
-        double storeTeamWeightLeft = 0;        
-        Kokkos::parallel_reduce(Kokkos::TeamThreadRange(teamMember , n_points_per_team),
+        double storeTeamWeightLeft = 0;
+        Kokkos::parallel_reduce(Kokkos::TeamThreadRange(teamMember, n_points_per_team),
           [=] (int ii, double & teamWeightLeft) {
           int i = ii + teamMember.league_rank() * n_points_per_team;
           if(x(i) < cut_line) {
@@ -168,7 +168,7 @@ Result simple_model(int n_teams) {
 
 int main( int argc, char* argv[] )
 {
-  Kokkos::initialize(argc, argv);
+  Kokkos::ScopeGuard kokkosScope(argc, argv); 
 
   std::vector<Result> results; // store the results for each run
   for(int n_teams = 1; n_teams <= pow(2,KOKKOS_N_POINTS_POW_OF_2); n_teams *=2) {
@@ -177,10 +177,8 @@ int main( int argc, char* argv[] )
   }
 
   // now loop and log each result - shows how n_teams impacts total time
-  for(auto itr = results.begin(); itr != results.end(); ++itr) {
+  for(auto&& result : results) {
     printf("teams: %8d   cut: %.2lf    time: %d ms\n",
-      itr->n_teams, itr->cut_line, itr->time_ms);
+      result.n_teams, result.cut_line, result.time_ms);
   }
-
-  Kokkos::finalize();
 }

@@ -79,7 +79,7 @@ template <class Scheduler>
 struct FibonacciTask
 {
   using value_type = int;
-  using future_type = Kokkos::BasicFuture<int, Scheduler>
+  using future_type = Kokkos::BasicFuture<int, Scheduler>;
 
   int n;
   future_type fn_1;
@@ -119,7 +119,7 @@ struct FibonacciTask
       auto f_all = scheduler.when_all(fib_array, 2);
 
       // Respawn this task with `f_all` as a predecessor
-      Kokkos::respawn(*this, f_all);
+      Kokkos::respawn(this, f_all);
     }
   }
 
@@ -177,7 +177,7 @@ int main(int argc, char* argv[])
     auto time = timer.seconds();
 
     // Output results
-    if(result.is_ready()) {
+    if(!result.is_null() && result.is_ready()) {
       auto result_serial = fib_serial(n);
       if(result.get() == result_serial) {
         printf("  Success! Fibonacci(%d) = %d\n", n, result.get());

@@ -148,7 +148,7 @@ int main(int argc, char* argv[])
     auto time = timer.seconds();
 
     // Output results
-    if(result.is_ready()) {
+    if(!result.is_null() && result.is_ready()) {
       auto result_serial = fib_serial(n);
       if(result.get() == result_serial) {
         printf("  Success! Fibonacci(%d) = %d\n", n, result.get());

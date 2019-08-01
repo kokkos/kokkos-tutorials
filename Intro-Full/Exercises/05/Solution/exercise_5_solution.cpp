@@ -140,11 +140,11 @@ int main( int argc, char* argv[] )
     // Application: <y,Ax> = y^T*A*x
     double result = 0;
 
-    Kokkos::parallel_reduce( team_policy( N, Kokkos::AUTO ), KOKKOS_LAMBDA ( const member_type &teamMember, double &update ) {
+    Kokkos::parallel_reduce( "yAx_outer", team_policy( N, Kokkos::AUTO ), KOKKOS_LAMBDA ( const member_type &teamMember, double &update ) {
       const int j = teamMember.league_rank();
       double temp2 = 0;
 
-      Kokkos::parallel_reduce( Kokkos::TeamThreadRange( teamMember, M ), [&] ( const int i, double &innerUpdate ) {
+      Kokkos::parallel_reduce( "yAx_inner", Kokkos::TeamThreadRange( teamMember, M ), [&] ( const int i, double &innerUpdate ) {
         innerUpdate += A( j, i ) * x( i );
       }, temp2 );
 

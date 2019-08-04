@@ -156,7 +156,7 @@ int main( int argc, char* argv[] )
     // Application: <y,Ax> = y^T*A*x
     double result = 0;
 
-    Kokkos::parallel_reduce( "yAx_outer", team_policy( E, Kokkos::AUTO, 32 ).set_scratch_size( 0, Kokkos::PerTeam( scratch_size ) ),
+    Kokkos::parallel_reduce( "yAx", team_policy( E, Kokkos::AUTO, 32 ).set_scratch_size( 0, Kokkos::PerTeam( scratch_size ) ),
                              KOKKOS_LAMBDA ( const member_type &teamMember, double &update ) {
       const int e = teamMember.league_rank();
       double tempN = 0;
@@ -164,24 +164,24 @@ int main( int argc, char* argv[] )
       ScratchViewType s_x( teamMember.team_scratch( 0 ), M );
 
       if ( teamMember.team_rank() == 0 ) {
-        Kokkos::parallel_for( "yAx_load", Kokkos::ThreadVectorRange( teamMember, M ), [&] ( const int i ) {
+        Kokkos::parallel_for( Kokkos::ThreadVectorRange( teamMember, M ), [&] ( const int i ) {
           s_x( i ) = x( e, i );
         });
       }
 
       teamMember.team_barrier();
 
-      Kokkos::parallel_reduce( "yAx_intermediate", Kokkos::TeamThreadRange( teamMember, N ), [&] ( const int j, double &innerUpdateN ) {
+      Kokkos::parallel_reduce( Kokkos::TeamThreadRange( teamMember, N ), [&] ( const int j, double &innerUpdateN ) {
         double tempM = 0;
 
-        Kokkos::parallel_reduce( "yAx_inner", Kokkos::ThreadVectorRange( teamMember, M ), [&] ( const int i, double &innerUpdateM ) {
+        Kokkos::parallel_reduce( Kokkos::ThreadVectorRange( teamMember, M ), [&] ( const int i, double &innerUpdateM ) {
           innerUpdateM += A( e, j, i ) * s_x( i );
         }, tempM );
 
         innerUpdateN += y( e, j ) * tempM;
       }, tempN );
 
-      Kokkos::single( "yAx_single_update", Kokkos::PerTeam( teamMember ), [&] () {
+      Kokkos::single( Kokkos::PerTeam( teamMember ), [&] () {
         update += tempN;
       });
     }, result );

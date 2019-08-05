@@ -148,7 +148,7 @@ int main( int argc, char* argv[] )
     // Application: <y,Ax> = y^T*A*x
     double result = 0;
 
-    Kokkos::parallel_reduce( range_policy( 0, N ), KOKKOS_LAMBDA ( int j, double &update ) {
+    Kokkos::parallel_reduce( "yAx", range_policy( 0, N ), KOKKOS_LAMBDA ( int j, double &update ) {
       double temp2 = 0;
 
       for ( int i = 0; i < M; ++i ) {

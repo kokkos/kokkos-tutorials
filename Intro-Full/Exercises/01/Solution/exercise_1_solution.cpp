@@ -98,17 +98,17 @@ int main( int argc, char* argv[] )
   double * const A = new double[ N * M ];
 
   // Initialize y vector.
-  Kokkos::parallel_for( N, KOKKOS_LAMBDA ( int i ) {
+  Kokkos::parallel_for( "y_init", N, KOKKOS_LAMBDA ( int i ) {
     y[ i ] = 1;
   });
 
   // Initialize x vector.
-  Kokkos::parallel_for( M, KOKKOS_LAMBDA ( int i ) {
+  Kokkos::parallel_for( "x_init", M, KOKKOS_LAMBDA ( int i ) {
     x[ i ] = 1;
   });
 
   // Initialize A matrix, note 2D indexing computation.
-  Kokkos::parallel_for( N, KOKKOS_LAMBDA ( int j ) {
+  Kokkos::parallel_for( "matrix_init", N, KOKKOS_LAMBDA ( int j ) {
     for ( int i = 0; i < M; ++i ) {
       A[ j * M + i ] = 1;
     }
@@ -121,7 +121,7 @@ int main( int argc, char* argv[] )
     // Application: <y,Ax> = y^T*A*x
     double result = 0;
 
-    Kokkos::parallel_reduce( N, KOKKOS_LAMBDA ( int j, double &update ) {
+    Kokkos::parallel_reduce( "yAx", N, KOKKOS_LAMBDA ( int j, double &update ) {
       double temp2 = 0;
 
       for ( int i = 0; i < M; ++i ) {

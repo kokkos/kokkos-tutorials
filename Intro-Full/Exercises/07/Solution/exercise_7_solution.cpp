@@ -156,7 +156,7 @@ int main( int argc, char* argv[] )
     // Application: <y,Ax> = y^T*A*x
     double result = 0;
 
-    Kokkos::parallel_reduce( team_policy( E, Kokkos::AUTO, 32 ).set_scratch_size( 0, Kokkos::PerTeam( scratch_size ) ),
+    Kokkos::parallel_reduce( "yAx", team_policy( E, Kokkos::AUTO, 32 ).set_scratch_size( 0, Kokkos::PerTeam( scratch_size ) ),
                              KOKKOS_LAMBDA ( const member_type &teamMember, double &update ) {
       const int e = teamMember.league_rank();
       double tempN = 0;

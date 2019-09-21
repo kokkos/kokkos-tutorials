@@ -49,4 +49,11 @@ spack info kokkos
 
 The `spack.sh` script uses the special DIY mode of Spack to install dependencies and configure the current source folder to build.
 
+For Kokkos Kernels tutorials, there is similarly a `kk-spack.sh` script, e.g.
+````
+../../BuildScripts/kk-spack.sh +openmp %gcc@7.3.0 ^kokkos+aggressive_vectorization
+````
+All the arguments to the script get passed as a spec for the tutorial.
+We are indirectly configuring Kokkos, hence the `^` notation for specifying the exact Kokkos dependency spec.
+
 

@@ -3,3 +3,10 @@ spack-build/
 spack-build-env.txt
 spack-build-out.txt
 cmake_install.cmake
+*.o
+*.host
+*.cuda
+KokkosCore_config.h
+KokkosCore_config.tmp
+*.a
+

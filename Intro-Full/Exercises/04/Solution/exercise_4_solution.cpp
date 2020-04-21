@@ -92,24 +92,26 @@ int main( int argc, char* argv[] )
   Kokkos::initialize( argc, argv );
   {
 
-  // typedef Kokkos::Serial   ExecSpace;
-  // typedef Kokkos::Threads  ExecSpace;
-  // typedef Kokkos::OpenMP   ExecSpace;
-  typedef Kokkos::Cuda     ExecSpace;
+  #ifdef KOKKOS_ENABLE_CUDA
+  #define MemSpace Kokkos::CudaSpace
+  #endif
+  #ifdef KOKKOS_ENABLE_HIP
+  #define MemSpace Kokkos::HIPSpace
+  #endif
+  #ifdef KOKKOS_ENABLE_OPENMPTARGET
+  #define MemSpace Kokkos::OpenMPTargetSpace
+  #endif
 
-  // typedef Kokkos::HostSpace     MemSpace;
-  // typedef Kokkos::OpenMP        MemSpace;
-  typedef Kokkos::CudaSpace     MemSpace;
-  // typedef Kokkos::CudaUVMSpace  MemSpace;
+  #ifndef MemSpace
+  #define MemSpace Kokkos::HostSpace
+  #endif
 
-  typedef Kokkos::LayoutLeft   Layout;
-  // typedef Kokkos::LayoutRight  Layout;
-
-  typedef Kokkos::RangePolicy<ExecSpace>  range_policy;
+  using ExecSpace = MemSpace::execution_space;
+  using range_policy = Kokkos::RangePolicy<ExecSpace>
 
   // Allocate y, x vectors and Matrix A on device.
-  typedef Kokkos::View<double*, Layout, MemSpace>   ViewVectorType;
-  typedef Kokkos::View<double**, Layout, MemSpace>  ViewMatrixType;
+  typedef Kokkos::View<double*, Kokkos::LayoutLeft, MemSpace>   ViewVectorType;
+  typedef Kokkos::View<double**, Kokkos::LayoutLeft, MemSpace>  ViewMatrixType;
   ViewVectorType y( "y", N );
   ViewVectorType x( "x", M );
   ViewMatrixType A( "A", N, M );

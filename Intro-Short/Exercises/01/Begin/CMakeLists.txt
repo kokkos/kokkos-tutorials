@@ -1,7 +1,7 @@
 cmake_minimum_required (VERSION 3.10)
+project (KokkosTutorial01)
 include(../../common.cmake)
 
-project (KokkosTutorial01)
 add_executable(01_Exercise exercise_1_begin.cpp)
 target_link_libraries(01_Exercise Kokkos::kokkos)
 

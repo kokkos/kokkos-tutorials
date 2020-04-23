@@ -6,5 +6,5 @@ if(SPACK_CXX)
   set(ENV{CXX} ${SPACK_CXX})
 endif()
 
-set(Kokkos_ROOT_DIR "$ENV{Kokkos_ROOT}" CACHE STRING "Kokkos root directory")
+set(Kokkos_DIR "$ENV{Kokkos_ROOT}" CACHE STRING "Kokkos root directory")
 find_package(Kokkos REQUIRED)

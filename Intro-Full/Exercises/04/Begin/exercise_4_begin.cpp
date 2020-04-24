@@ -102,14 +102,11 @@ int main( int argc, char* argv[] )
   // typedef Kokkos::Threads  ExecSpace;
   // typedef Kokkos::OpenMP   ExecSpace;
   // typedef Kokkos::Cuda     ExecSpace;
-  // typedef Kokkos::HIP      ExecSpace;
 
   // EXERCISE: Choose device memory space.
   // typedef Kokkos::HostSpace     MemSpace;
-  // typedef Kokkos::OpenMP        MemSpace;
   // typedef Kokkos::CudaSpace     MemSpace;
   // typedef Kokkos::CudaUVMSpace  MemSpace;
-  // typedef Kokkos::HIPSpace      MemSpace;
 
   // EXERCISE give-away: Choose a Layout.
   // EXERCISE: When exercise is correctly implemented, then

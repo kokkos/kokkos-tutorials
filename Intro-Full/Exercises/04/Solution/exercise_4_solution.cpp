@@ -107,7 +107,7 @@ int main( int argc, char* argv[] )
   #endif
 
   using ExecSpace = MemSpace::execution_space;
-  using range_policy = Kokkos::RangePolicy<ExecSpace>
+  using range_policy = Kokkos::RangePolicy<ExecSpace>;
 
   // Allocate y, x vectors and Matrix A on device.
   typedef Kokkos::View<double*, Kokkos::LayoutLeft, MemSpace>   ViewVectorType;

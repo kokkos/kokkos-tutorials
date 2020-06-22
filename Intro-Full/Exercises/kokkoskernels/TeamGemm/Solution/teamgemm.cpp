@@ -52,6 +52,7 @@
 #include <sys/time.h>
 
 #include <Kokkos_Core.hpp>
+#include "Kokkos_Random.hpp"
 // EXERCISE: Include header files for proper KokkosKernels Batched functions
 // EXERCISE hint: #include "KokkosBatched_Gemm_Decl.hpp" #include "KokkosBatched_Gemm_Team_Impl.hpp"
 #include "KokkosBatched_Gemm_Decl.hpp"
@@ -97,12 +98,12 @@ int main(int argc, char* argv[])
       printf("  User B.n is %d\n", B_dims.n);
     }
     if (strcmp(argv[i], "-alpha") == 0) {
-      alpha = atof( argv[i]);
-      printf("  User alpha %f\n", alpha);
+      user_alpha = atof( argv[i]);
+      printf("  User alpha %f\n", user_alpha);
     }
     if (strcmp(argv[i], "-beta") == 0) {
-      beta = atof( argv[i]);
-      printf("  User beta %f\n", beta);
+      user_beta = atof( argv[i]);
+      printf("  User beta %f\n", user_beta);
     }
 
     else if ((strcmp(argv[i], "-h") == 0) || (strcmp(argv[i], "-help") == 0)) {
@@ -126,35 +127,82 @@ int main(int argc, char* argv[])
   
   Kokkos::initialize(argc, argv);
 
-  //using Layout = Kokkos::LayoutLeft;
-  using Layout = Kokkos::LayoutRight;
-
+  // Select View Types
   // using ScalarType = float;
   using ScalarType = double;
-
-  using ViewType = Kokkos::View<ScalarType**, Layout>;
+  //using Layout = Kokkos::LayoutLeft;
+  using LayoutType = Kokkos::LayoutRight;
+  using DeviceType = Kokkos::Cuda;
+  using ViewType = Kokkos::View<ScalarType***, LayoutType, DeviceType>;
+  
 
   // Timer products
   struct timeval begin, end;
 
-  double tolerance = 0.0000000001;
   ScalarType alpha = (ScalarType) user_alpha;
   ScalarType beta = (ScalarType) user_beta;
+  const int N = 16;
 
-  // TODO: Allocate random matrices on the device
+  // Allocate A, B, and C matrices on the device
+  ViewType A("A", N, A_dims.m, A_dims.n);
+  ViewType B("B", N, B_dims.m, B_dims.n);
+  ViewType C("C", N, C_dims.m, C_dims.n);
+  Kokkos::View<ScalarType**, LayoutType, DeviceType> filters("filters", B_dims.m, B_dims.n);
+
+  // Populate A, B, and C matrices with random numbers
+  using ExecutionSpaceType = DeviceType::execution_space;
+  uint64_t seed = Kokkos::Impl::clock_tic();
+  Kokkos::Random_XorShift64_Pool<ExecutionSpaceType> rand_pool(seed);
+  
+  Kokkos::fill_random(A, rand_pool, Kokkos::rand<Kokkos::Random_XorShift64<ExecutionSpaceType>, ScalarType>::max());
+  Kokkos::fill_random(B, rand_pool, Kokkos::rand<Kokkos::Random_XorShift64<ExecutionSpaceType>, ScalarType>::max());
+  Kokkos::fill_random(C, rand_pool, Kokkos::rand<Kokkos::Random_XorShift64<ExecutionSpaceType>, ScalarType>::max());
+  Kokkos::fill_random(filters, rand_pool, Kokkos::rand<Kokkos::Random_XorShift64<ExecutionSpaceType>, ScalarType>::max());
 
   gettimeofday(&begin, NULL);
 
-  // TODO: Start TeamGemm
+  // Invoke TeamGemm from Vector Loop
+  const int num_leagues = N;         /// N teams are formed
+  const int team_size = C_dims.n;    /// Each team consists of C_dims.n kokkos threads
+  const int vector_size = C_dims.m;  /// team_size * vector_size concurrent threads are associated within a team
+
+  using TeamMemberType = Kokkos::TeamPolicy<ExecutionSpaceType>::member_type;
+  using ATransType = Trans::NoTranspose;
+  using BTransType = Trans::NoTranspose;
+  Kokkos::TeamPolicy<ExecutionSpaceType> policy(num_leagues, team_size, vector_size);
+
+  Kokkos::parallel_for(policy, KOKKOS_LAMBDA(const TeamMemberType &member) {
+    const int idx = member.league_rank();
+    // Fetch 2D sub-matrices
+    auto a = Kokkos::subview(A, idx, Kokkos::ALL(), Kokkos::ALL());
+    auto b = Kokkos::subview(B, idx, Kokkos::ALL(), Kokkos::ALL());
+    auto c = Kokkos::subview(C, idx, Kokkos::ALL(), Kokkos::ALL());
+    Kokkos::parallel_for(Kokkos::ThreadVectorRange(member, team_size), [&](const int &k0) {
+      // Fetch 1D column vectors
+      auto b_col_vec = Kokkos::subview(a, Kokkos::ALL(), k0);
+      auto c_col_vec = Kokkos::subview(c, Kokkos::ALL(), k0);
+      auto filter = Kokkos::subview(filters, Kokkos::ALL(), k0);
+      Kokkos::parallel_for(Kokkos::TeamThreadRange(member, vector_size), [&](const int &k1) {
+        // Filter each b column vector
+        b_col_vec(k1) *= filter(k1);
+      });
+      // Calculate c_col_vec = beta*c_col_vec + alpha*a*b_col_vec  
+      KokkosBatched::TeamGemm<TeamMemberType,
+                              ATransType,
+                              BTransType,
+                              Algo::Gemm::Unblocked>
+        ::invoke(member, alpha, a, b_col_vec, beta, c_col_vec);
+    });
+  }
+  
+  // Wait for the device to return control
   Kokkos::fence();
 
-  gettimeofday( &end, NULL );
+  gettimeofday(&end, NULL);
 
   // Calculate time
   double time = 1.0 *    (end.tv_sec  - begin.tv_sec) +
                 1.0e-6 * (end.tv_usec - begin.tv_usec);
-
-  // TODO: Check result
   
   // Print results (problem size, time).
   printf( "    Results: ( C:%dx%d, A:%dx%d, B:%dx%d, beta:%lf, alpha:%lf ), time( %g s )\n",

@@ -167,8 +167,8 @@ int main(int argc, char* argv[])
   const int vector_size = C_dims.m;  /// team_size * vector_size concurrent threads are associated within a team
 
   using TeamMemberType = Kokkos::TeamPolicy<ExecutionSpaceType>::member_type;
-  using ATransType = Trans::NoTranspose;
-  using BTransType = Trans::NoTranspose;
+  using ATransType = KokkosBatched::Trans::NoTranspose;
+  using BTransType = KokkosBatched::Trans::NoTranspose;
   Kokkos::TeamPolicy<ExecutionSpaceType> policy(num_leagues, team_size, vector_size);
 
   Kokkos::parallel_for(policy, KOKKOS_LAMBDA(const TeamMemberType &member) {
@@ -190,10 +190,10 @@ int main(int argc, char* argv[])
       KokkosBatched::TeamGemm<TeamMemberType,
                               ATransType,
                               BTransType,
-                              Algo::Gemm::Unblocked>
+                              KokkosBatched::Algo::Gemm::Unblocked>
         ::invoke(member, alpha, a, b_col_vec, beta, c_col_vec);
     });
-  }
+  });
   
   // Wait for the device to return control
   Kokkos::fence();

@@ -42,7 +42,7 @@
 //@HEADER
 */
 
-// EXERCISE Goal: Solve C = beta*C + alpha*A*B using the Batched Team interface for Gemm
+// EXERCISE Goal: Demonstrate usage of TeamGemm interface
 //        - KokkosKernels Batched functions
 
 #include <limits>

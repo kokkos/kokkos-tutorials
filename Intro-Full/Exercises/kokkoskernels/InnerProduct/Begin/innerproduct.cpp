@@ -198,52 +198,61 @@ int main( int argc, char* argv[] )
     
     //------------------Using team-based BLAS functions------------------//
 
-    //ViewVectorType y2  ( "y2", N );
-    //ViewVectorType x2  ( "x2", M );
-    //ViewMatrixType A2  ( "A2", N, M );
-    //
-    //// Deep copy host views to device views.
-    //Kokkos::deep_copy( y2, h_y );
-    //Kokkos::deep_copy( x2, h_x );
-    //Kokkos::deep_copy( A2, h_A );
-	//
-    //gettimeofday( &begin, NULL );
-    //
-    //for ( int repeat = 0; repeat < nrepeat; repeat++ ) {
-    //  // Application: <y,Ax> = y^T*A*x
-    //  double result2 = 0;
-    //  const team_policy policy( N, Kokkos::AUTO );
-    //  Kokkos::parallel_reduce( policy, KOKKOS_LAMBDA ( const member_type &teamMember, double &update ) {
-    //    const int row = teamMember.league_rank();
-    //
-    //    EXERCISE: Multiply each row of matrix A2 with vector x2 using team-based dot functions
-    //    EXERCISE hint: - KokkosBlas::Experimental::dot (temp2 = <A2(row,:),x2>)
-    //                   - team-based dot, take subviews of View A2
-    //
-    //    if ( teamMember.team_rank() == 0 ) update += y2( row ) * temp2;
-    //  }, result2 );
-    //
-    //  // Output result.
-    //  if ( repeat == ( nrepeat - 1 ) ) {
-    //    printf( "    Computed result for %d x %d is %lf\n", N, M, result2 );
-    //  }
-    //
-    //  const double solution = (double) N * (double) M;
-    //
-    //  if ( result2 != solution ) {
-    //    printf( "    Error: result( %lf ) != solution( %lf )\n", result2, solution );
-    //  }
-    //}
-    //
-    //gettimeofday( &end, NULL );
-    //
-    //// Calculate time.
-    //double time2 = 1.0 *   ( end.tv_sec - begin.tv_sec ) +
-    //              1.0e-6 * ( end.tv_usec - begin.tv_usec );
-    //
-    //// Print results (problem size, time and bandwidth in GB/s).
-    //printf( "    N( %d ) M( %d ) nrepeat ( %d ) problem( %g MB ) time( %g s ) bandwidth( %g GB/s )\n",
-    //        N, M, nrepeat, Gbytes * 1000, time2, Gbytes * nrepeat / time2 );
+      ViewVectorType y2  ( "y2", N );
+      ViewVectorType x2  ( "x2", M );
+      ViewMatrixType A2  ( "A2", N, M );
+
+      // Deep copy host views to device views.
+      Kokkos::deep_copy( y2, h_y );
+      Kokkos::deep_copy( x2, h_x );
+      Kokkos::deep_copy( A2, h_A );
+
+      gettimeofday( &begin, NULL );
+
+      for ( int repeat = 0; repeat < nrepeat; repeat++ ) {
+        // Application: <y,Ax> = y^T*A*x
+        double result2 = 0;
+        const team_policy policy( N, Kokkos::AUTO );
+        Kokkos::parallel_reduce( policy, KOKKOS_LAMBDA ( const member_type &teamMember, double &update ) {
+          const int row = teamMember.league_rank();
+
+          double temp2 = 0;
+          //  EXERCISE: Multiply each row of matrix A2 with vector x2 using team-based dot functions; that is, replace
+          //              the code in braces below (i.e. parallel_reduce with TeamThreadRange) with team-based dot
+          //  EXERCISE  hint: - KokkosBlas::Experimental::dot (temp2 = <A2(row,:),x2>)
+          //                  - team-based dot, take subviews of View A2
+          {
+            auto A2row = Kokkos::subview(A2, row, Kokkos::ALL());
+            Kokkos::parallel_reduce( Kokkos::TeamThreadRange(teamMember, A2row.extent(0)), [=] (int i, double &tmpUpdate) {
+              tmpUpdate += A2row(i)*x2(i);
+            }, temp2);
+            teamMember.team_barrier();
+          }
+
+          if ( teamMember.team_rank() == 0 ) update += y2( row ) * temp2;
+        }, result2 );
+
+        // Output result.
+        if ( repeat == ( nrepeat - 1 ) ) {
+          printf( "    Computed result for %d x %d is %lf\n", N, M, result2 );
+        }
+
+        const double solution = (double) N * (double) M;
+
+        if ( result2 != solution ) {
+          printf( "    Error: result( %lf ) != solution( %lf )\n", result2, solution );
+        }
+      }
+
+      gettimeofday( &end, NULL );
+
+      // Calculate time.
+      double time2 = 1.0 *   ( end.tv_sec - begin.tv_sec ) +
+                    1.0e-6 * ( end.tv_usec - begin.tv_usec );
+
+      // Print results (problem size, time and bandwidth in GB/s).
+      printf( "    N( %d ) M( %d ) nrepeat ( %d ) problem( %g MB ) time( %g s ) bandwidth( %g GB/s )\n",
+              N, M, nrepeat, Gbytes * 1000, time2, Gbytes * nrepeat / time2 );
   }
   
   Kokkos::finalize();

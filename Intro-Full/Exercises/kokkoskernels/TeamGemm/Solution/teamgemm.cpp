@@ -70,59 +70,64 @@ void checkDims(dims_t A, dims_t B)
   }
 }
 
+// Create a functor for running TeamGemm on the device
 template <class TeamMemberType,
 	  class ScalarType,
 	  class ViewType,
 	  class ATransType,
 	  class BTransType,
 	  class ViewTypeFilters>
-struct functor_TeamGemm {
+struct TeamGemmFunctor {
   ScalarType alpha;
   ViewType A; 
   ViewType B;
   ScalarType beta;
   ViewType C;
   ViewTypeFilters filters;
-  const int team_size;
   const int vector_size;
+  const int team_size;
 
-  functor_TeamGemm(ScalarType alpha_,
+  TeamGemmFunctor(ScalarType alpha_,
 		   ViewType A_, ViewType B_,
 		   ScalarType beta_, ViewType C_,
 		   ViewTypeFilters filters_,
-		   int team_size_, int vector_size_) :  alpha(alpha_),
+		   int vector_size_, int team_size_) :  alpha(alpha_),
 						      A(A_),
 						      B(B_),
 						      beta(beta_),
 						      C(C_),
 						      filters(filters_),
-						      team_size(team_size_),
-						      vector_size(vector_size_)
+						      vector_size(vector_size_),
+						      team_size(team_size_)
   {}
 
   KOKKOS_INLINE_FUNCTION
   void operator()(const TeamMemberType &member) const {
-    const int idx = member.league_rank();
-    // Fetch 2D sub-matrices
-    auto a = Kokkos::subview(A, idx, Kokkos::ALL(), Kokkos::ALL());
-    auto b = Kokkos::subview(B, idx, Kokkos::ALL(), Kokkos::ALL());
-    auto c = Kokkos::subview(C, idx, Kokkos::ALL(), Kokkos::ALL());
-    Kokkos::parallel_for(Kokkos::ThreadVectorRange(member, team_size), [&](const int &k0) {
-	// Fetch 1D column vectors
-	auto b_col_vec = Kokkos::subview(a, Kokkos::ALL(), k0);
-	auto c_col_vec = Kokkos::subview(c, Kokkos::ALL(), k0);
-	auto filter = Kokkos::subview(filters, Kokkos::ALL(), k0);
-	Kokkos::parallel_for(Kokkos::TeamThreadRange(member, vector_size), [&](const int &k1) {
-	    // Filter each b column vector
-	    c_col_vec(k1) *= filter(k1);
-	  });
-	// Calculate c_col_vec = beta*c_col_vec + alpha*a*b_col_vec  
-	KokkosBatched::TeamGemm<TeamMemberType,
-				ATransType,
-				BTransType,
-				KokkosBatched::Algo::Gemm::Unblocked>
-	  ::invoke(member, alpha, a, b_col_vec, beta, c_col_vec);
-      });
+    // Fetch the index of the calling team within the league
+    const int team_idx = member.league_rank();
+
+    // Fetch 2D sub-matrices for this league
+    auto a = Kokkos::subview(A, team_idx, Kokkos::ALL(), Kokkos::ALL());
+    auto b = Kokkos::subview(B, team_idx, Kokkos::ALL(), Kokkos::ALL());
+    auto c = Kokkos::subview(C, team_idx, Kokkos::ALL(), Kokkos::ALL());
+
+
+    Kokkos::parallel_for(Kokkos::ThreadVectorRange(member, vector_size), [&](const int &vector_lane_idx) {
+	    // Fetch 1D column vectors for the calling thread.
+      auto b_col_vec = Kokkos::subview(a, Kokkos::ALL(), vector_lane_idx);
+      auto c_col_vec = Kokkos::subview(c, Kokkos::ALL(), vector_lane_idx);
+      auto filter = Kokkos::subview(filters, Kokkos::ALL(), vector_lane_idx);
+      Kokkos::parallel_for(Kokkos::TeamThreadRange(member, team_size), [&](const int &thread_idx) {
+          // Filter each b column vector
+          c_col_vec(thread_idx) *= filter(thread_idx);
+	    });
+      // Calculate c_col_vec = beta*c_col_vec + alpha*a*b_col_vec  
+      KokkosBatched::TeamGemm<TeamMemberType,
+                              ATransType,
+                              BTransType,
+                              KokkosBatched::Algo::Gemm::Unblocked>
+                    ::invoke(member, alpha, a, b_col_vec, beta, c_col_vec);
+    });
   }
 };
 
@@ -221,16 +226,16 @@ int main(int argc, char* argv[])
 
     // Invoke TeamGemm from Vector Loop
     const int num_leagues = N;         /// N teams are formed
-    int team_size = C_dims.n;    /// Each team consists of C_dims.n kokkos threads
-    int vector_size = C_dims.m;  /// team_size * vector_size concurrent threads are associated within a team
+    int vector_size = C_dims.n;        /// Each team consists of C_dims.n kokkos threads
+    int team_size = C_dims.m;          /// vector_size * team_size concurrent threads are associated within a team
 
     using TeamMemberType = Kokkos::TeamPolicy<ExecutionSpaceType>::member_type;
     using ATransType = KokkosBatched::Trans::NoTranspose;
     using BTransType = KokkosBatched::Trans::NoTranspose;
-    using FunctorType = functor_TeamGemm<TeamMemberType, ScalarType, ViewType, ATransType, BTransType, FilterType>;
+    using FunctorType = TeamGemmFunctor<TeamMemberType, ScalarType, ViewType, ATransType, BTransType, FilterType>;
 
-    FunctorType functor(alpha, A, B, beta, C, filters, team_size, vector_size);
-    Kokkos::TeamPolicy<ExecutionSpaceType> policy(num_leagues, team_size, vector_size);
+    FunctorType functor(alpha, A, B, beta, C, filters, vector_size, team_size);
+    Kokkos::TeamPolicy<ExecutionSpaceType> policy(num_leagues, vector_size, team_size);
 
     Kokkos::parallel_for(policy, functor);
     

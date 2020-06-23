@@ -72,32 +72,26 @@ void checkDims(dims_t A, dims_t B)
 
 // Create a functor for running TeamGemm on the device
 template <class TeamMemberType,
-	  class ScalarType,
-	  class ViewType,
-	  class ATransType,
-	  class BTransType,
-	  class ViewTypeFilters>
+	        class ScalarType,
+	        class ViewType,
+	        class ATransType,
+	        class BTransType>
 struct TeamGemmFunctor {
   ScalarType alpha;
   ViewType A; 
   ViewType B;
   ScalarType beta;
   ViewType C;
-  ViewTypeFilters filters;
-  const int vector_size;
   const int team_size;
 
   TeamGemmFunctor(ScalarType alpha_,
-		   ViewType A_, ViewType B_,
-		   ScalarType beta_, ViewType C_,
-		   ViewTypeFilters filters_,
-		   int vector_size_, int team_size_) :  alpha(alpha_),
+		              ViewType A_, ViewType B_,
+		              ScalarType beta_, ViewType C_, 
+                  int team_size_) : alpha(alpha_),
 						      A(A_),
 						      B(B_),
 						      beta(beta_),
 						      C(C_),
-						      filters(filters_),
-						      vector_size(vector_size_),
 						      team_size(team_size_)
   {}
 
@@ -111,23 +105,12 @@ struct TeamGemmFunctor {
     auto b = Kokkos::subview(B, team_idx, Kokkos::ALL(), Kokkos::ALL());
     auto c = Kokkos::subview(C, team_idx, Kokkos::ALL(), Kokkos::ALL());
 
-
-    Kokkos::parallel_for(Kokkos::ThreadVectorRange(member, vector_size), [&](const int &vector_lane_idx) {
-	    // Fetch 1D column vectors for the calling thread.
-      auto b_col_vec = Kokkos::subview(a, Kokkos::ALL(), vector_lane_idx);
-      auto c_col_vec = Kokkos::subview(c, Kokkos::ALL(), vector_lane_idx);
-      auto filter = Kokkos::subview(filters, Kokkos::ALL(), vector_lane_idx);
-      Kokkos::parallel_for(Kokkos::TeamThreadRange(member, team_size), [&](const int &thread_idx) {
-          // Filter each b column vector
-          c_col_vec(thread_idx) *= filter(thread_idx);
-	    });
-      // Calculate c_col_vec = beta*c_col_vec + alpha*a*b_col_vec  
-      KokkosBatched::TeamGemm<TeamMemberType,
-                              ATransType,
-                              BTransType,
-                              KokkosBatched::Algo::Gemm::Unblocked>
-                    ::invoke(member, alpha, a, b_col_vec, beta, c_col_vec);
-    });
+    // Calculate c = beta*c + alpha*a*b, using all threads in this league
+    KokkosBatched::TeamGemm<TeamMemberType,
+                            ATransType,
+                            BTransType,
+                            KokkosBatched::Algo::Gemm::Unblocked>
+                  ::invoke(member, alpha, a, b, beta, c);
   }
 };
 
@@ -197,7 +180,6 @@ int main(int argc, char* argv[])
     using LayoutType = Kokkos::LayoutRight;
     using DeviceType = Kokkos::Cuda;
     using ViewType = Kokkos::View<ScalarType***, LayoutType, DeviceType>;
-    using FilterType = Kokkos::View<ScalarType**, LayoutType, DeviceType>;
 
     // Timer products
     struct timeval begin, end;
@@ -210,7 +192,6 @@ int main(int argc, char* argv[])
     ViewType A("A", N, A_dims.m, A_dims.n);
     ViewType B("B", N, B_dims.m, B_dims.n);
     ViewType C("C", N, C_dims.m, C_dims.n);
-    FilterType filters("filters", B_dims.m, B_dims.n);
 
     // Populate A, B, and C matrices with random numbers
     using ExecutionSpaceType = DeviceType::execution_space;
@@ -220,23 +201,20 @@ int main(int argc, char* argv[])
     Kokkos::fill_random(A, rand_pool, Kokkos::rand<Kokkos::Random_XorShift64<ExecutionSpaceType>, ScalarType>::max());
     Kokkos::fill_random(B, rand_pool, Kokkos::rand<Kokkos::Random_XorShift64<ExecutionSpaceType>, ScalarType>::max());
     Kokkos::fill_random(C, rand_pool, Kokkos::rand<Kokkos::Random_XorShift64<ExecutionSpaceType>, ScalarType>::max());
-    Kokkos::fill_random(filters, rand_pool, Kokkos::rand<Kokkos::Random_XorShift64<ExecutionSpaceType>, ScalarType>::max());
 
     gettimeofday(&begin, NULL);
 
     // Invoke TeamGemm from Vector Loop
     const int num_leagues = N;         /// N teams are formed
-    int vector_size = C_dims.n;        /// Each team consists of C_dims.n kokkos threads
-    int team_size = C_dims.m;          /// vector_size * team_size concurrent threads are associated within a team
+    int team_size = C_dims.m;          /// team_size concurrent threads are associated within a team
 
     using TeamMemberType = Kokkos::TeamPolicy<ExecutionSpaceType>::member_type;
     using ATransType = KokkosBatched::Trans::NoTranspose;
     using BTransType = KokkosBatched::Trans::NoTranspose;
-    using FunctorType = TeamGemmFunctor<TeamMemberType, ScalarType, ViewType, ATransType, BTransType, FilterType>;
+    using FunctorType = TeamGemmFunctor<TeamMemberType, ScalarType, ViewType, ATransType, BTransType>;
 
-    int min_vector_size = vector_size < 32 ? 32 : vector_size;
-    FunctorType functor(alpha, A, B, beta, C, filters, min_vector_size, team_size);
-    Kokkos::TeamPolicy<ExecutionSpaceType> policy(num_leagues, vector_size, team_size);
+    FunctorType functor(alpha, A, B, beta, C, team_size);
+    Kokkos::TeamPolicy<ExecutionSpaceType> policy(num_leagues, team_size);
 
     Kokkos::parallel_for(policy, functor);
     

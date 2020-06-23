@@ -144,27 +144,27 @@ int main(int argc, char* argv[])
   // Read command line arguments.
   for (int i = 0; i < argc; i++) {
     if (strcmp(argv[i], "-A.m") == 0) {
-      A_dims.m = atoi(argv[i]);
+      A_dims.m = atoi(argv[++i]);
       printf("  User A.m is %d\n", A_dims.m);
     }
     if (strcmp(argv[i], "-A.n") == 0) {
-      A_dims.n = atoi( argv[i]);
+      A_dims.n = atoi(argv[++i]);
       printf("  User A.n is %d\n", A_dims.n);
     }
-    if (strcmp(argv[i], "-B.n") == 0) {
-      B_dims.n = atoi( argv[i]);
-      printf("  User B.n is %d\n", B_dims.n);
+    if (strcmp(argv[i], "-B.m") == 0) {
+      B_dims.m = atoi(argv[++i]);
+      printf("  User B.m is %d\n", B_dims.m);
     }
     if (strcmp(argv[i], "-B.n") == 0) {
-      B_dims.n = atoi( argv[i]);
+      B_dims.n = atoi(argv[++i]);
       printf("  User B.n is %d\n", B_dims.n);
     }
     if (strcmp(argv[i], "-alpha") == 0) {
-      user_alpha = atof( argv[i]);
+      user_alpha = atof(argv[++i]);
       printf("  User alpha %f\n", user_alpha);
     }
     if (strcmp(argv[i], "-beta") == 0) {
-      user_beta = atof( argv[i]);
+      user_beta = atof(argv[++i]);
       printf("  User beta %f\n", user_beta);
     }
 
@@ -234,7 +234,8 @@ int main(int argc, char* argv[])
     using BTransType = KokkosBatched::Trans::NoTranspose;
     using FunctorType = TeamGemmFunctor<TeamMemberType, ScalarType, ViewType, ATransType, BTransType, FilterType>;
 
-    FunctorType functor(alpha, A, B, beta, C, filters, vector_size, team_size);
+    int min_vector_size = vector_size < 32 ? 32 : vector_size;
+    FunctorType functor(alpha, A, B, beta, C, filters, min_vector_size, team_size);
     Kokkos::TeamPolicy<ExecutionSpaceType> policy(num_leagues, vector_size, team_size);
 
     Kokkos::parallel_for(policy, functor);

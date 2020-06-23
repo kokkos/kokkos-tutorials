@@ -55,8 +55,6 @@
 #include "Kokkos_Random.hpp"
 // EXERCISE: Include header files for proper KokkosKernels Batched functions
 // EXERCISE hint: #include "KokkosBatched_Gemm_Decl.hpp" #include "KokkosBatched_Gemm_Team_Impl.hpp"
-#include "KokkosBatched_Gemm_Decl.hpp"
-#include "KokkosBatched_Gemm_Team_Impl.hpp"
 
 struct dims_t {
   int m, n;
@@ -100,17 +98,11 @@ struct TeamGemmFunctor {
     // Fetch the index of the calling team within the league
     const int team_idx = member.league_rank();
 
-    // Fetch 2D sub-matrices for this league
-    auto a = Kokkos::subview(A, team_idx, Kokkos::ALL(), Kokkos::ALL());
-    auto b = Kokkos::subview(B, team_idx, Kokkos::ALL(), Kokkos::ALL());
-    auto c = Kokkos::subview(C, team_idx, Kokkos::ALL(), Kokkos::ALL());
+    // EXERCISE: Fetch 2D sub-matrices for this league
+    // EXERCISE hint: Use Kokkos::subview
 
-    // Calculate c = beta*c + alpha*a*b, using all threads in this league
-    KokkosBatched::TeamGemm<TeamMemberType,
-                            ATransType,
-                            BTransType,
-                            KokkosBatched::Algo::Gemm::Unblocked>
-                  ::invoke(member, alpha, a, b, beta, c);
+    // EXERCISE: Calculate c = beta*c + alpha*a*b, using all threads in this league
+    // EXCERCISE hint: Use KokkosBatched::TeamGemm
   }
 };
 
@@ -210,12 +202,12 @@ int main(int argc, char* argv[])
     using TeamMemberType = Kokkos::TeamPolicy<ExecutionSpaceType>::member_type;
     using ATransType = KokkosBatched::Trans::NoTranspose;
     using BTransType = KokkosBatched::Trans::NoTranspose;
-    using FunctorType = TeamGemmFunctor<TeamMemberType, ScalarType, ViewType, ATransType, BTransType>;
+    // EXERCISE: Instantiate TeamGemmFunctor
 
-    FunctorType functor(alpha, A, B, beta, C, team_size);
-    Kokkos::TeamPolicy<ExecutionSpaceType> policy(num_leagues, team_size);
+    // EXERCISE: Instantiate TeamPolicy
+    // EXERCISE hint: use Kokkos::TeamPolicy(index_type league_size, index_type team_size)
 
-    Kokkos::parallel_for(policy, functor);
+    // EXERCISE: Run Kokkos::parallel_for using the above policy and functor
     
     // Wait for the device to return control
     Kokkos::fence();

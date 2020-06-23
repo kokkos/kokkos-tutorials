@@ -161,9 +161,10 @@ int main( int argc, char* argv[] )
     crsmat_t A = Test::generate_structured_matrix2D<crsmat_t>("FD", mat_structure);
 
     graph_t  graph    = A.graph; // in_graph
-    const size_type N = graph.numRows(); std::cout << "Matrix size: " << N << " x " << N << std::endl;
+    const size_type N = graph.numRows();
     typename KernelHandle::const_nnz_lno_t fill_lev = lno_t(k) ;
     const size_type nnzA = A.graph.entries.extent(0);
+    std::cout << "Matrix size: " << N << " x " << N << ", nnz = " << nnzA << std::endl;
 
     // Create SPILUK handle
     KernelHandle kh;

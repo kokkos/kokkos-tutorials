@@ -58,6 +58,7 @@
 // EXERCISE hint: KokkosBlas1_nrm2.hpp, KokkosSparse_CrsMatrix.hpp, KokkosSparse_spmv.hpp, KokkosSparse_spiluk.hpp
 
 #include <KokkosKernels_IOUtils.hpp>
+#include "KokkosKernels_Test_Structured_Matrix.hpp"
 
 #define EXPAND_FACT 6 // a factor used in expected sizes of L and U
 
@@ -69,16 +70,21 @@ int main( int argc, char* argv[] )
   using lno_t     = int;
   using size_type = int;
 
-  std::string afilename;      // input matrix filename (Matrix Market format)
+  int nx = 10;                // grid points in 'x' direction
+  int ny = 10;                // grid points in 'y' direction
   int test_algo = LVLSCHED_RP;// kernel implementation
   int k = 0;                  // fill level
   int team_size = -1;         // team size
   
   // Read command line arguments
   for ( int i = 0; i < argc; i++ ) {
-    if ( strcmp( argv[ i ], "-af" ) == 0 ) {
-       afilename = argv[ ++i ];
-       printf( "  User's filename is %s\n", afilename.c_str() );
+    if ( strcmp( argv[ i ], "-nx" ) == 0 ) {
+      nx = atoi( argv[ ++i ] );
+      printf( "  User's grid points in x direction is %d\n", nx );
+    }
+    else if ( strcmp( argv[ i ], "-ny" ) == 0 ) {
+      ny = atoi( argv[ ++i ] );
+      printf( "  User's grid points in y direction is %d\n", ny );
     }
     else if ( strcmp( argv[ i ], "-k" ) == 0 ) {
       k = atoi( argv[ ++i ] );
@@ -98,8 +104,9 @@ int main( int argc, char* argv[] )
       printf( "  User's team_size is %d\n", team_size );
     }
     else if ( ( strcmp( argv[ i ], "-h" ) == 0 ) || ( strcmp( argv[ i ], "-help" ) == 0 ) ) {
-      printf( "  ILU(k) Options:\n" );
-      printf( "  -af <FILE>    : Matrix Market formatted text file 'FILE'\n");
+      printf( "  ILU(k) Options: (simple Laplacian matrix on a cartesian grid where nrows = nx * ny) \n" );
+      printf( "  -nx <int>     : grid points in x direction (default: 10)\n" );
+      printf( "  -ny <int>     : grid points in y direction (default: 10)\n" );
       printf( "  -k <int>      : Fill level (default: 0)\n" );
       printf( "  -algo [OPTION]: Kernel implementation (default: lvlrp)\n" );
       printf( "                  [OPTIONS]: lvlrp, lvltp1\n");
@@ -133,12 +140,31 @@ int main( int argc, char* argv[] )
     scalar_t zero = scalar_t(0.0);
     scalar_t mone = scalar_t(-1.0);
 
-    // Allocate, read and fill a sparse matrix
-	crsmat_t A        = KokkosKernels::Impl::read_kokkos_crst_matrix<crsmat_t>(afilename.c_str()); //in_matrix
+    // Generate a simple Laplacian matrix on a cartesian grid.
+	// The mat_structure view is used to generate a matrix using
+    // finite difference (FD) or finite element (FE) discretization
+    // on a cartesian grid.
+    // Each row corresponds to an axis (x, y and z)
+    // In each row the first entry is the number of grid point in
+    // that direction, the second and third entries are used to apply
+    // BCs in that direction, BC=0 means Neumann BC is applied,
+    // BC=1 means Dirichlet BC is applied by zeroing out the row and putting
+    // one on the diagonal.
+    Kokkos::View<lno_t*[3], Kokkos::HostSpace> mat_structure("Matrix Structure", 2);
+    mat_structure(0, 0) = nx;  // Request nx grid point in 'x' direction
+    mat_structure(0, 1) = 0;   // Add BC to the left
+    mat_structure(0, 2) = 0;   // Add BC to the right
+    mat_structure(1, 0) = ny;  // Request ny grid point in 'y' direction
+    mat_structure(1, 1) = 0;   // Add BC to the bottom
+    mat_structure(1, 2) = 0;   // Add BC to the top
+
+    crsmat_t A = Test::generate_structured_matrix2D<crsmat_t>("FD", mat_structure);
+
     graph_t  graph    = A.graph; // in_graph
     const size_type N = graph.numRows();
     typename KernelHandle::const_nnz_lno_t fill_lev = lno_t(k) ;
     const size_type nnzA = A.graph.entries.extent(0);
+    std::cout << "Matrix size: " << N << " x " << N << ", nnz = " << nnzA << std::endl;
 
     // Create SPILUK handle
     KernelHandle kh;
@@ -149,7 +175,7 @@ int main( int argc, char* argv[] )
     switch(test_algo) {
       case LVLSCHED_RP: //Using range policy (KokkosSparse::Experimental::SPILUKAlgorithm::SEQLVLSCHD_RP)
         // EXERCISE hint: kh.create_spiluk_handle(implementation_type, number_of_matrix_rows, expected_nnz_of_L, expected_nnz_of_U)
-
+        
         std::cout << "Kernel implementation type: "; kh.get_spiluk_handle()->print_algorithm();
         break;
       case LVLSCHED_TP1: //Using team policy (KokkosSparse::Experimental::SPILUKAlgorithm::SEQLVLSCHD_TP1)

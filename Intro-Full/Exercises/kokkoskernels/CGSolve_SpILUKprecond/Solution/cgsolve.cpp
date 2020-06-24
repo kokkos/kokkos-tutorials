@@ -65,6 +65,7 @@
 #include <KokkosSparse_spiluk.hpp>
 #include <KokkosSparse_sptrsv.hpp>
 #include <KokkosKernels_IOUtils.hpp>
+#include <KokkosKernels_Test_Structured_Matrix.hpp>
 
 #define EXPAND_FACT 6 // a factor used in expected sizes of L and U
 
@@ -78,7 +79,8 @@ int main( int argc, char* argv[] )
   using lno_t     = int;
   using size_type = int;
 
-  std::string afilename;         // input matrix filename (Matrix Market format)
+  int nx = 10;                   // grid points in 'x' direction
+  int ny = 10;                   // grid points in 'y' direction
   int algo_spiluk = LVLSCHED_RP; // SPILUK kernel implementation
   int algo_sptrsv = LVLSCHED_RP; // SPTRSV kernel implementation
   int k = 0;                     // fill level
@@ -87,9 +89,13 @@ int main( int argc, char* argv[] )
 
   // Read command line arguments
   for ( int i = 0; i < argc; i++ ) {
-    if ( strcmp( argv[ i ], "-af" ) == 0 ) {
-       afilename = argv[ ++i ];
-       printf( "  User's filename is %s\n", afilename.c_str() );
+    if ( strcmp( argv[ i ], "-nx" ) == 0 ) {
+      nx = atoi( argv[ ++i ] );
+      printf( "  User's grid points in x direction is %d\n", nx );
+    }
+    else if ( strcmp( argv[ i ], "-ny" ) == 0 ) {
+      ny = atoi( argv[ ++i ] );
+      printf( "  User's grid points in y direction is %d\n", ny );
     }
     else if ( strcmp( argv[ i ], "-k" ) == 0 ) {
       k = atoi( argv[ ++i ] );
@@ -122,8 +128,9 @@ int main( int argc, char* argv[] )
       printf( "  User's preconditioning flag is %d\n", prec );
     }
     else if ( ( strcmp( argv[ i ], "-h" ) == 0 ) || ( strcmp( argv[ i ], "-help" ) == 0 ) ) {
-      printf( "  CGSolve with ILU(k) preconditioner options:\n" );
-      printf( "  -af <FILE>          : Matrix Market formatted text file 'FILE'\n");
+      printf( "  CGSolve with ILU(k) preconditioner options: (simple Laplacian matrix on a cartesian grid where nrows = nx * ny)\n" );
+      printf( "  -nx <int>           : grid points in x direction (default: 10)\n" );
+      printf( "  -ny <int>           : grid points in y direction (default: 10)\n" );
       printf( "  -k <int>            : Fill level in SPILUK (default: 0)\n" );
       printf( "  -algospiluk [OPTION]: SPILUK kernel implementation (default: lvlrp)\n" );
       printf( "  -algosptrsv [OPTION]: SPTRSV kernel implementation (default: lvlrp)\n" );
@@ -160,12 +167,31 @@ int main( int argc, char* argv[] )
     scalar_t zero = scalar_t(0.0);
     scalar_t mone = scalar_t(-1.0);
 
-    // Allocate, read and fill a sparse matrix
-	crsmat_t A        = KokkosKernels::Impl::read_kokkos_crst_matrix<crsmat_t>(afilename.c_str()); //in_matrix
+    // Generate a simple Laplacian matrix on a cartesian grid.
+    // The mat_structure view is used to generate a matrix using
+    // finite difference (FD) or finite element (FE) discretization
+    // on a cartesian grid.
+    // Each row corresponds to an axis (x, y and z)
+    // In each row the first entry is the number of grid point in
+    // that direction, the second and third entries are used to apply
+    // BCs in that direction, BC=0 means Neumann BC is applied,
+    // BC=1 means Dirichlet BC is applied by zeroing out the row and putting
+    // one on the diagonal.
+    Kokkos::View<lno_t*[3], Kokkos::HostSpace> mat_structure("Matrix Structure", 2);
+    mat_structure(0, 0) = nx;  // Request nx grid point in 'x' direction
+    mat_structure(0, 1) = 0;   // Add BC to the left
+    mat_structure(0, 2) = 0;   // Add BC to the right
+    mat_structure(1, 0) = ny;  // Request ny grid point in 'y' direction
+    mat_structure(1, 1) = 0;   // Add BC to the bottom
+    mat_structure(1, 2) = 0;   // Add BC to the top
+
+    crsmat_t A = Test::generate_structured_matrix2D<crsmat_t>("FD", mat_structure);
+
     graph_t  graph    = A.graph; // in_graph
     const size_type N = graph.numRows();
     typename KernelHandle::const_nnz_lno_t fill_lev = lno_t(k) ;
     const size_type nnzA = A.graph.entries.extent(0);
+    std::cout << "Matrix size: " << N << " x " << N << ", nnz = " << nnzA << std::endl;
 
     // Create SPILUK handle and SPTRSV handles (for L and U)
     KernelHandle kh_spiluk, kh_sptrsv_L, kh_sptrsv_U;
@@ -393,12 +419,9 @@ int main( int argc, char* argv[] )
     double time = 1.0 *    ( end.tv_sec  - begin.tv_sec ) +
                   1.0e-6 * ( end.tv_usec - begin.tv_usec );
 
-    // Check result
-    KokkosBlas::axpby(one, x, mone, xx);
-    double final_norm_res  = std::sqrt( KokkosBlas::dot(xx, xx) );
 
-    // Print results (problem size, time, number of iterations and final norm residual)
-    printf( "    Results: N (%d), time (%g s), iterations (%d), final norm_res(%.20lf)\n", N, time, k, final_norm_res );
+    // Print results (problem size, time, number of iterations and norm residual)
+    printf( "    Results: N (%d), time (%g s), iterations (%d), norm_res(%.20lf)\n", N, time, k, norm_res );
   }
 
   Kokkos::finalize();

@@ -5,7 +5,7 @@ find_package(KokkosKernels REQUIRED)
 
 include(../../common.cmake)
 
-add_executable(inner blockjacobi.cpp)
-target_link_libraries(inner Kokkos::kokkoskernels)
+add_executable(blockjacobi blockjacobi.cpp)
+target_link_libraries(blockjacobi Kokkos::kokkoskernels)
 
 

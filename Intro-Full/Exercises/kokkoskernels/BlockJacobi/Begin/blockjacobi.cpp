@@ -36,6 +36,27 @@ using namespace KokkosBatched;
 
 template<typename ManyMatrixType,
 	 typename ManyVectorType>
+void applyBlockJacobi(const ManyMatrixType &A,
+                      const ManyVectorType &x,
+                      const ManyVectorType &b) {
+  policy_type policy(A.extent(0), Kokkos::AUTO());
+  Kokkos::parallel_for
+    ("apply-block-jacobi",
+     policy, KOKKOS_LAMBDA(const member_type &member) {
+      const int i = member.league_rank();
+      const value_type one(1), zero(0);
+      auto AA = Kokkos::subview(A, i, Kokkos::ALL(), Kokkos::ALL());
+      auto xx = Kokkos::subview(x, i, Kokkos::ALL());
+      auto bb = Kokkos::subview(b, i, Kokkos::ALL());
+      TeamGemv<member_type,
+               Trans::NoTranspose,
+               Algo::Level2::Unblocked>
+        ::invoke(member, one, AA, bb, zero, xx);
+    });
+}
+
+template<typename ManyMatrixType,
+	 typename ManyVectorType>
 value_type computeResidual(const ManyMatrixType &A,
 			   const ManyVectorType &x,
 			   const ManyVectorType &b,
@@ -79,7 +100,7 @@ int main(int argc, char* argv[]) {
 #if defined(KOKKOS_ENABLE_CUDA)
     cudaProfilerStop();
 #endif
-    Kokkos::print_configuration(std::cout);
+    ///Kokkos::print_configuration(std::cout);
 
     Kokkos::Impl::Timer timer;
 
@@ -88,12 +109,16 @@ int main(int argc, char* argv[]) {
     ///
     int N = 128*128; /// # of problems (batch size)
     int Blk = 5;     /// block dimension
+    int Task = 0;    /// test both , 1 - task 1 only, 2 - task 2 only
+    int TeamSize = 0;/// 0 - AUTO, otherwise 
     for (int i=1;i<argc;++i) {
       const std::string& token = argv[i];
       if (token == std::string("-N")) N = std::atoi(argv[++i]);
       if (token == std::string("-B")) Blk = std::atoi(argv[++i]);
+      if (token == std::string("-Task")) Task = std::atoi(argv[++i]);
+      if (token == std::string("-TeamSize")) TeamSize = std::atoi(argv[++i]);
     }
-    printf(" :::: Testing (N = %d, Blk = %d)\n", N, Blk);
+    printf(" :::: Testing (N = %d, Blk = %d, TeamSize = %d (0 is AUTO))\n", N, Blk, TeamSize);
 
 
     ///
@@ -140,17 +165,19 @@ int main(int argc, char* argv[]) {
     ///    parallel_for(solve upper triangular)
     ///    parallel_for(matrix vector multiplication)
 
-    {
-#if defined(KOKKOS_ENABLE_CUDA)
-      cudaProfilerStart();
-#endif
+    if (Task == 0 || Task == 1) {
       Kokkos::deep_copy(A, Acopy);
       
       /// construction of block jacobi using batched blas interface
       /// each parallel for is a batch function
       {
-	policy_type policy(A.extent(0), Kokkos::AUTO());	
-	timer.reset();
+#if defined(KOKKOS_ENABLE_CUDA)
+        cudaProfilerStart();
+#endif
+        policy_type policy(A.extent(0), Kokkos::AUTO());
+        if (TeamSize != 0) 
+          policy = policy_type(A.extent(0), TeamSize);
+        timer.reset();
 	Kokkos::parallel_for
 	  ("task1.factorize",
 	   policy, KOKKOS_LAMBDA(const member_type &member) {
@@ -195,27 +222,17 @@ int main(int argc, char* argv[]) {
 	Kokkos::fence();
 	const double t = timer.seconds();
 	printf("task 1: construction of jacobi time = %f , # of constructions per min = %.0f \n", t, 1.0/t*60);
+#if defined(KOKKOS_ENABLE_CUDA) 
+      cudaProfilerStop();
+#endif      
       }
       
       /// apply block jacobi
       {
 	timer.reset();
-	policy_type policy(A.extent(0), Kokkos::AUTO());
-	Kokkos::parallel_for
-	  ("task1.apply-block-jacobi",
-	   policy, KOKKOS_LAMBDA(const member_type &member) {
-	    const int i = member.league_rank();
-	    const value_type one(1), zero(0);
-	    auto AA = Kokkos::subview(A, i, Kokkos::ALL(), Kokkos::ALL());
-	    auto xx = Kokkos::subview(x, i, Kokkos::ALL());
-	    auto bb = Kokkos::subview(b, i, Kokkos::ALL());
-	    TeamGemv<member_type,
-		     Trans::NoTranspose,
-		     Algo::Level2::Unblocked>
-	      ::invoke(member, one, AA, bb, zero, xx);
-	  });
+        applyBlockJacobi(A, x, b);
 	const double t = timer.seconds();
-	printf("task 1: application of jacobi time = %f , # of applications per min = %.0f \n", t, 1.0/t*60);	
+	///printf("task 1: application of jacobi time = %f , # of applications per min = %.0f \n", t, 1.0/t*60);	
       }
 
       /// check residual
@@ -223,25 +240,24 @@ int main(int argc, char* argv[]) {
 	const double residual = computeResidual(Acopy, x, b, r);
 	printf("task 1: residual = %f\n", residual);
       }
-#if defined(KOKKOS_ENABLE_CUDA) 
-      cudaProfilerStop();
-#endif      
     }
     
     /// Task 2. Compose a new batch function using kokkos batched team-level interface
     ///    parallel_for(LU, set identity, solve lower/upper triangular)
     ///    parallel_for(matrix vector multiplication)
 
-    {
-#if defined(KOKKOS_ENABLE_CUDA)
-      cudaProfilerStart();
-#endif
+    if (Task == 0 || Task == 2) {
       Kokkos::deep_copy(A, Acopy);
       
       /// construction of block jacobi using batched blas interface
       /// each parallel for is a batch function
       {
+#if defined(KOKKOS_ENABLE_CUDA)
+      cudaProfilerStart();
+#endif
 	policy_type policy(A.extent(0), Kokkos::AUTO());	
+        if (TeamSize != 0) 
+          policy = policy_type(A.extent(0), TeamSize);
 	timer.reset();
 	Kokkos::parallel_for
 	  ("task2.factorize-invert",
@@ -250,33 +266,23 @@ int main(int argc, char* argv[]) {
 	    const int i = member.league_rank();
 	    auto AA = Kokkos::subview(A, i, Kokkos::ALL(), Kokkos::ALL());
 	    auto TT = Kokkos::subview(T, i, Kokkos::ALL(), Kokkos::ALL());
-
-            /// EXERCISE: complete the functor using team level functions
+	    
+            /// EXERCISE: complete this functor
 	  });
 	Kokkos::fence();
 	const double t = timer.seconds();
 	printf("task 2: construction of jacobi time = %f , # of constructions per min = %.0f \n", t, 1.0/t*60);
+#if defined(KOKKOS_ENABLE_CUDA) 
+      cudaProfilerStop();
+#endif      
       }
       
       /// apply block jacobi
       {
 	timer.reset();
-	policy_type policy(A.extent(0), Kokkos::AUTO());
-	Kokkos::parallel_for
-	  ("task2.apply-block-jacobi",
-	   policy, KOKKOS_LAMBDA(const member_type &member) {
-	    const int i = member.league_rank();
-	    const value_type one(1), zero(0);
-	    auto AA = Kokkos::subview(A, i, Kokkos::ALL(), Kokkos::ALL());
-	    auto xx = Kokkos::subview(x, i, Kokkos::ALL());
-	    auto bb = Kokkos::subview(b, i, Kokkos::ALL());
-	    TeamGemv<member_type,
-		     Trans::NoTranspose,
-		     Algo::Level2::Unblocked>
-	      ::invoke(member, one, AA, bb, zero, xx);
-	  });
+        applyBlockJacobi(A, x, b);
 	const double t = timer.seconds();
-	printf("task 2: application of jacobi time = %f , # of applications per min = %.0f \n", t, 1.0/t*60);	
+	///printf("task 2: application of jacobi time = %f , # of applications per min = %.0f \n", t, 1.0/t*60);	
       }
 
       /// check residual
@@ -284,9 +290,6 @@ int main(int argc, char* argv[]) {
 	const double residual = computeResidual(Acopy, x, b, r);
 	printf("task 2: residual = %f\n", residual);
       }
-#if defined(KOKKOS_ENABLE_CUDA) 
-      cudaProfilerStop();
-#endif      
     }
 
   }

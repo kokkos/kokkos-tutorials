@@ -1,5 +1,3 @@
-#!/bin/bash
-
 rm -r CMakeCache.txt CMakeFiles cmake_install.cmake
 
 KOKKOS_PATH=${HOME}/Kokkos/kokkos
@@ -38,5 +36,5 @@ echo "KERNELS_INSTALL_PATH = $KOKKOSKERNELS_INSTALL"
 if [[ -d "${KOKKOSKERNELS_INSTALL}/lib64" ]]; then
   cmake -DCMAKE_CXX_COMPILER=${CXX} -DKokkosKernels_DIR="${KOKKOSKERNELS_INSTALL}/lib64/cmake/KokkosKernels" .
 else
-  cmake -DCMAKE_CXX_COMPILER=${CXX} -DKokkosKernels_DIR="${KOKKOSKERNELS_INSTALL}/lib/cmake/KokkosKernels" -DKokkosKernels_SOURCE_DIR="${KOKKOSKERNELS_PATH}" .
+  cmake -DCMAKE_CXX_COMPILER=${CXX} -DKokkosKernels_DIR="${KOKKOSKERNELS_INSTALL}/lib/cmake/KokkosKernels" .
 fi

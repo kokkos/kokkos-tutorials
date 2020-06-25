@@ -230,47 +230,18 @@ int main( int argc, char* argv[] )
 
     gettimeofday( &begin, NULL );
 
-    // Typedefs for the arrays of the output matrix C
-    typedef typename crs_matrix_type::index_type::non_const_type row_map_type;
-    typedef typename crs_matrix_type::row_map_type::non_const_type entries_type;
-    typedef typename crs_matrix_type::values_type::non_const_type values_type;
-
-    row_map_type row_mapC(Kokkos::ViewAllocateWithoutInitializing("row_mapC"), A.numRows() + 1);
+    crs_matrix_type C;
 
     gettimeofday( &s1, NULL );
     // EXERCISE: Call the symbolic phase
     // EXERCISE hint: KokkosSparse::Experimental::spgemm_symbolic(...) 
-    KokkosSparse::Experimental::spgemm_symbolic(&kh, A.numRows(), A.numRows(), A.numCols(), 
-						A.graph.row_map, A.graph.entries, false, 
-						A.graph.row_map, A.graph.entries, false,
-						row_mapC);
+    KokkosSparse::spgemm_symbolic(kh, A, false, A, false, C);
 
     gettimeofday( &s2, NULL );
 
-    // Create the entries and values array of C
-    const size_type c_nnz = kh.get_spgemm_handle()->get_c_nnz();
-    entries_type entriesC = entries_type(Kokkos::ViewAllocateWithoutInitializing("entriesC"), c_nnz);
-    values_type valuesC = values_type(Kokkos::ViewAllocateWithoutInitializing("valuesC"), c_nnz);
-
-
-    gettimeofday( &s3, NULL );
     // EXERCISE: Call the numeric phase
-    // EXERCISE hint: KokkosSparse::Experimental::spgemm_numeric(...) 
-    KokkosSparse::Experimental::spgemm_numeric(&kh, A.numRows(), A.numRows(), A.numCols(), 
-					       A.graph.row_map, A.graph.entries, A.values, false, 
-					       A.graph.row_map, A.graph.entries, A.values, false,
-					       row_mapC, entriesC, valuesC);
-    gettimeofday( &s4, NULL );
-
-
-    typedef typename crs_matrix_type::StaticCrsGraphType graph_type;
-    // EXERCISE: Create the underlying graph object for C using graph_type
-    // EXERCISE hint: graph_type graph(...)
-    graph_type graph (entriesC, row_mapC);
-    
-    // EXERCISE: Create the output matrix C
-    // EXERCISE hint: crs_matrix_type C(...)
-    crs_matrix_type C("CrsMatrix", A.numCols(), valuesC, graph);
+    // EXERCISE hint: KokkosSparse::spgemm_numeric(...) 
+    KokkosSparse::spgemm_numeric(kh, A, false, A, false, C);
 
 
     gettimeofday( &end, NULL );
@@ -286,8 +257,8 @@ int main( int argc, char* argv[] )
     double symbolic_time = 1.0 *    ( s2.tv_sec  - s1.tv_sec ) +
                            1.0e-6 * ( s2.tv_usec - s1.tv_usec );
 
-    double numeric_time = 1.0 *    ( s4.tv_sec  - s3.tv_sec ) +
-                          1.0e-6 * ( s4.tv_usec - s3.tv_usec );
+    double numeric_time = 1.0 *    ( end.tv_sec  - s2.tv_sec ) +
+                          1.0e-6 * ( end.tv_usec - s2.tv_usec );
 
     // Print results (problem size, time, number of iterations and final norm residual).
     printf( "    Results: N( %d ), overall spgemm time( %g s ), symbolic time( %g s ), numeric time( %g s )\n",

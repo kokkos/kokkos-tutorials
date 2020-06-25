@@ -194,7 +194,7 @@ int main( int argc, char* argv[] )
   {
 
     // Timer products.
-    struct timeval begin, end, s1, s2, s3, s4;
+    struct timeval begin, end, s1, s2;
 
 
     // Typedefs
@@ -229,39 +229,15 @@ int main( int argc, char* argv[] )
 
     gettimeofday( &begin, NULL );
 
-    // Typedefs for the arrays of the output matrix C
-    typedef typename crs_matrix_type::index_type::non_const_type row_map_type;
-    typedef typename crs_matrix_type::row_map_type::non_const_type entries_type;
-    typedef typename crs_matrix_type::values_type::non_const_type values_type;
-
-    row_map_type row_mapC(Kokkos::ViewAllocateWithoutInitializing("row_mapC"), A.numRows() + 1);
+    crs_matrix_type C; // First things first: create the output matrix.
 
     gettimeofday( &s1, NULL );
     // EXERCISE: Call the symbolic phase
-    // EXERCISE hint: KokkosSparse::Experimental::spgemm_symbolic(...) 
+    // EXERCISE hint: KokkosSparse::spgemm_symbolic(...) 
 
     gettimeofday( &s2, NULL );
-
-    // Create the entries and values arrays of C
-    const size_type c_nnz = kh.get_spgemm_handle()->get_c_nnz();
-    entries_type entriesC = entries_type(Kokkos::ViewAllocateWithoutInitializing("entriesC"), c_nnz);
-    values_type valuesC = values_type(Kokkos::ViewAllocateWithoutInitializing("valuesC"), c_nnz);
-
-
-    gettimeofday( &s3, NULL );
     // EXERCISE: Call the numeric phase
-    // EXERCISE hint: KokkosSparse::Experimental::spgemm_numeric(...) 
-
-    gettimeofday( &s4, NULL );
-
-
-    typedef typename crs_matrix_type::StaticCrsGraphType graph_type;
-    // EXERCISE: Create the underlying graph object for C using graph_type
-    // EXERCISE hint: graph_type graph(...)
-    
-
-    // EXERCISE: Create the output matrix C
-    // EXERCISE hint: crs_matrix_type C(...)
+    // EXERCISE hint: KokkosSparse::spgemm_numeric(...) 
 
     gettimeofday( &end, NULL );
 
@@ -276,8 +252,8 @@ int main( int argc, char* argv[] )
     double symbolic_time = 1.0 *    ( s2.tv_sec  - s1.tv_sec ) +
                            1.0e-6 * ( s2.tv_usec - s1.tv_usec );
 
-    double numeric_time = 1.0 *    ( s4.tv_sec  - s3.tv_sec ) +
-                          1.0e-6 * ( s4.tv_usec - s3.tv_usec );
+    double numeric_time = 1.0 *    ( end.tv_sec  - s2.tv_sec ) +
+                          1.0e-6 * ( end.tv_usec - s2.tv_usec );
 
     // Print results (problem size, time, number of iterations and final norm residual).
     printf( "    Results: N( %d ), overall spgemm time( %g s ), symbolic time( %g s ), numeric time( %g s )\n",

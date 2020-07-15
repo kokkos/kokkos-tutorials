@@ -100,10 +100,12 @@ int main( int argc, char* argv[] )
   // Kokkos::initialize( argc, argv );
   // {
 
+  // For the sake of simplicity in this exercise, we're using std::malloc directly, but
+  // later on we'll learn a better way, so generally don't do this in Kokkos programs.
   // Allocate y, x vectors and Matrix A:
-  double * const y = new double[ N ];
-  double * const x = new double[ M ];
-  double * const A = new double[ N * M ];
+  auto y = static_cast<double*>(std::malloc(N * sizeof(double)));
+  auto x = static_cast<double*>(std::malloc(M * sizeof(double)));
+  auto A = static_cast<double*>(std::malloc(N * M * sizeof(double)));
 
   // Initialize y vector.
   // EXERCISE: Convert outer loop to Kokkos::parallel_for.
@@ -176,9 +178,9 @@ int main( int argc, char* argv[] )
   printf( "  N( %d ) M( %d ) nrepeat ( %d ) problem( %g MB ) time( %g s ) bandwidth( %g GB/s )\n",
           N, M, nrepeat, Gbytes * 1000, time, Gbytes * nrepeat / time );
 
-  delete[] A;
-  delete[] y;
-  delete[] x;
+  std::free(A);
+  std::free(y);
+  std::free(x);
 
   // EXERCISE: finalize Kokkos runtime
   // }

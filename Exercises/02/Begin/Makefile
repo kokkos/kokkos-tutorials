@@ -1,5 +1,5 @@
 KOKKOS_PATH = ${HOME}/Kokkos/kokkos
-KOKKOS_DEVICES = "Cuda,OpenMP"
+KOKKOS_DEVICES = "OpenMP"
 EXE_NAME = "02_Exercise"
 
 SRC = $(wildcard *.cpp)

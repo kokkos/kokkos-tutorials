@@ -28,6 +28,17 @@ In most examples, this is `KOKKOS_PATH` pointing to the Kokkos source directory
 and `KOKKOS_DEVICES` which contains the list of device backends to build.
 This will build a new Kokkos library for each exercise.
 
+If you are on a system compatible to our AWS instances, you can type 
+```
+make
+make test
+```
+in the `Exercises` directory.
+
+Compatible means:
+ * X86 with a NVIDIA V100 GPU
+ * kokkos was cloned to ${HOME}/Kokkos/kokkos
+
 ## CMake + Spack
 
 The CMake files build against an installed Kokkos library. 

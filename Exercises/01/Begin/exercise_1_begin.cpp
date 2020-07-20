@@ -103,6 +103,9 @@ int main( int argc, char* argv[] )
   // For the sake of simplicity in this exercise, we're using std::malloc directly, but
   // later on we'll learn a better way, so generally don't do this in Kokkos programs.
   // Allocate y, x vectors and Matrix A:
+  // EXERCISE: For the inpatient only: replace std::malloc with Kokkos::kokkos_malloc<>
+  //           This would enable running on GPUs, if KOKKOS_LAMBDA is used instead of [=]
+  //           as capture clause for all lambdas. It will be properly introduced later.
   auto y = static_cast<double*>(std::malloc(N * sizeof(double)));
   auto x = static_cast<double*>(std::malloc(M * sizeof(double)));
   auto A = static_cast<double*>(std::malloc(N * M * sizeof(double)));

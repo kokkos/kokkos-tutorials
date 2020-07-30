@@ -1,27 +1,29 @@
 #include<Kokkos_Core.hpp>
 
-#if defined(KOKKOS_ENABLE_OPENMP)
 // Scatter Add algorithm using data replication
 double scatter_add_loop(Kokkos::View<int**,Kokkos::HostSpace> v, 
 		 Kokkos::View<int*,Kokkos::HostSpace> r) {
-  // Not timing creation of duplicated arrays, assume you can reuse
-  Kokkos::View<int**,Kokkos::HostSpace> results("Rdup",Kokkos::OpenMP().concurrency(),r.extent(0));
-
   Kokkos::Timer timer;
+  Kokkos::Experimental::UniqueToken<Kokkos::DefaultExecutionSpace> tokens;
+  Kokkos::View<int**,Kokkos::HostSpace> results("Rdup",tokens.size(),r.extent(0));
+
   // Reset duplicated array
   Kokkos::deep_copy(results,0);
-  // Run loop only for OpenMP
+
   Kokkos::parallel_for("Duplicated Loop", 
-    Kokkos::RangePolicy<Kokkos::OpenMP>(0,v.extent(0)),
+    Kokkos::RangePolicy<>(0,v.extent(0)),
     KOKKOS_LAMBDA(const int i) {
     // Every thread contribues to its version of the vector
-    int tid = omp_get_thread_num();
+    Kokkos::Experimental::AcquireUniqueToken<Kokkos::DefaultExecutionSpace> token_val(
+        tokens);
+    const int32_t tid = token_val.value();
     for(int j=0; j<v.extent(1); j++)
       results(tid,v(i,j))++;
   });
+
   // Contribute back to the single version
   Kokkos::parallel_for("Reduce Loop",
-    Kokkos::RangePolicy<Kokkos::OpenMP>(0,v.extent(0)),
+    Kokkos::RangePolicy<>(0,v.extent(0)),
     KOKKOS_LAMBDA(const int i) {
     for(int tid=0; tid<results.extent(0); tid++)
       r(i)+=results(tid,i);
@@ -31,7 +33,6 @@ double scatter_add_loop(Kokkos::View<int**,Kokkos::HostSpace> v,
   double time = timer.seconds();
   return time;
 }
-#endif
 
 int main(int argc, char* argv[]) {
   Kokkos::initialize(argc,argv);
@@ -50,12 +51,8 @@ int main(int argc, char* argv[]) {
 
     Kokkos::deep_copy(values_h,values);
 
-    #ifdef KOKKOS_ENABLE_OPENMP
-    if(std::is_same<Kokkos::DefaultExecutionSpace,Kokkos::OpenMP>::value) {
-      double time_dup = openmp_loop(values,results);
-      std::cout << "Time Duplicated: " << N << " " << M << " " << time_dup << std::endl;
-    }
-    #endif
+    double time_dup = scatter_add_loop(values,results);
+    std::cout << "Time Duplicated: " << N << " " << M << " " << time_dup << std::endl;
 
   }
   Kokkos::finalize();

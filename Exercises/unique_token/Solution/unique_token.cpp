@@ -1,11 +1,11 @@
 #include<Kokkos_Core.hpp>
 
 // Scatter Add algorithm using data replication
-double scatter_add_loop(Kokkos::View<int**,Kokkos::HostSpace> v, 
-		 Kokkos::View<int*,Kokkos::HostSpace> r) {
+double scatter_add_loop(Kokkos::View<int**> v, 
+		 Kokkos::View<int*> r) {
   Kokkos::Timer timer;
-  Kokkos::Experimental::UniqueToken<Kokkos::DefaultExecutionSpace> tokens;
-  Kokkos::View<int**,Kokkos::HostSpace> results("Rdup",tokens.size(),r.extent(0));
+  Kokkos::Experimental::UniqueToken<Kokkos::DefaultExecutionSpace> tokens(2048);
+  Kokkos::View<int**> results("Rdup",tokens.size(),r.extent(0));
 
   // Reset duplicated array
   Kokkos::deep_copy(results,0);
@@ -49,7 +49,7 @@ int main(int argc, char* argv[]) {
       for(int j=0; j<M; j++)
 	values_h(i,j) = rand()%N;
 
-    Kokkos::deep_copy(values_h,values);
+    Kokkos::deep_copy(values,values_h);
 
     double time_dup = scatter_add_loop(values,results);
     std::cout << "Time Duplicated: " << N << " " << M << " " << time_dup << std::endl;

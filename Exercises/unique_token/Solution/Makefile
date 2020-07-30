@@ -1,6 +1,6 @@
-KOKKOS_DEVICES=Serial
+KOKKOS_DEVICES=Cuda
 KOKKOS_CUDA_OPTIONS=enable_lambda
-KOKKOS_ARCH = "SNB"
+KOKKOS_ARCH = "SNB,Volta70"
 
 
 MAKEFILE_PATH := $(subst Makefile,,$(abspath $(lastword $(MAKEFILE_LIST))))

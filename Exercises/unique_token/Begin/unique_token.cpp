@@ -4,10 +4,9 @@
 // Scatter Add algorithm using data replication
 double scatter_add_loop(Kokkos::View<int**,Kokkos::HostSpace> v, 
 		 Kokkos::View<int*,Kokkos::HostSpace> r) {
-  // Not timing creation of duplicated arrays, assume you can reuse
+  Kokkos::Timer timer;
   Kokkos::View<int**,Kokkos::HostSpace> results("Rdup",Kokkos::OpenMP().concurrency(),r.extent(0));
 
-  Kokkos::Timer timer;
   // Reset duplicated array
   Kokkos::deep_copy(results,0);
   // Run loop only for OpenMP
@@ -52,7 +51,7 @@ int main(int argc, char* argv[]) {
 
     #ifdef KOKKOS_ENABLE_OPENMP
     if(std::is_same<Kokkos::DefaultExecutionSpace,Kokkos::OpenMP>::value) {
-      double time_dup = openmp_loop(values,results);
+      double time_dup = scatter_add_loop(values,results);
       std::cout << "Time Duplicated: " << N << " " << M << " " << time_dup << std::endl;
     }
     #endif

@@ -1,8 +1,8 @@
 cmake_minimum_required (VERSION 3.10)
-project (KokkosTutorial05)
+project (KokkosTutorialTeamPolicy)
 include(../../common.cmake)
 
-add_executable(05_Exercise exercise_5_begin.cpp)
-target_link_libraries(05_Exercise Kokkos::kokkos)
+add_executable(TeamPolicy team_policy_begin.cpp)
+target_link_libraries(TeamPolicy Kokkos::kokkos)
 
 

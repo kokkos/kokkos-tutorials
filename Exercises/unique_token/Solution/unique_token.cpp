@@ -33,7 +33,7 @@ double scatter_add_loop(Kokkos::View<int**> v,
     // Every thread contribues to its version of the accumulator
     Kokkos::single( Kokkos::PerTeam(team), [&] (int & id_) {
         // need to map the token value into the results view
-        id = token.acquire();
+        id_ = token.acquire();
     }, id);
 
     int tid = id & dup_mask;

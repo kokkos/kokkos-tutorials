@@ -13,7 +13,7 @@ double scatter_add_loop(Kokkos::View<int**> v,
   int dup_mask = dup_size - 1;  
 
   // allocate same number of tokens as teams below
-  Kokkos::Experimental::UniqueToken<Kokkos::DefaultExecutionSpace> tokens(v.extent(0));
+  Kokkos::Experimental::UniqueToken<Kokkos::DefaultExecutionSpace> token(v.extent(0));
 
   // accumulator for each thread
   // dup_size is used so that the view will fit in memory.
@@ -25,24 +25,24 @@ double scatter_add_loop(Kokkos::View<int**> v,
   using team_policy_type = Kokkos::TeamPolicy<>;
   team_policy_type team_policy(v.extent(0), Kokkos::AUTO);
 
-  // need to set the scratch size to handle the team tokens 
-  team_policy.set_scratch_size(
-          0, Kokkos::PerTeam(Kokkos::Experimental::AcquireTeamUniqueToken<
-                                 team_policy_type>::shmem_size()));
-
   Kokkos::parallel_for("Accumulator Loop", 
     team_policy, KOKKOS_LAMBDA(team_policy_type::member_type team) {
     int i = team.league_rank();
+    int id = 0;
 
     // Every thread contribues to its version of the accumulator
-    Kokkos::Experimental::AcquireTeamUniqueToken<team_policy_type> token_val(
-         tokens, team);
+    Kokkos::single( Kokkos::PerTeam(team), [&] (int & id_) {
+        // need to map the token value into the results view
+        id = token.acquire();
+    }, id);
 
-    // need to map the token value into the results view
-    const int32_t tid = token_val.value() & dup_mask;
-
+    int tid = id & dup_mask;
     Kokkos::parallel_for( Kokkos::TeamVectorRange(team, v.extent(1)), [=] (int j) {
        results(tid,v(i,j))++;
+    });
+
+    Kokkos::single( Kokkos::PerTeam(team), [&](){
+       token.release(id);
     });
   });
   

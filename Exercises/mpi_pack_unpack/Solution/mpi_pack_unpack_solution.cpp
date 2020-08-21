@@ -42,6 +42,9 @@
 //@HEADER
 */
 
+// EXERCISE Goal:
+// Understand how to use MPI with Kokkos.
+
 #include<Kokkos_Core.hpp>
 #include<mpi.h>
 
@@ -90,27 +93,27 @@ struct RunPackCommUnpackTest {
   }
 
   void run_comm() {
-    // Get the raw pointer for the MPI COpy
+    // Get the raw pointer for the MPI copy depending on use_device_buffer
     void* recv_buf = use_device_buffer?recv_buffer.data():recv_buffer_h.data();
     void* send_buf = use_device_buffer?send_buffer.data():send_buffer_h.data();
 
-    // Post the Receives
+    // Post the Receives, create requests and MPI_Irecv into recv_buf
     MPI_Request requests[2];
     MPI_Irecv(recv_buf,list.extent(0),MPI_DOUBLE,partner,1,MPI_COMM_WORLD,&requests[0]);
 
     // Pack the buffer
     Kokkos::parallel_for(Kokkos::RangePolicy<exec_space,TagPack>(0,list.extent(0)),*this);
-    // Deep Copy device buffer to host
+    // deep copy device send buffer to host send buffer if necessary (depending
     if(!use_device_buffer) Kokkos::deep_copy(send_buffer_h,send_buffer);
     else Kokkos::fence();
  
-    // Send the buffer
+    // Send send_buffer through MPI_Send
     MPI_Isend(send_buf,list.extent(0),MPI_DOUBLE,partner,1,MPI_COMM_WORLD,&requests[1]);
 
-    // Wait for stuff
+    // Wait for the requests to finish using MPI_Waitall
     MPI_Waitall(2,requests,MPI_STATUSES_IGNORE);
 
-    // Deep Copy Host Buffer to Device
+    // deep copy host receive buffer to device if necessary (depending on use_device_buffer)
     if(!use_device_buffer) Kokkos::deep_copy(recv_buffer,recv_buffer_h);
 
     // Unpack the buffer

@@ -1,3 +1,7 @@
+#Set nvcc_wrapper as MPI C++ compiler
+export OMPI_CXX="nvcc_wrapper"
+
+#Run cmake to generate Makefile
 cmake .. \
  -DKokkosRemote_ROOT=$kokkos_remote \
  -DCMAKE_CXX_COMPILER=$kokkos/bin/nvcc_wrapper

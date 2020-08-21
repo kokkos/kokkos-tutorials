@@ -153,19 +153,20 @@ int main( int argc, char* argv[] )
 
     Kokkos::parallel_reduce( team_policy( E, Kokkos::AUTO ), KOKKOS_LAMBDA ( const member_type &teamMember, double &update ) {
       const int e = teamMember.league_rank();
-
+      double tempN;
       // EXERCISE: Replace reduction over N with TeamThread parallelism.
-      for ( int j = 0; j < N; j++ ) {
+      Kokkos::parallel_reduce( Kokkos::TeamThreadRange( teamMember, N ), [&] ( const int j, double &innerUpdateN ) {
         double tempM = 0;
 
         // EXERCISE: Replace TeamThread parallelism with Vector parallelism.
-        Kokkos::parallel_reduce( Kokkos::TeamThreadRange( teamMember, M ), [&] ( const int i, double &innerUpdateM ) {
+        Kokkos::parallel_reduce( Kokkos::ThreadVectorRange( teamMember, M ), [&] ( const int i, double &innerUpdateM ) {
           innerUpdateM += A( e, j, i ) * x( e, i );
         }, tempM );
 
         // EXERCISE: Replace team_rank check with Kokkos::single construct.
-        if ( teamMember.team_rank() == 0 ) update += y( e, j ) * tempM;
-      }
+        Kokkos::single(Kokkos::PerThread(teamMember), [&]() { innerUpdateN += y( e, j ) * tempM; });
+      }, tempN);
+      Kokkos::single(Kokkos::PerTeam(teamMember), [&]() {update += tempN;});
     }, result );
 
     // Output result.

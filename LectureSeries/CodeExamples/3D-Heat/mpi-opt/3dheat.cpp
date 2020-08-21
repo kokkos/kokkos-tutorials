@@ -245,8 +245,9 @@ struct System {
     double old_time = 0.0;
     for(int t=0; t<=N; t++) {
       if(t>N/2) P = 0.0;
-      exchange_T_halo();
+      pack_T_halo();
       compute_inner_dT();
+      exchange_T_halo();
       compute_surface_dT();
       Kokkos::fence();
       double T_ave = compute_T();
@@ -281,7 +282,7 @@ struct System {
     int myX = T.extent(0);
     int myY = T.extent(1);
     int myZ = T.extent(2);
-    Kokkos::parallel_for("ComputeInnerDT", Kokkos::Experimental::require(policy_t({1,1,1},{myX-1,myY-1,myZ-1}),Kokkos::Experimental::WorkItemProperty::HintLightWeight), *this);
+    Kokkos::parallel_for("ComputeInnerDT", Kokkos::Experimental::require(policy_t(E_bulk,{1,1,1},{myX-1,myY-1,myZ-1}),Kokkos::Experimental::WorkItemProperty::HintLightWeight), *this);
   };
 
   // Compute non-exposed surface
@@ -338,36 +339,64 @@ struct System {
     dT(x,y,z) = dT_xyz;
   }
 
-  void exchange_T_halo() {
+  void pack_T_halo() {
     mpi_active_requests = 0;
     int mar = 0;
     if(X_lo != 0) {
-      Kokkos::deep_copy(T_left_out ,Kokkos::subview(T,0,Kokkos::ALL,Kokkos::ALL));
+      Kokkos::deep_copy(E_left, T_left_out ,Kokkos::subview(T,0,Kokkos::ALL,Kokkos::ALL));
+      mar++;
+    }
+    if(Y_lo != 0) {
+      Kokkos::deep_copy(E_down, T_down_out ,Kokkos::subview(T,Kokkos::ALL,0,Kokkos::ALL));
+      mar++;
+    }
+    if(Z_lo != 0) { 
+      Kokkos::deep_copy(E_front,T_front_out,Kokkos::subview(T,Kokkos::ALL,Kokkos::ALL,0));
+      mar++;
+    }
+    if(X_hi != X) {
+      Kokkos::deep_copy(E_right,T_right_out,Kokkos::subview(T,X_hi-X_lo-1,Kokkos::ALL,Kokkos::ALL));
+      mar++;
+    }
+    if(Y_hi != Y) {
+      Kokkos::deep_copy(E_up   ,T_up_out,   Kokkos::subview(T,Kokkos::ALL,Y_hi-Y_lo-1,Kokkos::ALL));
+      mar++;
+    }
+    if(Z_hi != Z) {
+      Kokkos::deep_copy(E_back, T_back_out, Kokkos::subview(T,Kokkos::ALL,Kokkos::ALL,Z_hi-Z_lo-1));
+      mar++;
+    }
+  }
+
+  void exchange_T_halo() {
+    int mar = 0;
+    if(X_lo != 0) {
+      E_left.fence();
       comm.isend_irecv(comm.left,T_left_out,T_left,&mpi_requests_send[mar],&mpi_requests_recv[mar]);
       mar++;
     }
     if(Y_lo != 0) {
-      Kokkos::deep_copy(T_down_out ,Kokkos::subview(T,Kokkos::ALL,0,Kokkos::ALL));
+      E_down.fence();
       comm.isend_irecv(comm.down,T_down_out,T_down,&mpi_requests_send[mar],&mpi_requests_recv[mar]);
       mar++;
     }
     if(Z_lo != 0) { 
-      Kokkos::deep_copy(T_front_out,Kokkos::subview(T,Kokkos::ALL,Kokkos::ALL,0));
+      E_front.fence();
       comm.isend_irecv(comm.front,T_front_out,T_front,&mpi_requests_send[mar],&mpi_requests_recv[mar]);
       mar++;
     }
     if(X_hi != X) {
-      Kokkos::deep_copy(T_right_out,Kokkos::subview(T,X_hi-X_lo-1,Kokkos::ALL,Kokkos::ALL));
+      E_right.fence();
       comm.isend_irecv(comm.right,T_right_out,T_right,&mpi_requests_send[mar],&mpi_requests_recv[mar]);
       mar++;
     }
     if(Y_hi != Y) {
-      Kokkos::deep_copy(T_up_out,   Kokkos::subview(T,Kokkos::ALL,Y_hi-Y_lo-1,Kokkos::ALL));
+      E_up.fence();
       comm.isend_irecv(comm.up,T_up_out,T_up,&mpi_requests_send[mar],&mpi_requests_recv[mar]);
       mar++;
     }
     if(Z_hi != Z) {
-      Kokkos::deep_copy(T_back_out, Kokkos::subview(T,Kokkos::ALL,Kokkos::ALL,Z_hi-Z_lo-1));
+      E_back.fence();
       comm.isend_irecv(comm.back,T_back_out,T_back,&mpi_requests_send[mar],&mpi_requests_recv[mar]);
       mar++;
     }
@@ -389,12 +418,12 @@ struct System {
       MPI_Waitall(mpi_active_requests,mpi_requests_send,MPI_STATUSES_IGNORE);
       MPI_Waitall(mpi_active_requests,mpi_requests_recv,MPI_STATUSES_IGNORE);
     }
-    Kokkos::parallel_for("ComputeSurfaceDT_Left" , Kokkos::Experimental::require(policy_left_t ({0,0},{Y,Z}),Kokkos::Experimental::WorkItemProperty::HintLightWeight),*this);
-    Kokkos::parallel_for("ComputeSurfaceDT_Right", Kokkos::Experimental::require(policy_right_t({0,0},{Y,Z}),Kokkos::Experimental::WorkItemProperty::HintLightWeight),*this);
-    Kokkos::parallel_for("ComputeSurfaceDT_Down",  Kokkos::Experimental::require(policy_down_t ({1,0},{X-1,Z}),Kokkos::Experimental::WorkItemProperty::HintLightWeight),*this);
-    Kokkos::parallel_for("ComputeSurfaceDT_Up",    Kokkos::Experimental::require(policy_up_t   ({1,0},{X-1,Z}),Kokkos::Experimental::WorkItemProperty::HintLightWeight),*this);
-    Kokkos::parallel_for("ComputeSurfaceDT_front", Kokkos::Experimental::require(policy_front_t({1,1},{X-1,Y-1}),Kokkos::Experimental::WorkItemProperty::HintLightWeight),*this);
-    Kokkos::parallel_for("ComputeSurfaceDT_back",  Kokkos::Experimental::require(policy_back_t ({1,1},{X-1,Y-1}),Kokkos::Experimental::WorkItemProperty::HintLightWeight),*this);
+    Kokkos::parallel_for("ComputeSurfaceDT_Left" , Kokkos::Experimental::require(policy_left_t (E_left, {0,0},{Y,Z}),Kokkos::Experimental::WorkItemProperty::HintLightWeight),*this);
+    Kokkos::parallel_for("ComputeSurfaceDT_Right", Kokkos::Experimental::require(policy_right_t(E_right, {0,0},{Y,Z}),Kokkos::Experimental::WorkItemProperty::HintLightWeight),*this);
+    Kokkos::parallel_for("ComputeSurfaceDT_Down",  Kokkos::Experimental::require(policy_down_t (E_down, {1,0},{X-1,Z}),Kokkos::Experimental::WorkItemProperty::HintLightWeight),*this);
+    Kokkos::parallel_for("ComputeSurfaceDT_Up",    Kokkos::Experimental::require(policy_up_t   (E_up, {1,0},{X-1,Z}),Kokkos::Experimental::WorkItemProperty::HintLightWeight),*this);
+    Kokkos::parallel_for("ComputeSurfaceDT_front", Kokkos::Experimental::require(policy_front_t(E_front, {1,1},{X-1,Y-1}),Kokkos::Experimental::WorkItemProperty::HintLightWeight),*this);
+    Kokkos::parallel_for("ComputeSurfaceDT_back",  Kokkos::Experimental::require(policy_back_t (E_back, {1,1},{X-1,Y-1}),Kokkos::Experimental::WorkItemProperty::HintLightWeight),*this);
   }
 
   // Some compilers have deduction issues if this were just a tagged operator
@@ -416,7 +445,7 @@ struct System {
     int Y = T.extent(1);
     int Z = T.extent(2);
     double my_T;
-    Kokkos::parallel_reduce("ComputeT", Kokkos::Experimental::require(policy_t({0,0,0},{X,Y,Z}),Kokkos::Experimental::WorkItemProperty::HintLightWeight), ComputeT(T,dT,dt), my_T);
+    Kokkos::parallel_reduce("ComputeT", Kokkos::Experimental::require(policy_t(E_bulk, {0,0,0},{X,Y,Z}),Kokkos::Experimental::WorkItemProperty::HintLightWeight), ComputeT(T,dT,dt), my_T);
     double sum_T;
     MPI_Allreduce(&my_T,&sum_T,1,MPI_DOUBLE,MPI_SUM,comm.comm);
     return sum_T;

@@ -92,14 +92,17 @@ struct System {
   }
   // run_time_loops
   void timestep() {
+    Kokkos::Timer timer;
     for(int t=0; t<=N; t++) {
       if(t>N/2) P = 0.0;
       compute_inner_dT();
       compute_surface_dT();
       double T_ave = compute_T();
       T_ave/=1e-9*(T.extent(0) * T.extent(1) * T.extent(2));
+      }
       if(t%I == 0 || t==N) {
-        printf("%i %lf\n",t,T_ave);
+        double time = timer.seconds();
+        printf("%i T=%lf Time (%lf %lf)\n",t,T_ave,time,time/t);
       }
     }
   }
@@ -143,34 +146,34 @@ struct System {
     int Y = T.extent(1);
     int Z = T.extent(2);
     int x, y, z;
-    if(Surface == left)  { x = 0; y = i; z = j; }
-    if(Surface == right) { x = X; y = i; z = j; }
-    if(Surface == down)  { x = i; y = 0; z = j; }
-    if(Surface == up)    { x = i; y = Y; z = j; }
-    if(Surface == front) { x = i; y = j; z = 0; }
-    if(Surface == back)  { x = i; y = j; z = Z; }
+    if(Surface == left)  { x = 0;   y = i;   z = j; }
+    if(Surface == right) { x = X-1; y = i;   z = j; }
+    if(Surface == down)  { x = i;   y = 0;   z = j; }
+    if(Surface == up)    { x = i;   y = Y-1; z = j; }
+    if(Surface == front) { x = i;   y = j;   z = 0; }
+    if(Surface == back)  { x = i;   y = j;   z = Z-1; }
 
     double dT_xyz = 0.0;
     double T_xyz = T(x,y,z);
 
     // Heat conduction to inner body
-    if(x > 0) dT_xyz += q * (T(x-1,y  ,z  ) - T_xyz);
-    if(x < X) dT_xyz += q * (T(x+1,y  ,z  ) - T_xyz);
-    if(y > 0) dT_xyz += q * (T(x  ,y-1,z  ) - T_xyz);
-    if(y < Y) dT_xyz += q * (T(x  ,y+1,z  ) - T_xyz);
-    if(z > 0) dT_xyz += q * (T(x  ,y  ,z-1) - T_xyz);
-    if(z < Z) dT_xyz += q * (T(x  ,y  ,z+1) - T_xyz);
+    if(x > 0)   dT_xyz += q * (T(x-1,y  ,z  ) - T_xyz);
+    if(x < X-1) dT_xyz += q * (T(x+1,y  ,z  ) - T_xyz);
+    if(y > 0)   dT_xyz += q * (T(x  ,y-1,z  ) - T_xyz);
+    if(y < Y-1) dT_xyz += q * (T(x  ,y+1,z  ) - T_xyz);
+    if(z > 0)   dT_xyz += q * (T(x  ,y  ,z-1) - T_xyz);
+    if(z < Z-1) dT_xyz += q * (T(x  ,y  ,z+1) - T_xyz);
 
     // Incoming Power
     if(x == 0) dT_xyz += P;
 
     // thermal radiation
-    int num_surfaces = ( x==0 ? 1 : 0)
-                      +( x==X ? 1 : 0)
-                      +( y==0 ? 1 : 0)
-                      +( y==Y ? 1 : 0)
-                      +( z==0 ? 1 : 0)
-                      +( z==Z ? 1 : 0);
+    int num_surfaces = ( x==0   ? 1 : 0)
+                      +( x==X-1 ? 1 : 0)
+                      +( y==0   ? 1 : 0)
+                      +( y==Y-1 ? 1 : 0)
+                      +( z==0   ? 1 : 0)
+                      +( z==Z-1 ? 1 : 0);
     dT_xyz -= sigma * T_xyz * T_xyz * T_xyz * T_xyz * num_surfaces;
     dT(x,y,z) = dT_xyz;
   }
@@ -194,21 +197,24 @@ struct System {
     Kokkos::parallel_for("ComputeSurfaceDT_back",  policy_back_t ({1,1},{X-1,Y-1}),*this);
   }
 
-  struct ComputeT {};
-
-  KOKKOS_FUNCTION
-  void operator() (ComputeT, int x, int y, int z, double& sum_T) const {
-    sum_T += T(x,y,z);
-    T(x,y,z) += dt * dT(x,y,z);
-  }
+  struct ComputeT {
+    Kokkos::View<double***> T, dT;
+    double dt;
+    ComputeT(Kokkos::View<double***> T_, Kokkos::View<double***> dT_, double dt_):T(T_),dT(dT_),dt(dt_){}
+    KOKKOS_FUNCTION
+    void operator() (int x, int y, int z, double& sum_T) const {
+      sum_T += T(x,y,z);
+      T(x,y,z) += dt * dT(x,y,z);
+    }
+  };
 
   double compute_T() {
-    using policy_t = Kokkos::MDRangePolicy<Kokkos::Rank<3>,ComputeT>;
+    using policy_t = Kokkos::MDRangePolicy<Kokkos::Rank<3>,Kokkos::IndexType<int>>;
     int X = T.extent(0);
     int Y = T.extent(1);
     int Z = T.extent(2);
     double sum_T;
-    Kokkos::parallel_reduce("ComputeT", policy_t({0,0,0},{X,Y,Z}), *this, sum_T);
+    Kokkos::parallel_reduce("ComputeT", policy_t({0,0,0},{X,Y,Z}), ComputeT(T,dT,dt), sum_T);
     return sum_T;
   }
 };

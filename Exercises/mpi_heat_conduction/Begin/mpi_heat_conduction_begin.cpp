@@ -1,6 +1,9 @@
 #include<Kokkos_Core.hpp>
 #include<mpi.h>
 
+// EXERCISE: use execution space instances to overlap more work
+
+// Helper struct to create instances, under consideration for including in core Kokkos
 template <class ExecSpace>
 struct SpaceInstance {
   static ExecSpace create() { return ExecSpace(); }
@@ -33,6 +36,8 @@ struct SpaceInstance<Kokkos::Cuda> {
 #endif
 #endif
 
+// Communication Helper: stores mpi neighbor information
+// Also provides the recv/send function for views
 struct CommHelper {
   MPI_Comm comm;
 
@@ -47,7 +52,7 @@ struct CommHelper {
 
   // Neighbor Ranks
   int up,down,left,right,front,back;
- 
+
   CommHelper(MPI_Comm comm_) {
     comm = comm_;
     int nranks;
@@ -59,7 +64,8 @@ struct CommHelper {
 
     ny = std::sqrt(1.0*(nranks/nx));
     while((nranks/nx)%ny != 0) ny++;
-    
+
+    // Figure out neighbors
     nz = nranks/nx/ny;
     x = me%nx;
     y = (me/nx)%ny;
@@ -70,9 +76,6 @@ struct CommHelper {
     up    = y==ny-1?-1:me+nx;
     front = z==0 ?-1:me-nx*ny;
     back  = z==nz-1?-1:me+nx*ny;
-
-    printf("NumRanks: %i Me: %i Grid: %i %i %i MyPos: %i %i %i\n",nranks,me,nx,ny,nz,x,y,z);
-    printf("Me: %i MyNeighs: %i %i %i %i %i %i\n",me,left,right,down,up,front,back);
   }
 
   template<class ViewType>
@@ -127,7 +130,7 @@ struct System {
   // timestep width
   double dt;
 
-  // thermal transfer coefficient 
+  // thermal transfer coefficient
   double q;
 
   // thermal radiation coefficient (assume Stefan Boltzmann law P = sigma*A*T^4
@@ -137,12 +140,11 @@ struct System {
   double P;
 
   // init_system
-  
   System(MPI_Comm comm_): comm(comm_) {
     mpi_active_requests = 0;
     X = Y = Z = 200;
     X_lo = Y_lo = Z_lo = 0;
-    X_hi = Y_hi = Z_hi = X; 
+    X_hi = Y_hi = Z_hi = X;
     N = 10000;
     I = 100;
     T = Kokkos::View<double***>();
@@ -152,6 +154,7 @@ struct System {
     q = 1.0;
     sigma = 1.0;
     P = 1.0;
+    // Already created execution space instances
     E_left  = SpaceInstance<Kokkos::DefaultExecutionSpace>::create();
     E_right = SpaceInstance<Kokkos::DefaultExecutionSpace>::create();
     E_up    = SpaceInstance<Kokkos::DefaultExecutionSpace>::create();
@@ -161,6 +164,7 @@ struct System {
     E_bulk  = SpaceInstance<Kokkos::DefaultExecutionSpace>::create();
   }
 
+  // Destroying the execution space instances again
   void destroy_exec_spaces() {
     SpaceInstance<Kokkos::DefaultExecutionSpace>::destroy(E_left);
     SpaceInstance<Kokkos::DefaultExecutionSpace>::destroy(E_right);
@@ -185,9 +189,10 @@ struct System {
     Z_hi = Z_lo + dZ;
     if(Z_hi>Z) Z_hi=X;
 
-    printf("My Domain: %i (%i %i %i) (%i %i %i)\n",comm.me,X_lo,Y_lo,Z_lo,X_hi,Y_hi,Z_hi);
+    // Owned data for the subdomain
     T = Kokkos::View<double***>("System::T", X_hi - X_lo, Y_hi - Y_lo, Z_hi - Z_lo);
     dT = Kokkos::View<double***>("System::dT", T.extent(0), T.extent(1), T.extent(2));
+
     // incoming halos
     if(X_lo != 0) T_left  = buffer_t("System::T_left" , Y_hi - Y_lo, Z_hi - Z_lo);
     if(X_hi != X) T_right = buffer_t("System::T_right", Y_hi - Y_lo, Z_hi - Z_lo);
@@ -207,15 +212,15 @@ struct System {
 
   void print_help() {
     printf("Options (default):\n");
-    printf("  -X IARG: (%i) num elements in X direction\n", X); 
-    printf("  -Y IARG: (%i) num elements in Y direction\n", Y); 
-    printf("  -Z IARG: (%i) num elements in Z direction\n", Z); 
-    printf("  -N IARG: (%i) num timesteps\n", N); 
-    printf("  -I IARG: (%i) print interval\n", I); 
-    printf("  -T0 FARG: (%lf) initial temperature\n", T0); 
-    printf("  -dt FARG: (%lf) timestep size\n", dt); 
-    printf("  -q FARG: (%lf) thermal conductivity\n", q); 
-    printf("  -sigma FARG: (%lf) thermal radiation\n", sigma); 
+    printf("  -X IARG: (%i) num elements in X direction\n", X);
+    printf("  -Y IARG: (%i) num elements in Y direction\n", Y);
+    printf("  -Z IARG: (%i) num elements in Z direction\n", Z);
+    printf("  -N IARG: (%i) num timesteps\n", N);
+    printf("  -I IARG: (%i) print interval\n", I);
+    printf("  -T0 FARG: (%lf) initial temperature\n", T0);
+    printf("  -dt FARG: (%lf) timestep size\n", dt);
+    printf("  -q FARG: (%lf) thermal conductivity\n", q);
+    printf("  -sigma FARG: (%lf) thermal radiation\n", sigma);
     printf("  -P FARG: (%lf) incoming power\n", P);
   }
 
@@ -246,6 +251,8 @@ struct System {
     double old_time = 0.0;
     for(int t=0; t<=N; t++) {
       if(t>N/2) P = 0.0;
+      // EXERCISE: Split exchange_T_halo into pack_T_halo and exchange_T_halo
+      //           When should you call which?
       exchange_T_halo();
       compute_inner_dT();
       compute_surface_dT();
@@ -282,7 +289,13 @@ struct System {
     int myX = T.extent(0);
     int myY = T.extent(1);
     int myZ = T.extent(2);
-    Kokkos::parallel_for("ComputeInnerDT", Kokkos::Experimental::require(policy_t({1,1,1},{myX-1,myY-1,myZ-1}),Kokkos::Experimental::WorkItemProperty::HintLightWeight), *this);
+    // EXERCISE: use the right execspace instance
+    // Using special dispatch to reduce latencies
+    Kokkos::parallel_for("ComputeInnerDT",
+      Kokkos::Experimental::require(
+        policy_t({1,1,1},{myX-1,myY-1,myZ-1}),
+        Kokkos::Experimental::WorkItemProperty::HintLightWeight),
+      *this);
   };
 
   // Compute non-exposed surface
@@ -339,6 +352,11 @@ struct System {
     dT(x,y,z) = dT_xyz;
   }
 
+  // EXERCISE: - create new pack_T_halo function and split exchange_T_halo
+  //             into separate packing and sendrecv stages
+  //           - Use the right execution space instances for the deep_copy!
+  //           - Don't forget to fence the right execution space instances before
+  //             issuing the isend_irecv
   void exchange_T_halo() {
     mpi_active_requests = 0;
     int mar = 0;
@@ -352,7 +370,7 @@ struct System {
       comm.isend_irecv(comm.down,T_down_out,T_down,&mpi_requests_send[mar],&mpi_requests_recv[mar]);
       mar++;
     }
-    if(Z_lo != 0) { 
+    if(Z_lo != 0) {
       Kokkos::deep_copy(T_front_out,Kokkos::subview(T,Kokkos::ALL,Kokkos::ALL,0));
       comm.isend_irecv(comm.front,T_front_out,T_front,&mpi_requests_send[mar],&mpi_requests_recv[mar]);
       mar++;
@@ -390,6 +408,7 @@ struct System {
       MPI_Waitall(mpi_active_requests,mpi_requests_send,MPI_STATUSES_IGNORE);
       MPI_Waitall(mpi_active_requests,mpi_requests_recv,MPI_STATUSES_IGNORE);
     }
+    // EXERCISE: use the correct execution space instances
     Kokkos::parallel_for("ComputeSurfaceDT_Left" , Kokkos::Experimental::require(policy_left_t ({0,0},{Y,Z}),Kokkos::Experimental::WorkItemProperty::HintLightWeight),*this);
     Kokkos::parallel_for("ComputeSurfaceDT_Right", Kokkos::Experimental::require(policy_right_t({0,0},{Y,Z}),Kokkos::Experimental::WorkItemProperty::HintLightWeight),*this);
     Kokkos::parallel_for("ComputeSurfaceDT_Down",  Kokkos::Experimental::require(policy_down_t ({1,0},{X-1,Z}),Kokkos::Experimental::WorkItemProperty::HintLightWeight),*this);
@@ -417,6 +436,7 @@ struct System {
     int Y = T.extent(1);
     int Z = T.extent(2);
     double my_T;
+    // EXERCISE: wait for completion of all outstanding work before dispatching the computeT kernel
     Kokkos::parallel_reduce("ComputeT", Kokkos::Experimental::require(policy_t({0,0,0},{X,Y,Z}),Kokkos::Experimental::WorkItemProperty::HintLightWeight), ComputeT(T,dT,dt), my_T);
     double sum_T;
     MPI_Allreduce(&my_T,&sum_T,1,MPI_DOUBLE,MPI_SUM,comm.comm);

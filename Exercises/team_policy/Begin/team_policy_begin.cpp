@@ -95,9 +95,9 @@ int main( int argc, char* argv[] )
   Kokkos::initialize( argc, argv );
   {
 
-  // typedef Kokkos::DefaultExecutionSpace::array_layout  Layout;
+  typedef Kokkos::DefaultExecutionSpace::array_layout  Layout;
   // typedef Kokkos::LayoutLeft   Layout;
-  typedef Kokkos::LayoutRight  Layout;
+  // typedef Kokkos::LayoutRight  Layout;
 
   typedef Kokkos::RangePolicy<> range_policy;
 
@@ -137,8 +137,8 @@ int main( int argc, char* argv[] )
 
   // EXERCISE: Use hierarchical parallel execution policy for calculation.
   // EXERCISE hints:
-  typedef Kokkos::TeamPolicy<>               team_policy;
-  typedef Kokkos::TeamPolicy<>::member_type  member_type;
+  // typedef Kokkos::TeamPolicy<>               team_policy;
+  // typedef Kokkos::TeamPolicy<>::member_type  member_type;
 
   // Timer products.
   Kokkos::Timer timer;
@@ -148,20 +148,17 @@ int main( int argc, char* argv[] )
     double result = 0;
 
     // EXERCISE: Convert from range_policy to team_policy.
-    Kokkos::parallel_reduce( team_policy( N, Kokkos::AUTO ), KOKKOS_LAMBDA ( const member_type& team, double &update ) {
+    Kokkos::parallel_reduce( range_policy( 0, N ), KOKKOS_LAMBDA ( int j, double &update ) {
       // EXERCISE: Convert to nested Kokkos::parallel_reduce.
       // EXERCISE hint: Kokkos::TeamThreadRange( ??? ) and [&].
       double temp2 = 0;
 
-      int j = team.league_rank();
-      Kokkos::parallel_reduce(Kokkos::TeamThreadRange(team, M), [=] (const int i, double& lsum) { 
-        lsum += A( j, i ) * x( i );
-      },temp2);
+      for ( int i = 0; i < M; ++i ) {
+        temp2 += A( j, i ) * x( i );
+      }
 
       // EXERCISE: Only one team member update the result.
-      Kokkos::single(Kokkos::PerTeam(team), [&]() {
-        update += y( j ) * temp2;
-      });
+      update += y( j ) * temp2;
     }, result );
 
     // Output result.

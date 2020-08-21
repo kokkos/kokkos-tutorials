@@ -2,17 +2,17 @@ KOKKOS_PATH = ${HOME}/Kokkos/kokkos
 SRC = $(wildcard *.cpp)
 KOKKOS_DEVICES=Cuda,OpenMP
 KOKKOS_CUDA_OPTIONS=enable_lambda
-KOKKOS_ARCH = SKX,Volta70
+KOKKOS_ARCH = BDW,Volta70
 
 default: build
 	echo "Start Build"
 
 CXX = mpicxx
-EXE = test.host
+EXE = mpi_heat_conduction.exe
 
 CXXFLAGS = -O3 -g
 LINK = ${CXX}
-LINKFLAGS =  
+LINKFLAGS =
 
 DEPFLAGS = -M
 

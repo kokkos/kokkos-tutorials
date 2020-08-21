@@ -1,0 +1,3 @@
+cmake .. \
+ -DKokkosRemote_ROOT=$kokkos_remote \
+ -DCMAKE_CXX_COMPILER=$kokkos/bin/nvcc_wrapper

@@ -93,22 +93,22 @@ struct RunPackCommUnpackTest {
   }
 
   void run_comm() {
-    // Get the raw pointer for the MPI copy depending on use_device_buffer
+    // EXERCISE: Get the raw pointer for the MPI copy depending on use_device_buffer
     void* recv_buf; // = ...
     void* send_buf; // = ...
 
-    // Post the Receives, create requests and MPI_Irecv into recv_buf
+    // EXERCISE: Post the Receives, create requests and MPI_Irecv into recv_buf
 
     // Pack the buffer
     Kokkos::parallel_for(Kokkos::RangePolicy<exec_space,TagPack>(0,list.extent(0)),*this);
-    // deep copy device send buffer to host send buffer if necessary (depending
-    // on use_device_buffer) and fence if necessary
+    // EXERCISE: deep copy device send buffer to host send buffer if necessary (depending
+    //           on use_device_buffer) and fence if necessary
  
-    // Send send_buffer through MPI_Send
+    // EXERCISE: Send send_buffer through MPI_Send
 
-    // Wait for the requests to finish using MPI_Waitall
+    // EXERCISE: Wait for the requests to finish using MPI_Waitall
 
-    // deep copy host receive buffer to device if necessary (depending on use_device_buffer)
+    // EXERCISE: deep copy host receive buffer to device if necessary (depending on use_device_buffer)
 
     // Unpack the buffer
     Kokkos::parallel_for(Kokkos::RangePolicy<exec_space,TagUnpack>(0,list.extent(0)),*this);

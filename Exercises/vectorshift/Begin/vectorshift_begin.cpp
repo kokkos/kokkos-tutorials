@@ -56,10 +56,10 @@
 
 #define swap(a,b,T) T tmp = a; a = b; b=tmp;
 
-//Exercise: Change View template parameter to DefaultRemoteMemorySpace in Kokkos::Experimental
+//EXERCISE: Change View template parameter to DefaultRemoteMemorySpace in Kokkos::Experimental
 using View_t = Kokkos::View<T*>;
 
-//Exercise: Change View template parameter to specify a two-dimensional array on the host
+//EXERCISE: Change View template parameter to specify a two-dimensional array on the host
 using HostView_t = Kokkos::View<T*,Kokkos::HostSpace>;
 
 int main(int argc, char *argv[]) {
@@ -81,34 +81,34 @@ int main(int argc, char *argv[]) {
   MPI_Comm_rank(MPI_COMM_WORLD, &myPE);
   MPI_Comm_size(MPI_COMM_WORLD, &numPEs);
   */
-  
+
   int k = OFFSET;
 
   //Excercise: Compute process-local n
   int n = SIZE;
- 
+
 
   Kokkos::initialize(argc, argv);
   {
     View_t a("A",n);
     View_t b("B",n);
 
-    //Exercise: Add dimension to match remote memory view (1,DIM0,...)
+    //EXERCISE: Add dimension to match remote memory view (1,DIM0,...)
     HostView_t a_h("A_h",n);
 
     //Initialize one element to non-zero
     Kokkos::deep_copy(a_h,0);
 
-    //Exercise: Assign starting shift value to first element of a two-dimensional array
-    a_h(0) = 1; 
+    //EXERCISE: Assign starting shift value to first element of a two-dimensional array
+    a_h(0) = 1;
 
     //Copy to Remote Memory Space
     Kokkos::deep_copy(a, a_h);
 
     for(int shift = 0; shift < NUM_SHIFTS; ++shift)
-    {   
-      //Exercise: Change iteration space to a Range to global array indexing
-      Kokkos::parallel_for("Shift",n, KOKKOS_LAMBDA(const int i) { 
+    {
+      //EXERCISE: Change iteration space to a Range to global array indexing
+      Kokkos::parallel_for("Shift",n, KOKKOS_LAMBDA(const int i) {
         int j = i+k; //Shift
 
         //Excersize: From global array index i, dermine PE and offset within PE

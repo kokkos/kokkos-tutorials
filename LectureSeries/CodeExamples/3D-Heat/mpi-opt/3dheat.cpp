@@ -115,7 +115,7 @@ struct System {
   // Temperature and delta Temperature
   Kokkos::View<double***> T, dT;
   // Halo data
-  using buffer_t = Kokkos::View<double**,Kokkos::LayoutLeft, Kokkos::CudaHostPinnedSpace>; 
+  using buffer_t = Kokkos::View<double**,Kokkos::LayoutLeft, Kokkos::CudaSpace>; 
   buffer_t T_left, T_right, T_up, T_down, T_front, T_back;
   buffer_t T_left_out, T_right_out, T_up_out, T_down_out, T_front_out, T_back_out;
 
@@ -191,16 +191,16 @@ struct System {
     // incoming halos
     if(X_lo != 0) T_left  = buffer_t("System::T_left" , Y_hi - Y_lo, Z_hi - Z_lo);
     if(X_hi != X) T_right = buffer_t("System::T_right", Y_hi - Y_lo, Z_hi - Z_lo);
-    if(Y_lo != 0) T_up    = buffer_t("System::T_up"   , X_hi - X_lo, Z_hi - Z_lo);
-    if(Y_hi != Y) T_down  = buffer_t("System::T_down" , X_hi - X_lo, Z_hi - Z_lo);
+    if(Y_lo != 0) T_down  = buffer_t("System::T_down" , X_hi - X_lo, Z_hi - Z_lo);
+    if(Y_hi != Y) T_up    = buffer_t("System::T_up"   , X_hi - X_lo, Z_hi - Z_lo);
     if(Z_lo != 0) T_front = buffer_t("System::T_front", X_hi - X_lo, Y_hi - Y_lo);
     if(Z_hi != Z) T_back  = buffer_t("System::T_back" , X_hi - X_lo, Y_hi - Y_lo);
 
     // outgoing halo
     if(X_lo != 0) T_left_out  = buffer_t("System::T_left_out" , Y_hi - Y_lo, Z_hi - Z_lo);
     if(X_hi != X) T_right_out = buffer_t("System::T_right_out", Y_hi - Y_lo, Z_hi - Z_lo);
-    if(Y_lo != 0) T_up_out    = buffer_t("System::T_up_out"   , X_hi - X_lo, Z_hi - Z_lo);
-    if(Y_hi != Y) T_down_out  = buffer_t("System::T_down_out" , X_hi - X_lo, Z_hi - Z_lo);
+    if(Y_lo != 0) T_down_out  = buffer_t("System::T_down_out" , X_hi - X_lo, Z_hi - Z_lo);
+    if(Y_hi != Y) T_up_out    = buffer_t("System::T_up_out"   , X_hi - X_lo, Z_hi - Z_lo);
     if(Z_lo != 0) T_front_out = buffer_t("System::T_front_out", X_hi - X_lo, Y_hi - Y_lo);
     if(Z_hi != Z) T_back_out  = buffer_t("System::T_back_out" , X_hi - X_lo, Y_hi - Y_lo);
   }

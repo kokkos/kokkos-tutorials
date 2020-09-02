@@ -1,0 +1,14 @@
+EAM input file for miniMD
+
+metal           units (lj or metal)
+none            data file (none or filename)       
+eam	            force style (lj or eam
+1.0 1.0
+32 32 32        size of problem
+100             timesteps
+0.001           timestep size 
+600             initial temperature 
+0.084671077     density 
+20              reneighboring every this many steps
+4.95 0.50       force cutoff and neighbor skin 
+10             thermo calculation every this many steps (0 = start,end)

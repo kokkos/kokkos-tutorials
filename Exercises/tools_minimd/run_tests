@@ -1,0 +1,191 @@
+#!/bin/bash
+
+echo " "
+echo "running miniMD tests scope=$1 input=$2 halfneigh=$3"
+echo "  use 'make test scope=<val> input=<lj,eam,lj-data,eam-data> halfneigh=<0,1>' or 'bash run_tests <val> <lj,eam,lj-data,eam-data> <0,1>" 
+echo "  for different test complexity"
+echo "  <val>=0 :  very short testrun with 1 MPI rank and a small system"
+echo "  <val>=1 :  short testruns with 1, 3 and 8 MPI ranks and a small system"
+echo "  <val>=2 :  very short testruns with 1, 3 and 8 MPI ranks "
+echo "             and varying system-size"
+echo "  <val>=3 :  short testruns with 1, 3 and 8 MPI ranks "
+echo "             and varying system-size"
+echo "  <val>=4 :  testruns with 1, 3 and 8 MPI ranks "
+echo "             and varying system-size"
+echo "  <val>=5:   short testruns with 1, 3 and 8 MPI ranks + 4 Threads "
+echo "             and a small system"
+echo "  <val>=6:   very short testruns with 1, 3 and 8 MPI ranks + 4 Threads "
+echo "             and varying system size"
+echo "  <val>=7:   short testruns with 1, 3 and 8 MPI ranks + 4 Threads "
+echo "             and varying system size"
+echo "  <val>=8:   testruns with 1, 3 and 8 MPI ranks + 4 Threads "
+echo "             and varying system size"
+echo "  <val>=99:  run both test 4 and 14 "
+echo "             and varying system size"
+
+echo " "
+echo " You might need to edit the run_ont_test script to set the correct options for your MPI installation."
+echo " "
+
+nexe=0
+
+for exe in $4miniMD*
+do
+  nexe=$(expr ${nexe} + 1)
+done
+
+if [ ${nexe} -eq 0 ]; then
+echo "Did not find a miniMD executable. Aborting."
+exit -1
+fi
+
+mpi_size=0
+nsteps=100
+threads=1
+ghostcomm=0
+scope=$1
+input=$2
+neighlist=$3
+
+if [ ${#scope} -lt 1 ]; then
+ scope=0
+fi
+
+if [ ${#input} -lt 1 ]; then
+ input=lj
+fi
+ 
+if [ ${#neighlist} -lt 1 ]; then
+ neighlist=0
+fi
+
+if [ $scope -eq 1 ]; then
+  nsteps=1000
+  threads=1
+  mpi_size=1
+fi
+
+if [ $scope -eq 2 ]; then
+  nsteps=100
+  threads=1
+  mpi_size=2
+fi
+
+if [ $scope -eq 3 ]; then
+  nsteps=1000
+  threads=1
+  mpi_size=2
+fi
+
+if [ $scope -eq 4 ]; then
+  nsteps=10000
+  threads=4
+  mpi_size=2
+fi
+
+if [ $scope -eq 5 ]; then
+  nsteps=1000
+  threads=4
+  mpi_size=1
+fi
+
+if [ $scope -eq 6 ]; then
+  nsteps=100
+  threads=4
+  mpi_size=2
+fi
+
+if [ $scope -eq 7 ]; then
+  nsteps=1000
+  threads=4
+  mpi_size=2
+fi
+
+if [ $scope -eq 8 ]; then
+  nsteps=10000
+  threads=4
+  mpi_size=2
+fi
+
+if [ $scope -eq 99 ]; then
+  nsteps=10000
+  threads=1
+  mpi_size=2
+fi
+
+for exe in $4miniMD*
+do
+  bash run_one_test ${exe} 1 ${threads} 10 ${nsteps} ${neighlist} ${ghostcomm} ${input}
+
+  if [ $mpi_size -gt 1 ]; then 
+    bash run_one_test ${exe} 1 ${threads} 16 ${nsteps} ${neighlist} ${ghostcomm} ${input}
+    bash run_one_test ${exe} 1 ${threads} 20 ${nsteps} ${neighlist} ${ghostcomm} ${input}
+    bash run_one_test ${exe} 1 ${threads} 30 ${nsteps} ${neighlist} ${ghostcomm} ${input}
+    bash run_one_test ${exe} 1 ${threads} 40 ${nsteps} ${neighlist} ${ghostcomm} ${input}
+    bash run_one_test ${exe} 1 ${threads} 60 ${nsteps} ${neighlist} ${ghostcomm} ${input}
+  fi
+  
+  if [ $mpi_size -gt 0 ]; then 
+    bash run_one_test ${exe} 3 ${threads} 10 ${nsteps} ${neighlist} ${ghostcomm} ${input}
+  fi
+   
+  if [ $mpi_size -gt 1 ]; then 
+    bash run_one_test ${exe} 3 ${threads} 16 ${nsteps} ${neighlist} ${ghostcomm} ${input}
+    bash run_one_test ${exe} 3 ${threads} 20 ${nsteps} ${neighlist} ${ghostcomm} ${input}
+    bash run_one_test ${exe} 3 ${threads} 30 ${nsteps} ${neighlist} ${ghostcomm} ${input}
+    bash run_one_test ${exe} 3 ${threads} 40 ${nsteps} ${neighlist} ${ghostcomm} ${input}
+    bash run_one_test ${exe} 3 ${threads} 60 ${nsteps} ${neighlist} ${ghostcomm} ${input}
+  fi
+  
+  if [ $mpi_size -gt 0 ]; then 
+    bash run_one_test ${exe} 8 ${threads} 10 ${nsteps} ${neighlist} ${ghostcomm} ${input}
+  fi
+   
+  if [ $mpi_size -gt 1 ]; then 
+    bash run_one_test ${exe} 8 ${threads} 16 ${nsteps} ${neighlist} ${ghostcomm} ${input}
+    bash run_one_test ${exe} 8 ${threads} 20 ${nsteps} ${neighlist} ${ghostcomm} ${input}
+    bash run_one_test ${exe} 8 ${threads} 30 ${nsteps} ${neighlist} ${ghostcomm} ${input}
+    bash run_one_test ${exe} 8 ${threads} 40 ${nsteps} ${neighlist} ${ghostcomm} ${input}
+    bash run_one_test ${exe} 8 ${threads} 60 ${nsteps} ${neighlist} ${ghostcomm} ${input}
+  fi
+done
+
+if [ $scope -eq 99 ]; then
+  threads=4
+for exe in $4miniMD*
+do
+  bash run_one_test ${exe} 1 ${threads} 10 ${nsteps} ${neighlist} ${ghostcomm} ${input}
+
+  if [ $mpi_size -gt 1 ]; then 
+    bash run_one_test ${exe} 1 ${threads} 16 ${nsteps} ${neighlist} ${ghostcomm} ${input}
+    bash run_one_test ${exe} 1 ${threads} 20 ${nsteps} ${neighlist} ${ghostcomm} ${input}
+    bash run_one_test ${exe} 1 ${threads} 30 ${nsteps} ${neighlist} ${ghostcomm} ${input}
+    bash run_one_test ${exe} 1 ${threads} 40 ${nsteps} ${neighlist} ${ghostcomm} ${input}
+    bash run_one_test ${exe} 1 ${threads} 60 ${nsteps} ${neighlist} ${ghostcomm} ${input}
+  fi
+  
+  if [ $mpi_size -gt 0 ]; then 
+    bash run_one_test ${exe} 3 ${threads} 10 ${nsteps} ${neighlist} ${ghostcomm} ${input}
+  fi
+   
+  if [ $mpi_size -gt 1 ]; then 
+    bash run_one_test ${exe} 3 ${threads} 16 ${nsteps} ${neighlist} ${ghostcomm} ${input}
+    bash run_one_test ${exe} 3 ${threads} 20 ${nsteps} ${neighlist} ${ghostcomm} ${input}
+    bash run_one_test ${exe} 3 ${threads} 30 ${nsteps} ${neighlist} ${ghostcomm} ${input}
+    bash run_one_test ${exe} 3 ${threads} 40 ${nsteps} ${neighlist} ${ghostcomm} ${input}
+    bash run_one_test ${exe} 3 ${threads} 60 ${nsteps} ${neighlist} ${ghostcomm} ${input}
+  fi
+  
+  if [ $mpi_size -gt 0 ]; then 
+    bash run_one_test ${exe} 8 ${threads} 10 ${nsteps} ${neighlist} ${ghostcomm} ${input}
+  fi
+   
+  if [ $mpi_size -gt 1 ]; then 
+    bash run_one_test ${exe} 8 ${threads} 16 ${nsteps} ${neighlist} ${ghostcomm} ${input}
+    bash run_one_test ${exe} 8 ${threads} 20 ${nsteps} ${neighlist} ${ghostcomm} ${input}
+    bash run_one_test ${exe} 8 ${threads} 30 ${nsteps} ${neighlist} ${ghostcomm} ${input}
+    bash run_one_test ${exe} 8 ${threads} 40 ${nsteps} ${neighlist} ${ghostcomm} ${input}
+    bash run_one_test ${exe} 8 ${threads} 60 ${nsteps} ${neighlist} ${ghostcomm} ${input}
+  fi
+done
+fi

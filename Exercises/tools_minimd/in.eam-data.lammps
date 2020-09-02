@@ -1,0 +1,28 @@
+# EAM input file for LAMMPS using start configuration from a data file
+
+units metal
+
+variable 	n index 100
+
+atom_style	atomic
+
+variable gn index 0
+if "${gn} > 0" then &
+ "newton on" &
+else &
+ "newton off"
+ 
+read_data 	1m.data
+
+pair_style	eam
+pair_coeff	1 1 Cu_u6.eam
+
+neighbor	1.0 bin
+neigh_modify    every 20 delay 0 check no
+
+fix		1 all nve
+
+timestep	0.001
+thermo		100
+
+run		$n

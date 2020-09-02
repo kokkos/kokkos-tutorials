@@ -1,0 +1,14 @@
+Lennard-Jones input file for miniMD
+
+lj             units (lj or metal)
+none           data file (none or filename)       
+lj             force style (lj or eam)
+0.167 2.315    LJ parameters (epsilon and sigma; COMD: 0.167 / 2.315)
+32 32 32       size of problem
+100            timesteps
+0.00005        timestep size 
+1              initial temperature 
+0.301976844    density 
+20             reneighboring every this many steps
+4.59 0.50      force cutoff and neighbor skin 
+100            thermo calculation every this many steps (0 = start,end)

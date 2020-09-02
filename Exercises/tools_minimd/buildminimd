@@ -1,0 +1,14 @@
+cd $HOME
+mkdir Kokkos
+cd Kokkos
+git clone https://github.com/kokkos/kokkos
+git clone https://github.com/mantevo/miniMD
+cd miniMD/kokkos
+cd MPI-Stubs
+make
+cd ..
+make HAVE_MPI=no -j 24
+export OMP_PROC_BIND=close
+export OMP_PLACES=threads
+./miniMD -t [some number of threads]
+

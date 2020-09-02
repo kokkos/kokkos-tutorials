@@ -1,0 +1,139 @@
+#!/bin/bash
+
+## OPENMPI
+MPISTART=mpirun
+
+## MVAPICH
+#MPISTART=mpiexec 
+
+## INTEL MPI 
+#MPISTART=mpiexec.hydra 
+
+## Options for MPI
+MPIOPTIONS=""
+
+## MVAPICH options for running cuda
+#MPIOPTIONS="env MV2_USE_CUDA=1 MV2_CUDA_CHECK_ATTRIBUTE=1"
+
+## INTEL MPI options for binding
+#MPIOPTIONS="-binding domain=omp env OMP_NUM_THREADS=$3 KMP_AFFINITY=compact"
+
+
+echo " "
+echo "running miniMD test: exe=$1 np=$2 nt=$3 size=$4 nsteps=$5 neighlist=$6 ghostcomm=$7 input=$8"
+
+#check whether the number of commandline parameters is correct
+if [ $# != 8 ]; then
+  echo "usage: run_one_test <exe> <np> <nt> <size> <nsteps> <neighlist> <ghostcomm> <input>"
+  echo "   <exe>:    name of exeuctable"
+  echo "   <np>:     number of MPI ranks"
+  echo "   <nt>:     number of threads"
+  echo "   <size>:   problemsize (typical range 10-50)"
+  echo "   <nsteps>: number of timesteps"
+  echo "   <neighlist>: type of neighbor list"
+  echo "   <ghostcomm>: do ghostcommunictaion"
+  echo "   <input>: input-type (lj, eam, lj-data, eam-data)"
+  
+  exit 1
+fi
+
+#check if executable exists
+if [ ! -x ${1} ]; then
+  echo "Did not find the miniMD executable. Aborting."
+  exit -1
+fi
+
+#echo the commandline to run the test
+echo "${MPISTART} -np $2 ${MPIOPTIONS} ./$1 -ng 2 --skip_gpu 1 -dm -t $3 -s $4 -n $5 --half_neigh $6 -gn $7 --yaml_output 0 -dm -i in.$8.miniMD"
+
+#do the testrun
+${MPISTART} -np $2 ${MPIOPTIONS} ./$1 -ng 2 --skip_gpu 1 -dm -t $3 -s $4 -n $5 --half_neigh $6 -gn $7 --yaml_output 0 -dm -i in.$8.miniMD > out.test
+
+
+#get the filename of the equivalent reference output
+reffile=$(grep "System size" reference_output/*.$8 | awk '{ if($10 == '$4') print $1 }')
+if [ ${#reffile} -lt 1 ]; then
+  reffile=$(grep "System size" ../reference_output/*.$8 | awk '{ if($10 == '$4') print $1 }')
+fi
+reffile="${reffile:0:${#reffile}-1}"
+
+echo "Testfile: ${reffile}"
+#copy refference output 
+cp ${reffile} out.ref
+
+
+#figure out line where actual thermo output starts
+tmp=$(grep -n "# Timestep T" out.test | awk '{print $1}')
+start="${tmp:0:2}"
+tmp=$(grep -n "# Performance Summary" out.test)
+end="${tmp:0:2}"
+if [ ${end} -lt ${start} ]; then
+ end="${tmp:0:3}"
+fi
+if [ ${#end} -lt 1 ]; then
+ end=10000
+fi
+nnlines=$(expr $end - $start)
+tail -n +$start out.test | head -n $nnlines > thermo.test
+
+tmp=$(grep -n "# Timestep T" out.ref | awk '{print $1}')
+start="${tmp:0:2}"
+tmp=$(grep -n "# Performance Summary" out.ref | awk '{print $1}')
+end="${tmp:0:2}"
+if [ ${end} -lt ${start} ]; then
+ end="${tmp:0:3}"
+fi
+if [ ${#end} -lt 1 ]; then
+ end=10000
+fi
+nnlines=$(expr $end - $start)
+tail -n +$start out.ref | head -n $nnlines > thermo.ref
+
+runfinished=$(grep "Timestep" thermo.test)
+if [ ${#runfinished} -lt 1 ]; then
+  echo "FAILED"
+fi
+
+#merge difference of reference output and test output into one file
+pr -m -t -s\  thermo.ref thermo.test | awk 'BEGIN{getline}{if(NF>8) print $1 " " ($2-$7) " " ($3-$8) " " ($4-$9)}' > out.compare
+
+natoms=$(grep Atoms out.ref | awk '{printf $3}')
+precision=$(grep "Size of float" out.test | awk '{printf $5}')
+echo $natoms
+#awk 'BEGIN{temp=0; eng=0; p=0;}\
+#     {\
+#       t=$2<0?$2*-1:$2; if(t>temp) temp=t;\
+#       t=$3<0?$3*-1:$3; if(t>eng) eng=t;\
+#       t=$4<0?$4*-1:$4; if(t>p) p=t;\
+#     }\
+#     END{if(temp+eng+p<1e-5) print "   Max deviation "; if(temp+eng+p>1e-5) print "   FAILED"}' out.compare
+
+#Prefactors (t,e,p): LJ 0.4 0.575 3; EAM 12000 25000 200
+
+if [ ${#8} -lt 3 ]; then
+  system=1; 
+fi
+if [ ${#8} -eq 3 ]; then
+  system=2
+fi
+  
+
+awk 'BEGIN{ s='"${system}"'; natoms='"${natoms}"'; total=0; t=0; e=0; p=0; \
+           stddev_t=(s<2?0.4:13)/sqrt(natoms);\
+           stddev_e=(s<2?0.575:1300)/sqrt(natoms);\
+           stddev_p=(s<2?3:300)/sqrt(natoms);\
+           d=(s<2?175:1000);\
+           add_t=(s<2?1e-5:2e-3);\
+           add_e=(s<2?1e-5:1);\
+           add_p=(s<2?1e-5:0.3);\
+           }\
+     {\
+       x=sqrt(2)*(0.5+atan2($1-d*'"${precision}"',50)/3.1415);\
+       v=sqrt($2*$2); if(v>stddev_t*x+add_t) t=t+1;\
+       v=sqrt($3*$3); if(v>stddev_e*x+add_e) e=e+1;\
+       v=sqrt($4*$4); if(v>stddev_p*x+add_p) p=p+1; print $1 " " t " " e " " p " " 175*'"${precision}"' " " $2 " " $3 " " $4 " " stddev_t*x " " stddev_e*x " " stddev_p*x;\
+       total=total+1;\
+     }\
+     END{if(t+e+p<=3*0.38*total) print "   PASSED (T: " t/total " ; E: " e/total " ; P: " p/total " ; Expected <=0.38)" ; \
+     if(t+e+p>3*0.38*total) print "   Failed (" t/total " ; " e/total " ; " p/total " ; Expected 0.32+-0.06)";}' out.compare
+rm thermo.ref thermo.test out.ref out.test out.compare

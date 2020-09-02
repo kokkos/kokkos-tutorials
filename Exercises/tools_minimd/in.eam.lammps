@@ -1,0 +1,37 @@
+# EAM input file for LAMMPS
+
+units metal
+variable 	s index 32
+variable	x index $s
+variable	y index $s
+variable	z index $s
+variable 	n index 100
+
+atom_style	atomic
+
+variable gn index 0
+if "${gn} > 0" then &
+ "newton on" &
+else &
+ "newton off"
+
+#with metal units the fcc parameter is not density but actual lattice vector length
+lattice		fcc 3.84406 
+region		box block 0 ${x} 0 ${y} 0 ${z}
+create_box	1 box
+create_atoms	1 box
+
+pair_style	eam
+pair_coeff	1 1 Cu_u6.eam
+
+velocity	all create 600 376847 loop geom
+
+neighbor	1.0 bin
+neigh_modify    every 20 delay 0 check no
+
+fix		1 all nve
+
+timestep	0.001
+thermo		100
+
+run		$n

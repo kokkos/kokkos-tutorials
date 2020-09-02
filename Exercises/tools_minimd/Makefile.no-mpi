@@ -1,0 +1,52 @@
+#Set the path to MPI
+#MPI_PATH = /home/projects/x86-64/openmpi/1.8.4/gcc/4.8.4/cuda/7.0
+MPI_PATH = ./MPI-Stubs
+
+#Set the path to Kokkos
+KOKKOS_PATH = ${HOME}/Kokkos/kokkos
+#Set the Devices to compile for
+KOKKOS_DEVICES=Cuda
+#Set the Architecture to compiler for
+KOKKOS_ARCH=SNB,Volta70
+
+
+CXXFLAGS = -O3 
+LINKFLAGS = 
+LIB =
+
+#CXX = ${MPI_PATH}/bin/mpicxx
+CXX = ${KOKKOS_PATH}/bin/nvcc_wrapper
+CXXFLAGS += -I${MPI_PATH}
+LIB += ${MPI_PATH}/libmpi_stubs.a
+
+#CXXFLAGS += -DTEST_LAMBDA_BYCOPY
+#CXXFLAGS += -DTEST_LAMBDA_BYPTR
+LINK = ${CXX}
+EXE = miniMD
+
+default: all
+
+include $(KOKKOS_PATH)/Makefile.kokkos
+
+SRC = $(wildcard *.cpp) 
+HEADERS = $(wildcard *.h)
+DEPFLAGS = -M
+
+OBJ = $(SRC:.cpp=.o)
+
+
+all: $(OBJ) $(KOKKOS_LINK_DEPENDS)
+	$(LINK) $(LINKFLAGS) $(EXTRA_PATH) $(OBJ) $(KOKKOS_LDFLAGS) $(KOKKOS_LIBS) $(LIB) -o $(EXE)
+
+clean: 
+	rm *.o *.d libkokkos.a *.cuda *.host
+
+EXTRA_FLAGS = $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS)
+# Compilation rules
+
+%.o:%.cpp $(KOKKOS_CPP_DEPENDS) $(HEADERS)
+	$(CXX) $(CXXFLAGS) $(EXTRA_FLAGS) -c $<
+
+# Individual dependencies
+
+

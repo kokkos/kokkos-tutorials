@@ -1,0 +1,13 @@
+EAM input file for MD benchmark reading data from file
+
+metal           units (lj or metal)
+1m.data         data file (none or filename)       
+eam		          force style (lj or eam)
+100 100 100     size of problem
+100             timesteps
+0.001           timestep size 
+600             initial temperature 
+0.07041125      density 
+20              reneighboring every this many steps
+4.95 1.0        force cutoff and neighbor skin 
+100             thermo calculation every this many steps (0 = start,end)

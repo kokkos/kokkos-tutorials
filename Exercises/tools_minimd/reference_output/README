@@ -1,0 +1,21 @@
+The logfiles in this directory represent known good output. 
+When running with 64 bit precision, deviations should be limited to the last digit of each number if run in MPI only mode.
+During the first 1000 timestep the output does not depend on the run mode (such as number of MPI processes and 
+OpenMP ranks or neighborlist style), it should only depend on the size of the system. For longer simulations the non associative 
+and commutative nature of floating point operations can have an influence. In the long run the difference between two simulations
+should be similar to the fluctuations within one run. This effect is stronger the more threads are used.
+In single precision runs on GPUs (with the KokkosArray variant) this point is often reached after a few thousand 
+timesteps. Indeed those deviations can already be seen by running the same simulation twice on the same GPU. Note that 
+the automatic test is taking this into account for its judgmenet whether a run PASSES. 
+
+To generate similar output use the provided input scripts 
+in.lj.miniMD and in.eam.miniMD and the -s flag.
+
+The different sizes are:
+  4k : -s 10
+ 16k : -s 16
+ 32k : -s 20
+108k : -s 30
+256k : -s 40
+864k : -s 60
+

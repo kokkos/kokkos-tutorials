@@ -126,10 +126,11 @@ int main( int argc, char* argv[] )
     }
   }
 
-  // Timer products.
-  struct timeval begin, end;
+  // Wait for initalization to finish (after they are converted)
+  Kokkos::fence();
 
-  gettimeofday( &begin, NULL );
+  // Timer products.
+  Kokkos::Timer timer;
 
   for ( int repeat = 0; repeat < nrepeat; repeat++ ) {
     // Application: <y,Ax> = y^T*A*x
@@ -157,11 +158,7 @@ int main( int argc, char* argv[] )
     }
   }
 
-  gettimeofday( &end, NULL );
-
-  // Calculate time.
-  double time = 1.0 * ( end.tv_sec - begin.tv_sec ) +
-                1.0e-6 * ( end.tv_usec - begin.tv_usec );
+  double time = timer.seconds();
 
   // Calculate bandwidth.
   // Each matrix A row (each of length M) is read once.

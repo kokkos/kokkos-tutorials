@@ -1,6 +1,6 @@
-KOKKOS_DEVICES=Serial
+KOKKOS_DEVICES=OpenMP
 KOKKOS_CUDA_OPTIONS=enable_lambda
-KOKKOS_ARCH = "SNB"
+KOKKOS_ARCH = "SNB,Volta70"
 
 
 MAKEFILE_PATH := $(subst Makefile,,$(abspath $(lastword $(MAKEFILE_LIST))))
@@ -20,11 +20,11 @@ default: build
 LINKFLAGS =
 ifneq (,$(findstring Cuda,$(KOKKOS_DEVICES)))
 CXX = ${KOKKOS_PATH}/bin/nvcc_wrapper
-EXE = scatterview.cuda
+EXE = scatter_view.cuda
 override LINKFLAGS += --remove-duplicate-link-files
 else
 CXX = g++
-EXE = scatterview.host
+EXE = scatter_view.host
 endif
 
 CXXFLAGS ?= -O3 -g

@@ -87,7 +87,7 @@ int main(int argc, char* argv[]) {
       for(int j=0; j<M; j++)
 	values_h(i,j) = rand()%N;
 
-    Kokkos::deep_copy(values_h,values);
+    Kokkos::deep_copy(values,values_h);
 
     double time_atomic = atomic_loop(values,results);
     std::cout << "Time Atomic: " << N << " " << M << " " << time_atomic << std::endl;

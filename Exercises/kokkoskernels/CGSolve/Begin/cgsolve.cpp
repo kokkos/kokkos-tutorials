@@ -41,7 +41,7 @@
 //@HEADER
 */
 
-// EXERCISE Goal: Implement conjugate gradient solver for square, symmetric, positive-definite sparse matrix using: 
+// EXERCISE Goal: Implement conjugate gradient solver for square, symmetric, positive-definite sparse matrix using:
 //        - KokkosKernels BLAS functions
 //        - KokkosKernels Sparse Matrix functions
 
@@ -96,8 +96,8 @@ void makeSparseMatrix (
       size_type* ptrRaw = new size_type[numRows + 1];
       lno_t*     indRaw = new lno_t[ nnz ];
       scalar_t* valRaw  = new scalar_t[ nnz ];
-      scalar_t two  =  2.0;
-      scalar_t mone = -1.0;
+      constexpr scalar_t two  =  2.0;
+      constexpr scalar_t mone = -1.0;
 
       // Add rows one-at-a-time
       for (int i = 0; i < (numRows + 1); i++) {
@@ -173,7 +173,7 @@ int main( int argc, char* argv[] )
   srand(time(0));// Use current time as seed for random generator
 
   int N = -1;         // number of rows 2^10
-  
+
   // Read command line arguments.
   for ( int i = 0; i < argc; i++ ) {
     if ( strcmp( argv[ i ], "-N" ) == 0 ) {
@@ -190,51 +190,102 @@ int main( int argc, char* argv[] )
 
   // Check sizes.
   checkSizes( N );
-  
+
   Kokkos::initialize( argc, argv );
   {
-    //typedef Kokkos::DefaultExecutionSpace::array_layout  Layout;
-    //typedef Kokkos::LayoutLeft   Layout;
-    typedef Kokkos::LayoutRight  Layout;
+    // Define scalar types based on availability of kokkos half precision support
+#if defined(KOKKOS_HALF_T_IS_FLOAT)
+        using ScalarType = Kokkos::Experimental::half_t;
+        using AccumulatorType = float;
+#else
+        using ScalarType = double;
+        using AccumulatorType = ScalarType;
+#endif // KOKKOS_HALF_T_IS_FLOAT
 
-    typedef Kokkos::View<double*, Layout>  ViewVectorType;
+        // Define view template argument types
+#if defined(KOKKOS_ENABLE_CUDA)
+        using DeviceType = Kokkos::Cuda;
+#else
+        using DeviceType = Kokkos::HostSpace;
+#endif // defined(KOKKOS_ENABLE_CUDA)
+        using ExecutionSpace = DeviceType::execution_space;
+        //using Layout = ExecutionSpace::array_layout;
+        //using Layout = Kokkos::LayoutLeft;
+        using Layout = Kokkos::LayoutRight;
 
-    // Timer products.
+        // Define view types
+        using ViewVectorType = Kokkos::View<ScalarType *, Layout, DeviceType>;
+        using AccumulatorVectorType = Kokkos::View<AccumulatorType, Layout, DeviceType>;
+
+        // Declare timer products.
     struct timeval begin, end, c0, c1;
 
-    //
-    double one   = 1.0;
-    double zero  = 0.0;
-    double tolerance = 0.0000000001;
+    // Defined scalars used in loop
+    constexpr ScalarType one   = 1.0;
+    constexpr ScalarType zero  = 0.0;
+    constexpr ScalarType tolerance = 0.0001; // Smallest positive half_t is 0
+    // .00006103515625.
+
+    // Declare denominator for random number generation
+    ScalarType rand_max;
+
+    // Initialize rand_max based on ScalarType in use
+#if defined(KOKKOS_HALF_T_IS_FLOAT)
+    if (std::is_same<ScalarType, Kokkos::Experimental::half_t>::value)
+      rand_max = static_cast<ScalarType>(0x7BFF); // Largest positive half_t is 0x7BFF.
+    else
+      rand_max = RAND_MAX;
+#else
+    rand_max = RAND_MAX;
+#endif // KOKKOS_HALF_T_IS_FLOAT
 
     // Allocate vectors and Matrix A on device.
-    typedef KokkosSparse::CrsMatrix<double, int, Kokkos::DefaultExecutionSpace, void, int> crs_matrix_type;
+    typedef KokkosSparse::CrsMatrix<ScalarType, int, ExecutionSpace, void, int> crs_matrix_type;
     crs_matrix_type A = makeCrsMatrix<crs_matrix_type> (N);
 
     ViewVectorType b    ( "b",    N );
     ViewVectorType x    ( "x",    N );
     ViewVectorType xx   ( "xx",   N );
-	
+
     ViewVectorType p    ( "p",    N );
     ViewVectorType Ap   ( "Ap",   N );
     ViewVectorType r    ( "r",    N );
 
+    // Allocate 0-D vector on device for dot product accumulation
+    AccumulatorVectorType dot_ret ("dot_ret");
+
     // Create host mirrors of device views.
     ViewVectorType::HostMirror h_xx = Kokkos::create_mirror_view( xx );
+    AccumulatorVectorType::HostMirror h_dot_ret = Kokkos::create_mirror_view( dot_ret );
 
-    // Initialize xx vector on host.
-    for(int i=0; i<xx.span(); i++) h_xx.data()[i] = (double)rand() / RAND_MAX;
+    // Initialize h_xx with random numbers in [0, 1]
+    for(int i=0; i<xx.span(); i++) {
+#if defined(KOKKOS_HALF_T_IS_FLOAT)
+      // Produce a random half_t between 0 and 1. Mask 32 bit random number off to last 14 bits.
+      if (std::is_same<ScalarType, Kokkos::Experimental::half_t>::value)
+	h_xx.data()[i] = static_cast<ScalarType>(rand() & 0x3FFF) / rand_max;
+      else
+	h_xx.data()[i] = static_cast<ScalarType>(rand()) / rand_max;
+#else
+      h_xx.data()[i] = static_cast<ScalarType>(rand()) / rand_max;
+#endif // KOKKOS_HALF_T_IS_FLOAT
+      // Check for random numbers outside of [0, 1]
+      if (h_xx.data()[i] > 1 || h_xx.data()[i] < 0) {
+	printf("ERROR: h_xx.data()[%d] = %g not it [0, 1].\n", i,
+	       static_cast<double>(h_xx.data()[i]));
+	exit(-1);
+      }
+    }
 
+    // Copy h_xx from host to device
     Kokkos::deep_copy( xx, h_xx );
 
-    // EXERCISE: Generate RHS vector b by multilying A with the reference solution xx 
+    // EXERCISE: Generate RHS vector b by multilying A with the reference solution xx
     /* b = A*xx */
     // EXERCISE hint: KokkosSparse::spmv
-	
-    // Deep copy b to r
-    Kokkos::deep_copy( r, b );
 
-    Kokkos::fence();
+    // Deep copy b to r.
+    Kokkos::deep_copy( r, b );
 
     // Start CGSolve
     gettimeofday( &begin, NULL );
@@ -242,12 +293,12 @@ int main( int argc, char* argv[] )
     // EXERCISE:
     /* r = b - A*x */
     // EXERCISE hint: KokkosSparse::spmv, KokkosBlas::axpy
-	
+
     // EXERCISE:
-    /* r_old_dot = <r,r> */
+    /* dot_ret = <r,r> */
     // EXERCISE hint: KokkosBlas::dot
 
-    double norm_res  = std::sqrt( r_old_dot );
+    AccumulatorType norm_res  = std::sqrt( static_cast<double>(r_old_dot) );
 
     gettimeofday( &c1, NULL );
     double tt1 = 1.0 *    ( c1.tv_sec  - c0.tv_sec ) +
@@ -255,7 +306,8 @@ int main( int argc, char* argv[] )
 
     gettimeofday( &c0, NULL );
     /* p  = r */
-    Kokkos::deep_copy( p, r ); Kokkos::fence();
+    Kokkos::deep_copy( p, r );
+
     gettimeofday( &c1, NULL );
     double tt2 = 1.0 *    ( c1.tv_sec  - c0.tv_sec ) +
                  1.0e-6 * ( c1.tv_usec - c0.tv_usec );
@@ -265,11 +317,17 @@ int main( int argc, char* argv[] )
     double tt3 = 0.0;
     double tt4 = 0.0;
 
+    printf("tolerance(%g), norm_res(%g), k(%d), N(%d)\n", static_cast<double>(tolerance), static_cast<double>(norm_res), k, N);
+
     while ( tolerance < norm_res && k < N ) {
         gettimeofday( &c0, NULL );
-        // EXERCISE: 
+        // EXERCISE:
         /* alpha = (r'*r)/(p'*A*p) */
         // EXERCISE hint: KokkosSparse::spmv, KokkosBlas::dot
+        // Ap = A * p
+
+        // alpha = r_old_dot/pAp_dot
+        ScalarType alpha   = r_old_dot / pAp_dot ;
         gettimeofday( &c1, NULL );
         tt3 += 1.0 *    ( c1.tv_sec  - c0.tv_sec ) +
                1.0e-6 * ( c1.tv_usec - c0.tv_usec );
@@ -289,17 +347,20 @@ int main( int argc, char* argv[] )
         /* p = r + beta * p */
         // EXERCISE hint: KokkosBlas::axpby
 
-        norm_res = std::sqrt( r_old_dot = r_dot );
+        norm_res = std::sqrt( static_cast<double>(r_old_dot = r_dot) );
 
-        k++ ;
+        k++;
 
-        Kokkos::fence();
+	// Ensure device kernels are done before taking time stamp
+	ExecutionSpace().fence();
+
         gettimeofday( &c1, NULL );
         tt4 += 1.0 *    ( c1.tv_sec  - c0.tv_sec ) +
                1.0e-6 * ( c1.tv_usec - c0.tv_usec );
     }
 
-    Kokkos::fence();
+    // Ensure device kernels are done before taking final time stamp
+    ExecutionSpace().fence();
 
     gettimeofday( &end, NULL );
 
@@ -309,11 +370,17 @@ int main( int argc, char* argv[] )
 
     // Check result
     KokkosBlas::axpby(one, x, -one, xx);
-    double final_norm_res  = std::sqrt( KokkosBlas::dot(xx, xx) );
+    KokkosBlas::dot(dot_ret, xx, xx);
+
+    // Ensure that dot completes on device before copying result to host
+    ExecutionSpace().fence();
+
+    Kokkos::deep_copy(h_dot_ret, dot_ret);
+    AccumulatorType final_norm_res  = std::sqrt( static_cast<double>(h_dot_ret.data()[0]) );
 
     // Print results (problem size, time, number of iterations and final norm residual).
-    printf( "    Results: N( %d ), time( %g s ), iterations( %d ), final norm_res(%.20lf), time part1( %g s ), time part2( %g s ), time part3( %g s ), time part4( %g s )\n",
-            N, time, k, final_norm_res, tt1, tt2, tt3, tt4 );
+    printf( "    Results: N( %d ), time( %g s ), iterations( %d ), final norm_res(%g), norm_res(%g), tolerance(%g), time part1( %g s ), time part2( %g s ), time part3( %g s ), time part4( %g s )\n",
+            N, time, k, static_cast<double>(final_norm_res), static_cast<double>(norm_res), static_cast<double>(tolerance), tt1, tt2, tt3, tt4 );
   }
 
   Kokkos::finalize();

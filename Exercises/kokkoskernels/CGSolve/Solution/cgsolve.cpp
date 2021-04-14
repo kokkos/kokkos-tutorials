@@ -100,8 +100,8 @@ void makeSparseMatrix (
       size_type* ptrRaw = new size_type[numRows + 1];
       lno_t*     indRaw = new lno_t[ nnz ];
       scalar_t* valRaw  = new scalar_t[ nnz ];
-      constexpr scalar_t two  =  2.0;
-      constexpr scalar_t mone = -1.0;
+      scalar_t two  =  2.0;
+      scalar_t mone = -1.0;
 
       // Add rows one-at-a-time
       for (int i = 0; i < (numRows + 1); i++) {
@@ -225,9 +225,9 @@ int main( int argc, char* argv[] )
     struct timeval begin, end, c0, c1;
 
     // Defined scalars used in loop
-    constexpr ScalarType one   = 1.0;
-    constexpr ScalarType zero  = 0.0;
-    constexpr ScalarType tolerance = 0.0001; // Smallest positive half_t is 0
+    ScalarType one   = 1.0;
+    ScalarType zero  = 0.0;
+    ScalarType tolerance = 0.0001; // Smallest positive half_t is 0
     // .00006103515625.
 
     // Declare denominator for random number generation

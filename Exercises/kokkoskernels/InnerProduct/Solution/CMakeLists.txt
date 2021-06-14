@@ -5,7 +5,6 @@ find_package(KokkosKernels REQUIRED)
 
 include(../../common.cmake)
 
-add_executable(inner innerproduct.cpp)
-target_link_libraries(inner Kokkos::kokkoskernels)
-
+add_executable(innerproduct.exe innerproduct.cpp)
+target_link_libraries(innerproduct.exe Kokkos::kokkoskernels)
 

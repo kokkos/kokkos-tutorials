@@ -42,9 +42,10 @@
 */
 
 // EXERCISE Goal:
-//   - Implement inner product using: 
-//        1. KokkosKernels BLAS functions
-//        2. KokkosKernels team-based BLAS functions using team parallelism with team policy.
+//   - Implement inner product in two separate sub-exercises using:
+//        Ex 1. KokkosKernels BLAS functions (gemv, dot)
+//        Ex 2. KokkosKernels team-based BLAS functions using team parallelism with
+//              team policy (team-based dot)
 //   - Compare runtimes of these two implementations. Try different array layouts
 
 #include <limits>
@@ -146,7 +147,10 @@ int main( int argc, char* argv[] )
     // Timer products.
     struct timeval begin, end;
 
+    //--------------------------------------------------------//
+    //------------------       Ex. 1        ------------------//
     //------------------Using BLAS functions------------------//
+    //--------------------------------------------------------//
 
     printf( "  Using BLAS functions: gemv, dot\n" );
 
@@ -196,7 +200,10 @@ int main( int argc, char* argv[] )
             N, M, nrepeat, Gbytes * 1000, time, Gbytes * nrepeat / time );
 
     
+    //-------------------------------------------------------------------//
+    //------------------           Ex. 2               ------------------//
     //------------------Using team-based BLAS functions------------------//
+    //-------------------------------------------------------------------//
 
     printf( "  Using team-based dot\n" );
 	

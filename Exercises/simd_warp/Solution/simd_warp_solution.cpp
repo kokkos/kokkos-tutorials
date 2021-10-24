@@ -12,22 +12,25 @@ void test_simd(int N_in, int M, int R, double a) {
 
   int N = N_in/simd_t::size();
 
-  Kokkos::View<simd_storage_t**> data("D",N,M);
+  Kokkos::View<simd_storage_t**, Kokkos::LayoutLeft> data("D",N,M);
   Kokkos::View<simd_storage_t*> results("R",N);
 
   // For the final reduction we gonna need a scalar view of the data for now
   // Relying on knowing the data layout, we will add SIMD Layouts later
-  // so that simple copy construction/assgnment would work
-  Kokkos::View<double**> data_scalar((double*)data.data(),N_in,M);
+  // so that simple copy construction/assignment would work
+  Kokkos::View<double**, Kokkos::LayoutLeft> data_scalar((double*)data.data(),N_in,M);
   Kokkos::View<double*> results_scalar((double*)results.data(),N_in);
 
   // Lets fill the data
-  Kokkos::deep_copy(data_scalar,a);
+  Kokkos::parallel_for("init",data_scalar.extent(0), KOKKOS_LAMBDA(const int i) {
+      for (int j=0; j<data_scalar.extent(1); j++)
+        data_scalar(i,j) = i%8;
+    });
   Kokkos::deep_copy(results_scalar,0.0);
 
   Kokkos::Timer timer;
   for(int r = 0; r<R; r++) {
-    Kokkos::parallel_for("Combine",Kokkos::TeamPolicy<>(data.extent(0),1,simd_t::size()), 
+    Kokkos::parallel_for("Combine",Kokkos::TeamPolicy<>(data.extent(0),1,simd_t::size()),
       KOKKOS_LAMBDA(const Kokkos::TeamPolicy<>::member_type& team) {
       simd_t tmp = 0.0;
       double b = a;
@@ -55,21 +58,25 @@ void test_simd(int N_in, int M, int R, double a) {
 void test_team_vector(int N, int M, int R, double a) {
 
   constexpr int V = 32;
-  Kokkos::View<double**> data("D",N,M);
+  Kokkos::View<double**,Kokkos::LayoutLeft> data("D",N,M);
   Kokkos::View<double*> results("R",N);
 
-  Kokkos::deep_copy(data,a);
+  // Lets fill the input data
+  Kokkos::parallel_for("init",data.extent(0), KOKKOS_LAMBDA(const int i) {
+      for (int j=0; j<data.extent(1); j++)
+        data(i,j) = i%8;
+    });
   Kokkos::deep_copy(results,0.0);
 
   Kokkos::Timer timer;
   for(int r = 0; r<R; r++) {
-    Kokkos::parallel_for("Combine",Kokkos::TeamPolicy<>(data.extent(0)/V,1,V), 
+    Kokkos::parallel_for("Combine",Kokkos::TeamPolicy<>(data.extent(0)/V,1,V),
       KOKKOS_LAMBDA(const Kokkos::TeamPolicy<>::member_type& team) {
       double b = a;
       const int i = team.league_rank()*V;
       for(int j=0; j<data.extent(1); j++) {
-        Kokkos::parallel_for(Kokkos::ThreadVectorRange(team,V), 
-          [&] (const int ii) {  
+        Kokkos::parallel_for(Kokkos::ThreadVectorRange(team,V),
+          [&] (const int ii) {
             results(i+ii) += b * data(i+ii,j);
         });
         b+=a+1.0*(j+1);
@@ -91,12 +98,12 @@ void test_team_vector(int N, int M, int R, double a) {
 
 int main(int argc, char* argv[]) {
   Kokkos::initialize(argc,argv);
-  
+
   int N = argc>1?atoi(argv[1]):320000;
   int M = argc>2?atoi(argv[2]):3;
   int R = argc>3?atoi(argv[3]):10;
   double scal = argc>4?atof(argv[4]):1.5;
-  
+
   if(N%32) {
     printf("Please choose an N dividable by 32\n");
     return 0;

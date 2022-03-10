@@ -88,6 +88,7 @@ struct System {
     }
     T = Kokkos::View<double***>("System::T", X, Y, Z);
     dT = Kokkos::View<double***>("System::dT", X, Y, Z);
+    Kokkos::deep_copy(T,T0);
     return true;
   }
   // run_time_loops

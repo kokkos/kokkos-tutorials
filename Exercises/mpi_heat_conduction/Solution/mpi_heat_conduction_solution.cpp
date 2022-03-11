@@ -188,6 +188,8 @@ struct System {
     printf("My Domain: %i (%i %i %i) (%i %i %i)\n",comm.me,X_lo,Y_lo,Z_lo,X_hi,Y_hi,Z_hi);
     T = Kokkos::View<double***>("System::T", X_hi - X_lo, Y_hi - Y_lo, Z_hi - Z_lo);
     dT = Kokkos::View<double***>("System::dT", T.extent(0), T.extent(1), T.extent(2));
+    Kokkos::deep_copy(T,T0);
+
     // incoming halos
     if(X_lo != 0) T_left  = buffer_t("System::T_left" , Y_hi - Y_lo, Z_hi - Z_lo);
     if(X_hi != X) T_right = buffer_t("System::T_right", Y_hi - Y_lo, Z_hi - Z_lo);

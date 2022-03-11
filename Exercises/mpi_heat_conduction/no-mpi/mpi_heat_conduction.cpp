@@ -100,7 +100,6 @@ struct System {
       compute_surface_dT();
       double T_ave = compute_T();
       T_ave/=1e-9*(T.extent(0) * T.extent(1) * T.extent(2));
-      }
       if(t%I == 0 || t==N) {
         double time = timer.seconds();
         printf("%i T=%lf Time (%lf %lf)\n",t,T_ave,time,time/t);

@@ -69,13 +69,13 @@ using ResultType = double;
 // EXERCISE: We need to pass in an instance
 void operation(ResultType& result, ViewMatrixType A, ViewVectorType y, ViewVectorType x) {
   int N = x.extent(0);
-  // EXERCISE: how do we make this asynchronous?
+  // EXERCISE: how do we make this run concurrently?
   Kokkos::deep_copy(y, -2.5);
-  // EXERCISE: how do we make this asynchronous?
+  // EXERCISE: how do we make this run concurrently?
   Kokkos::parallel_for("VectorAdd", range_policy(0,N), KOKKOS_LAMBDA(int i) {
     x(i) += y(i);
   });
-  // EXERCISE: how do we make this asynchronous?
+  // EXERCISE: how do we make this run concurrently?
   Kokkos::parallel_for("MatVec", range_policy(0,N), KOKKOS_LAMBDA(int i) {
     double tmp = 0;
     for(int j=0; j<N; j++) {
@@ -83,7 +83,7 @@ void operation(ResultType& result, ViewMatrixType A, ViewVectorType y, ViewVecto
     }
     y(i) = tmp;
   });
-  // EXERCISE: how do we make this asynchronous?
+  // EXERCISE: how do we make this run concurrently?
   Kokkos::parallel_reduce("Dot", range_policy(0,N), KOKKOS_LAMBDA(int i, double& lsum) {
     lsum += y(i)*y(i);
   },result);
@@ -146,7 +146,7 @@ int main( int argc, char* argv[] )
     if ( repeat == ( nrepeat - 1 ) ) {
       Kokkos::fence();
       // EXERCISE: fixup the print statement considering the new result type
-      printf( "  Computed results for %d and %d are %e and %e\n", N, nrepeat, result1, result2 );
+      printf( "  Computed results for %ld and %d are %e and %e\n", N, nrepeat, result1, result2 );
     }
   }
 
@@ -157,7 +157,7 @@ int main( int argc, char* argv[] )
   double Gbytes = 2.0e-9 * double( sizeof(double) * ( 6. * N + 2. * N * N ) );
 
   // Print results (problem size, time and bandwidth in GB/s).
-  printf( "  N( %d ) nrepeat ( %d ) problem( %g MB ) time( %g s ) bandwidth( %g GB/s )\n",
+  printf( "  N( %ld ) nrepeat ( %d ) problem( %g MB ) time( %g s ) bandwidth( %g GB/s )\n",
           N, nrepeat, 1.e-6*(N*N+2*N)*sizeof(double), time, Gbytes * nrepeat / time );
 
   }

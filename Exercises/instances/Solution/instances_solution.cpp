@@ -135,7 +135,7 @@ int main( int argc, char* argv[] )
     // Output result.
     if ( repeat == ( nrepeat - 1 ) ) {
       Kokkos::fence();
-      printf( "  Computed results for %d and %d are %e and %e\n", N, nrepeat, result1(), result2() );
+      printf( "  Computed results for %ld and %d are %e and %e\n", N, nrepeat, result1(), result2() );
     }
   }
 
@@ -146,7 +146,7 @@ int main( int argc, char* argv[] )
   double Gbytes = 2.0e-9 * double( sizeof(double) * ( 6. * N + 2. * N * N ) );
 
   // Print results (problem size, time and bandwidth in GB/s).
-  printf( "  N( %d ) nrepeat ( %d ) problem( %g MB ) time( %g s ) bandwidth( %g GB/s )\n",
+  printf( "  N( %ld ) nrepeat ( %d ) problem( %g MB ) time( %g s ) bandwidth( %g GB/s )\n",
           N, nrepeat, 1.e-6*(N*N+2*N)*sizeof(double), time, Gbytes * nrepeat / time );
 
   }

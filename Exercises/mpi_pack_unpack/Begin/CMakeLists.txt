@@ -1,5 +1,5 @@
-cmake_minimum_required (VERSION 3.10)
-project (KokkosTutorialMPIPackUnpack)
+cmake_minimum_required(VERSION 3.16)
+project(KokkosTutorialMPIPackUnpack)
 include(../../common.cmake)
 
 add_executable(MPIPackUnpack mpi_pack_unpack_begin.cpp)

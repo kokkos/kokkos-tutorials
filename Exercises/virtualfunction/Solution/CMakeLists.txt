@@ -1,5 +1,5 @@
-cmake_minimum_required (VERSION 3.10)
-project (KokkosTutorialVirtualFunction)
+cmake_minimum_required(VERSION 3.16)
+project(KokkosTutorialVirtualFunction)
 include(../../common.cmake)
 
 add_executable(virtual_function virtual_function.cpp classes.cpp)

@@ -1,5 +1,5 @@
-cmake_minimum_required (VERSION 3.10)
-project (KokkosKernelsBlockjacobi)
+cmake_minimum_required(VERSION 3.16)
+project(KokkosKernelsBlockjacobi)
 
 find_package(KokkosKernels REQUIRED)
 

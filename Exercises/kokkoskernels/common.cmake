@@ -6,5 +6,4 @@ if(SPACK_CXX)
   set(ENV{CXX} ${SPACK_CXX})
 endif()
 
-cmake_policy(SET CMP0074 NEW)
 find_package(KokkosKernels REQUIRED)

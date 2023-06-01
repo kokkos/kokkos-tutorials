@@ -1,5 +1,5 @@
-cmake_minimum_required (VERSION 3.10)
-project (KokkosTutorialSIMDWarp)
+cmake_minimum_required(VERSION 3.16)
+project(KokkosTutorialSIMDWarp)
 include(../../common.cmake)
 
 add_executable(SIMDWarp simd_warp_solution.cpp)

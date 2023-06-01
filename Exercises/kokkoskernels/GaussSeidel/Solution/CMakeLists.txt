@@ -1,5 +1,5 @@
-cmake_minimum_required (VERSION 3.10)
-project (KokkosKernelsGaussSeidel)
+cmake_minimum_required(VERSION 3.16)
+project(KokkosKernelsGaussSeidel)
 
 find_package(KokkosKernels REQUIRED)
 

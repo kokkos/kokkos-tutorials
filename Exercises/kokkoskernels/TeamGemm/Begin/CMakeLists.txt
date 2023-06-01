@@ -1,5 +1,5 @@
-cmake_minimum_required (VERSION 3.10)
-project (KokkosKernelsTeamGemm)
+cmake_minimum_required(VERSION 3.16)
+project(KokkosKernelsTeamGemm)
 include(../../common.cmake)
 
 add_executable(teamgemm teamgemm.cpp)

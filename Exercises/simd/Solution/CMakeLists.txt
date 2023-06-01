@@ -1,5 +1,5 @@
-cmake_minimum_required (VERSION 3.10)
-project (KokkosTutorialSIMD)
+cmake_minimum_required(VERSION 3.16)
+project(KokkosTutorialSIMD)
 include(../../common.cmake)
 
 add_executable(SIMD simd_solution.cpp)

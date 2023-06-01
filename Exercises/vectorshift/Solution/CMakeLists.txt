@@ -1,4 +1,4 @@
-mum_required (VERSION 3.12)
+mum_required(VERSION 3.12)
 project (KokkosTutorialVectorShift)
 
 find_package(KokkosRemote REQUIRED)

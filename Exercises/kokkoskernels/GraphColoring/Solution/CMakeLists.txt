@@ -1,5 +1,5 @@
-cmake_minimum_required (VERSION 3.10)
-project (KokkosKernelsGraphColoring)
+cmake_minimum_required(VERSION 3.16)
+project(KokkosKernelsGraphColoring)
 
 find_package(KokkosKernels REQUIRED)
 

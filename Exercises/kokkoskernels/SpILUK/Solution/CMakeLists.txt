@@ -1,5 +1,5 @@
-cmake_minimum_required (VERSION 3.10)
-project (KokkosKernelsSpILUK)
+cmake_minimum_required(VERSION 3.16)
+project(KokkosKernelsSpILUK)
 
 find_package(KokkosKernels REQUIRED)
 

@@ -1,5 +1,5 @@
-cmake_minimum_required (VERSION 3.10)
-project (KokkosKernelsSpGEMM)
+cmake_minimum_required(VERSION 3.16)
+project(KokkosKernelsSpGEMM)
 
 find_package(KokkosKernels REQUIRED)
 

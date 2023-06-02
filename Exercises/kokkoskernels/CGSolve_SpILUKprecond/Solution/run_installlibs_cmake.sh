@@ -33,8 +33,4 @@ make install -j8
 cd ${EXERCISE_DIR}
 
 echo "KERNELS_INSTALL_PATH = $KOKKOSKERNELS_INSTALL"
-if [[ -d "${KOKKOSKERNELS_INSTALL}/lib64" ]]; then
-  cmake -DKokkosKernels_DIR="${KOKKOSKERNELS_INSTALL}/lib64/cmake/KokkosKernels" -DKokkosKernels_SOURCE_DIR="$KOKKOSKERNELS_PATH" .
-else
-  cmake -DKokkosKernels_DIR="${KOKKOSKERNELS_INSTALL}/lib/cmake/KokkosKernels"  -DKokkosKernels_SOURCE_DIR="$KOKKOSKERNELS_PATH" .
-fi
+cmake -DKokkosKernels_ROOT="${KOKKOSKERNELS_INSTALL}" .

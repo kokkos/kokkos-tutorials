@@ -1,6 +1,6 @@
 /// Kokkos headers
 #include "Kokkos_Core.hpp"
-#include "impl/Kokkos_Timer.hpp"
+#include "Kokkos_Timer.hpp"
 #include "Kokkos_Random.hpp"
 
 /// KokkosKernels headers
@@ -12,12 +12,9 @@
 #include "KokkosBatched_Copy_Impl.hpp"
 #include "KokkosBatched_SetIdentity_Decl.hpp"
 #include "KokkosBatched_SetIdentity_Impl.hpp"
-#include "KokkosBatched_Gemv_Decl.hpp"
-#include "KokkosBatched_Gemv_Team_Impl.hpp"
+#include "KokkosBlas2_team_gemv.hpp"
 #include "KokkosBatched_Trsm_Decl.hpp"
-#include "KokkosBatched_Trsm_Team_Impl.hpp"
 #include "KokkosBatched_LU_Decl.hpp"
-#include "KokkosBatched_LU_Team_Impl.hpp"
 
 /// cuda profile
 #if defined(KOKKOS_ENABLE_CUDA)
@@ -48,10 +45,7 @@ void applyBlockJacobi(const ManyMatrixType &A,
       auto AA = Kokkos::subview(A, i, Kokkos::ALL(), Kokkos::ALL());
       auto xx = Kokkos::subview(x, i, Kokkos::ALL());
       auto bb = Kokkos::subview(b, i, Kokkos::ALL());
-      TeamGemv<member_type,
-               Trans::NoTranspose,
-               Algo::Level2::Unblocked>
-        ::invoke(member, one, AA, bb, zero, xx);
+      KokkosBlas::Experimental::team_gemv(member, 'N', one, AA, bb, zero, xx);
     });
 }
 
@@ -75,10 +69,7 @@ value_type computeResidual(const ManyMatrixType &A,
 	auto xx = Kokkos::subview(x, i, Kokkos::ALL());
 	auto rr = Kokkos::subview(r, i, Kokkos::ALL());
 	
-	TeamGemv<member_type,
-		 Trans::NoTranspose,
-		 Algo::Level2::Unblocked>
-	  ::invoke(member, -one, AA, xx, one, rr);
+        KokkosBlas::Experimental::team_gemv(member, 'N', -one, AA, xx, one, rr);
 
         value_type sum(0);
 	Kokkos::parallel_reduce
@@ -102,7 +93,7 @@ int main(int argc, char* argv[]) {
 #endif
     ///Kokkos::print_configuration(std::cout);
 
-    Kokkos::Impl::Timer timer;
+    Kokkos::Timer timer;
 
     ///
     /// input arguments parsing

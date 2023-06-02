@@ -47,7 +47,6 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <sys/time.h>
 
 #include <Kokkos_Core.hpp>
 #include <KokkosSparse_CrsMatrix.hpp>
@@ -193,11 +192,6 @@ int main( int argc, char* argv[] )
   
   Kokkos::initialize( argc, argv );
   {
-
-    // Timer products.
-    struct timeval begin, end, s1, s2, s3, s4;
-
-
     // Typedefs
     typedef double scalar_type;
     typedef int ordinal_type;
@@ -221,48 +215,34 @@ int main( int argc, char* argv[] )
     kh.set_dynamic_scheduling(true);
     //kh.set_verbose(true);
 
-
     // EXERCISE: Create the SpGEMM handle
     std::string myalg("SPGEMM_KK_MEMORY");
     KokkosSparse::SPGEMMAlgorithm spgemm_algorithm = KokkosSparse::StringToSPGEMMAlgorithm(myalg);
     kh.create_spgemm_handle(spgemm_algorithm);
 
-
-    gettimeofday( &begin, NULL );
-
     crs_matrix_type C;
 
-    gettimeofday( &s1, NULL );
+    Kokkos::Timer timer;
     // EXERCISE: Call the symbolic phase
     // EXERCISE hint: KokkosSparse::Experimental::spgemm_symbolic(...) 
     KokkosSparse::spgemm_symbolic(kh, A, false, A, false, C);
 
-    gettimeofday( &s2, NULL );
-
+    Kokkos::fence();
+    double symbolic_time = timer.seconds();
+    timer.reset();
     // EXERCISE: Call the numeric phase
     // EXERCISE hint: KokkosSparse::spgemm_numeric(...) 
     KokkosSparse::spgemm_numeric(kh, A, false, A, false, C);
 
-
-    gettimeofday( &end, NULL );
-
+    Kokkos::fence();
+    double numeric_time = timer.seconds();
 
     // Destroy the SpGEMM handle
     kh.destroy_spgemm_handle();
 
-    // Calculate time.
-    double time = 1.0 *    ( end.tv_sec  - begin.tv_sec ) +
-                  1.0e-6 * ( end.tv_usec - begin.tv_usec );
-
-    double symbolic_time = 1.0 *    ( s2.tv_sec  - s1.tv_sec ) +
-                           1.0e-6 * ( s2.tv_usec - s1.tv_usec );
-
-    double numeric_time = 1.0 *    ( end.tv_sec  - s2.tv_sec ) +
-                          1.0e-6 * ( end.tv_usec - s2.tv_usec );
-
     // Print results (problem size, time, number of iterations and final norm residual).
     printf( "    Results: N( %d ), overall spgemm time( %g s ), symbolic time( %g s ), numeric time( %g s )\n",
-            N, time, symbolic_time, numeric_time);
+            N, symbolic_time + numeric_time, symbolic_time, numeric_time);
   }
 
   Kokkos::finalize();

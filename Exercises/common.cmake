@@ -6,4 +6,20 @@ if(SPACK_CXX)
   set(ENV{CXX} ${SPACK_CXX})
 endif()
 
-find_package(Kokkos REQUIRED)
+set(Kokkos_COMMON_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../dep/Kokkos)
+
+find_package(Kokkos CONFIG)
+if(NOT Kokkos_FOUND)
+  if(EXISTS ${Kokkos_COMMON_SOURCE_DIR})
+    add_subdirectory(${Kokkos_COMMON_SOURCE_DIR} Kokkos)
+  else()
+    include(FetchContent)
+    FetchContent_Declare(
+      Kokkos
+      GIT_REPOSITORY https://github.com/kokkos/kokkos.git
+      GIT_TAG        4.0.01
+      SOURCE_DIR ${Kokkos_COMMON_SOURCE_DIR}
+    )
+    FetchContent_MakeAvailable(Kokkos)
+  endif()
+endif()

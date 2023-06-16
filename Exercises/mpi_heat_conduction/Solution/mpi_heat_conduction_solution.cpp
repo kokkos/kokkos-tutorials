@@ -425,8 +425,8 @@ struct System {
     Kokkos::parallel_for("ComputeSurfaceDT_Right", Kokkos::Experimental::require(policy_right_t(E_right, {0,0},{Y,Z}),Kokkos::Experimental::WorkItemProperty::HintLightWeight),*this);
     Kokkos::parallel_for("ComputeSurfaceDT_Down",  Kokkos::Experimental::require(policy_down_t (E_down, {1,0},{X-1,Z}),Kokkos::Experimental::WorkItemProperty::HintLightWeight),*this);
     Kokkos::parallel_for("ComputeSurfaceDT_Up",    Kokkos::Experimental::require(policy_up_t   (E_up, {1,0},{X-1,Z}),Kokkos::Experimental::WorkItemProperty::HintLightWeight),*this);
-    Kokkos::parallel_for("ComputeSurfaceDT_front", Kokkos::Experimental::require(policy_front_t(E_front, {1,1},{X-1,Y-1}),Kokkos::Experimental::WorkItemProperty::HintLightWeight),*this);
-    Kokkos::parallel_for("ComputeSurfaceDT_back",  Kokkos::Experimental::require(policy_back_t (E_back, {1,1},{X-1,Y-1}),Kokkos::Experimental::WorkItemProperty::HintLightWeight),*this);
+    Kokkos::parallel_for("ComputeSurfaceDT_Front", Kokkos::Experimental::require(policy_front_t(E_front, {1,1},{X-1,Y-1}),Kokkos::Experimental::WorkItemProperty::HintLightWeight),*this);
+    Kokkos::parallel_for("ComputeSurfaceDT_Back",  Kokkos::Experimental::require(policy_back_t (E_back, {1,1},{X-1,Y-1}),Kokkos::Experimental::WorkItemProperty::HintLightWeight),*this);
   }
 
   // Some compilers have deduction issues if this were just a tagged operator

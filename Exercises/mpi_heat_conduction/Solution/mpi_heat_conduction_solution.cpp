@@ -183,7 +183,7 @@ struct System {
     int dZ = (Z+comm.nz-1)/comm.nz;
     Z_lo = dZ*comm.z;
     Z_hi = Z_lo + dZ;
-    if(Z_hi>Z) Z_hi=X;
+    if(Z_hi>Z) Z_hi=Z;
 
     printf("My Domain: %i (%i %i %i) (%i %i %i)\n",comm.me,X_lo,Y_lo,Z_lo,X_hi,Y_hi,Z_hi);
     T = Kokkos::View<double***>("System::T", X_hi - X_lo, Y_hi - Y_lo, Z_hi - Z_lo);

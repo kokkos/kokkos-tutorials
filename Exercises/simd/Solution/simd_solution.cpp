@@ -1,9 +1,9 @@
 #include<Kokkos_Core.hpp>
-#include<simd.hpp>
+#include<Kokkos_SIMD.hpp>
 
 void test_simd(int N_in, int M, int R, double a) {
 
-  using simd_t = simd::simd<double,simd::simd_abi::native>;
+  using simd_t = Kokkos::Experimental::native_simd<double>;
 
   int N = N_in/simd_t::size();
 

@@ -11,18 +11,22 @@ void test_simd(int N_in, int M, int R, double a) {
   int N = N_in;
 
   //EXERCISE: create SIMD Views instead
-  Kokkos::View<double**> data("D",N,M);
+  Kokkos::View<double**, Kokkos::LayoutLeft> data("D",N,M);
   Kokkos::View<double*> results("R",N);
 
-  // EXERCISE: create correctly a scalar view of results
+  // EXERCISE: create correctly a scalar view of of data and results
   // For the final reduction we gonna need a scalar view of the data for now
   // Relying on knowing the data layout, we will add SIMD Layouts later
-  // so that simple copy construction/assgnment would work
+  // so that simple copy construction/assignment would work
+  Kokkos::View<double**, Kokkos::LayoutLeft> data_scalar(data);
   Kokkos::View<double*> results_scalar(results);
 
-  // Lets fill the data
+  // Lets fill the input data using scalar view
+  Kokkos::parallel_for("init",data_scalar.extent(0), KOKKOS_LAMBDA(const int i) {
+      for (int j=0; j<data_scalar.extent(1); j++)
+        data_scalar(i,j) = i%8;
+    });
   // EXERCISE: match the type of the scalar being copied in
-  Kokkos::deep_copy(data,a);
   Kokkos::deep_copy(results,0.0);
 
   Kokkos::Timer timer;
@@ -53,10 +57,14 @@ void test_simd(int N_in, int M, int R, double a) {
 
 void test_scalar(int N, int M, int R, double a) {
 
-  Kokkos::View<double**> data("D",N,M);
+  Kokkos::View<double**, Kokkos::LayoutLeft> data("D",N,M);
   Kokkos::View<double*> results("R",N);
 
-  Kokkos::deep_copy(data,a);
+  // Lets fill the input data
+  Kokkos::parallel_for("init",data.extent(0), KOKKOS_LAMBDA(const int i) {
+      for (int j=0; j<data.extent(1); j++)
+        data(i,j) = i%8;
+    });
   Kokkos::deep_copy(results,0.0);
 
   Kokkos::Timer timer;
@@ -86,12 +94,12 @@ void test_scalar(int N, int M, int R, double a) {
 
 int main(int argc, char* argv[]) {
   Kokkos::initialize(argc,argv);
-  
+
   int N = argc>1?atoi(argv[1]):320000;
   int M = argc>2?atoi(argv[2]):3;
   int R = argc>3?atoi(argv[3]):10;
   double scal = argc>4?atof(argv[4]):1.5;
-  
+
   if(N%32) {
     printf("Please choose an N dividable by 32\n");
     return 0;

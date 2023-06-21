@@ -21,7 +21,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <sys/time.h>
+#include <chrono>
 
 // EXERCISE: Include Kokkos_Core.hpp.
 //           cmath library unnecessary after.
@@ -105,9 +105,7 @@ int main( int argc, char* argv[] )
 
   // Timer products.
   //Kokkos::Timer timer;
-  struct timeval begin, end;
-
-  gettimeofday( &begin, NULL );
+  auto start = std::chrono::high_resolution_clock::now();
 
   for ( int repeat = 0; repeat < nrepeat; repeat++ ) {
     // Application: <y,Ax> = y^T*A*x
@@ -136,12 +134,12 @@ int main( int argc, char* argv[] )
     }
   }
 
-  gettimeofday( &end, NULL );
+  
 
   // Calculate time.
   //double time = timer.seconds();
-  double time = 1.0 * ( end.tv_sec - begin.tv_sec ) +
-                1.0e-6 * ( end.tv_usec - begin.tv_usec );
+  auto end = std::chrono::high_resolution_clock::now();
+  std::chrono::duration<double> time = end - start;
 
   // Calculate bandwidth.
   // Each matrix A row (each of length M) is read once.
@@ -152,7 +150,7 @@ int main( int argc, char* argv[] )
 
   // Print results (problem size, time and bandwidth in GB/s).
   printf( "  N( %d ) M( %d ) nrepeat ( %d ) problem( %g MB ) time( %g s ) bandwidth( %g GB/s )\n",
-          N, M, nrepeat, Gbytes * 1000, time, Gbytes * nrepeat / time );
+          N, M, nrepeat, Gbytes * 1000, time.count(), Gbytes* nrepeat / time.count());
 
   std::free(A);
   std::free(y);

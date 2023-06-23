@@ -29,7 +29,6 @@
 #include <cstdlib>
 #include <string>
 #include <cassert>
-#include <sys/time.h>
 
 #include <Kokkos_Core.hpp>
 

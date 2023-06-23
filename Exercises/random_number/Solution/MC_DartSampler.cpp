@@ -41,7 +41,7 @@
 #include <Kokkos_Core.hpp>
 #include <Kokkos_Random.hpp>
 //#include <Kokkos_DualView.hpp>
-#include <impl/Kokkos_Timer.hpp>
+#include <Kokkos_Timer.hpp>
 #include <cstdlib>
 
 // Kokkos provides two different random number generators with a 64 bit and a 1024 bit state.

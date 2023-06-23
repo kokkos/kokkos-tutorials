@@ -187,7 +187,7 @@ struct System {
     int dZ = (Z+comm.nz-1)/comm.nz;
     Z_lo = dZ*comm.z;
     Z_hi = Z_lo + dZ;
-    if(Z_hi>Z) Z_hi=X;
+    if(Z_hi>Z) Z_hi=Z;
 
     // Owned data for the subdomain
     T = Kokkos::View<double***>("System::T", X_hi - X_lo, Y_hi - Y_lo, Z_hi - Z_lo);
@@ -414,8 +414,8 @@ struct System {
     Kokkos::parallel_for("ComputeSurfaceDT_Right", Kokkos::Experimental::require(policy_right_t({0,0},{Y,Z}),Kokkos::Experimental::WorkItemProperty::HintLightWeight),*this);
     Kokkos::parallel_for("ComputeSurfaceDT_Down",  Kokkos::Experimental::require(policy_down_t ({1,0},{X-1,Z}),Kokkos::Experimental::WorkItemProperty::HintLightWeight),*this);
     Kokkos::parallel_for("ComputeSurfaceDT_Up",    Kokkos::Experimental::require(policy_up_t   ({1,0},{X-1,Z}),Kokkos::Experimental::WorkItemProperty::HintLightWeight),*this);
-    Kokkos::parallel_for("ComputeSurfaceDT_front", Kokkos::Experimental::require(policy_front_t({1,1},{X-1,Y-1}),Kokkos::Experimental::WorkItemProperty::HintLightWeight),*this);
-    Kokkos::parallel_for("ComputeSurfaceDT_back",  Kokkos::Experimental::require(policy_back_t ({1,1},{X-1,Y-1}),Kokkos::Experimental::WorkItemProperty::HintLightWeight),*this);
+    Kokkos::parallel_for("ComputeSurfaceDT_Front", Kokkos::Experimental::require(policy_front_t({1,1},{X-1,Y-1}),Kokkos::Experimental::WorkItemProperty::HintLightWeight),*this);
+    Kokkos::parallel_for("ComputeSurfaceDT_Back",  Kokkos::Experimental::require(policy_back_t ({1,1},{X-1,Y-1}),Kokkos::Experimental::WorkItemProperty::HintLightWeight),*this);
   }
 
   // Some compilers have deduction issues if this were just a tagged operator

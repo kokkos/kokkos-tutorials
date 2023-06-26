@@ -24,7 +24,7 @@ echo "  <val>=99:  run both test 4 and 14 "
 echo "             and varying system size"
 
 echo " "
-echo " You might need to edit the run_ont_test script to set the correct options for your MPI installation."
+echo " You might need to edit the run_one_test script to set the correct options for your MPI installation."
 echo " "
 
 nexe=0

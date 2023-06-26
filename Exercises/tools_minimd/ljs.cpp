@@ -74,10 +74,6 @@ int main(int argc, char** argv)
   int screen_yaml = 0;          //print yaml output to screen also
   int yaml_output = 0;          //print yaml output
   int halfneigh = 0;            //1: use half neighborlist; 0: use full neighborlist; -1: use original miniMD version half neighborlist force
-  int teams = 1;
-  int device = 0;
-  int ngpu = 1;
-  int skip_gpu = 99999;
   int neighbor_size = -1;
   char* input_file = NULL;
   int ghost_newton = 1;
@@ -111,55 +107,6 @@ int main(int argc, char** argv)
   srand(5413);
 
   for(int i = 0; i < argc; i++) {
-    if((strcmp(argv[i], "-t") == 0) || (strcmp(argv[i], "--num_threads") == 0)) {
-      num_threads = atoi(argv[++i]);
-      continue;
-    }
-
-    if((strcmp(argv[i], "--teams") == 0)) {
-      teams = atoi(argv[++i]);
-      continue;
-    }
-
-    if((strcmp(argv[i], "-d") == 0) || (strcmp(argv[i], "--device") == 0)) {
-      device = atoi(argv[++i]);
-      continue;
-    }
-
-    if((strcmp(argv[i], "-ng") == 0) || (strcmp(argv[i], "--num_gpus") == 0)) {
-      ngpu = atoi(argv[++i]);
-      continue;
-    }
-
-    if((strcmp(argv[i], "--skip_gpu") == 0)) {
-      skip_gpu = atoi(argv[++i]);
-      continue;
-    }
-
-    if((strcmp(argv[i], "-dm") == 0) || (strcmp(argv[i], "--device_map") == 0)) {
-      char* str;
-      int local_rank;
-
-      if((str = getenv("SLURM_LOCALID")) != NULL) {
-        local_rank = atoi(str);
-        device = local_rank % ngpu;
-        if(device >= skip_gpu) device++;
-      }
-      if((str = getenv("MV2_COMM_WORLD_LOCAL_RANK")) != NULL) {
-        local_rank = atoi(str);
-        device = local_rank % ngpu;
-
-        if(device >= skip_gpu) device++;
-      }
-      if((str = getenv("OMPI_COMM_WORLD_LOCAL_RANK")) != NULL) {
-        local_rank = atoi(str);
-        device = local_rank % ngpu;
-
-        if(device >= skip_gpu) device++;
-      }
-      continue;
-    }
-
     if((strcmp(argv[i], "-n") == 0) || (strcmp(argv[i], "--nsteps") == 0))  {
       num_steps = atoi(argv[++i]);
       continue;
@@ -265,18 +212,10 @@ int main(int argc, char** argv)
              "versions written by Christian Trott (crtrott@sandia.gov).\n\n");
       printf("Commandline Options:\n");
       printf("\n  Execution configuration:\n");
-      printf("\t--teams <nteams>:             set number of thread-teams used per MPI rank (default 1)\n");
-      printf("\t-t / --num_threads <threads>: set number of threads per thread-team (default 1)\n");
       printf("\t--half_neigh <int>:           use half neighborlists (default 1)\n"
              "\t                                0: full neighborlist\n"
              "\t                                1: half neighborlist\n"
              "\t                               -1: original miniMD half neighborlist force (not OpenMP safe)\n");
-      printf("\t-d / --device <int>:          choose device to use (only applicable for GPU execution)\n");
-      printf("\t-dm / --device_map:           map devices to MPI ranks\n");
-      printf("\t-ng / --num_gpus <int>:       give number of GPUs per Node (used in conjuction with -dm\n"
-             "\t                              to determine device id: 'id=mpi_rank%%ng' (default 2)\n");
-      printf("\t--skip_gpu <int>:             skip the specified gpu when assigning devices to MPI ranks\n"
-             "\t                              used in conjunction with -dm (but must come first in arg list)\n");
       printf("\t--team_neigh <int>            use a hierarchical parallelism algorithm for neighborlist\n"
              "\t                              construction (default 0)\n");
       printf("\t-gn / --ghost_newton <int>:   set usage of newtons third law for ghost atoms\n"
@@ -306,12 +245,7 @@ int main(int argc, char** argv)
     }
   }
 
-  Kokkos::InitArguments args_kokkos;
-  args_kokkos.num_threads = num_threads;
-  args_kokkos.num_numa = teams;
-  args_kokkos.device_id = device;
-
-  Kokkos::initialize(args_kokkos);
+  Kokkos::initialize(argc, argv);
   {
   Atom atom(ntypes);
   Neighbor neighbor(ntypes);

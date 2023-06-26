@@ -44,10 +44,10 @@ if [ ! -x ${1} ]; then
 fi
 
 #echo the commandline to run the test
-echo "${MPISTART} -np $2 ${MPIOPTIONS} ./$1 -ng 2 --skip_gpu 1 -dm -t $3 -s $4 -n $5 --half_neigh $6 -gn $7 --yaml_output 0 -dm -i in.$8.miniMD"
+echo "${MPISTART} -np $2 ${MPIOPTIONS} ./$1 --kokkos-num-threads=$3 -s $4 -n $5 --half_neigh $6 -gn $7 --yaml_output 0 -i in.$8.miniMD"
 
 #do the testrun
-${MPISTART} -np $2 ${MPIOPTIONS} ./$1 -ng 2 --skip_gpu 1 -dm -t $3 -s $4 -n $5 --half_neigh $6 -gn $7 --yaml_output 0 -dm -i in.$8.miniMD > out.test
+${MPISTART} -np $2 ${MPIOPTIONS} ./$1 --kokkos-num-threads=$3 -s $4 -n $5 --half_neigh $6 -gn $7 --yaml_output 0 -i in.$8.miniMD > out.test
 
 
 #get the filename of the equivalent reference output

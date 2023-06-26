@@ -216,6 +216,8 @@ int main(int argc, char** argv)
              "\t                                0: full neighborlist\n"
              "\t                                1: half neighborlist\n"
              "\t                               -1: original miniMD half neighborlist force (not OpenMP safe)\n");
+      printf("\t--team_neigh <int>            use a hierarchical parallelism algorithm for neighborlist\n"
+             "\t                              construction (default 0)\n");
       printf("\t-gn / --ghost_newton <int>:   set usage of newtons third law for ghost atoms\n"
              "\t                                (only applicable with half neighborlists)\n");
       printf("\n  Simulation setup:\n");

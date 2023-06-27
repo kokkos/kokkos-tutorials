@@ -26,7 +26,6 @@
 // EXERCISE: Include Kokkos_Core.hpp.
 //           cmath library unnecessary after.
 // #include <Kokkos_Core.hpp>
-#include <cmath>
 
 void checkSizes( int &N, int &M, int &S, int &nrepeat );
 

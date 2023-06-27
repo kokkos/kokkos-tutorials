@@ -115,7 +115,7 @@ int main( int argc, char* argv[] )
     // Application: <y,Ax> = y^T*A*x
     double result = 0;
 
-    Kokkos::parallel_reduce( N, KOKKOS_LAMBDA ( int j, double &update ) {
+    Kokkos::parallel_reduce( "yAx", N, KOKKOS_LAMBDA ( int j, double &update ) {
       double temp2 = 0;
 
       // EXERCISE: Replace access with view access operators.
@@ -137,7 +137,6 @@ int main( int argc, char* argv[] )
       printf( "  Error: result( %lf ) != solution( %lf )\n", result, solution );
     }
   }
-
 
   // Calculate time.
   double time = timer.seconds();

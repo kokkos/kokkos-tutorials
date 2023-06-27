@@ -136,7 +136,7 @@ int main( int argc, char* argv[] )
 
     // EXERCISE: Use Kokkos::RangePolicy<ExecSpace> to execute parallel_reduce
     //           in the correct space.
-    Kokkos::parallel_reduce( N, KOKKOS_LAMBDA ( int j, double &update ) {
+    Kokkos::parallel_reduce( "yAx", N, KOKKOS_LAMBDA ( int j, double &update ) {
       double temp2 = 0;
 
       for ( int i = 0; i < M; ++i ) {

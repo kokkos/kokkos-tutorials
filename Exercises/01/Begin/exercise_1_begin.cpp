@@ -18,6 +18,7 @@
 //   Use Kokkos to parallelize the outer loop of <y,Ax> using Kokkos::parallel_reduce.
 
 #include <limits>
+#include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>

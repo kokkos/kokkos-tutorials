@@ -18,6 +18,7 @@
 //   Convert to three-level team parallelism using team policy within the nested loops.
 
 #include <limits>
+#include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>

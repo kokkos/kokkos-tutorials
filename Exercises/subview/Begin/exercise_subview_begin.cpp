@@ -21,6 +21,7 @@
 // with row_j_A( : ) * x( : )
 
 #include <limits>
+#include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>

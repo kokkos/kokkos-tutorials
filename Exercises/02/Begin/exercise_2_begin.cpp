@@ -22,6 +22,7 @@
 //   Note: Kokkos::parallel_for() initializations were removed to initialize on host.
 
 #include <limits>
+#include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>

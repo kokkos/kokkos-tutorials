@@ -20,6 +20,7 @@
 //   Experiment by changing the Layouts and Spaces; then test the effect on performance.
 
 #include <limits>
+#include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>

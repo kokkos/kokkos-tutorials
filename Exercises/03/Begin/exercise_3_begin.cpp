@@ -22,6 +22,7 @@
 //     4. Deep copy host view to device view.
 
 #include <limits>
+#include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>

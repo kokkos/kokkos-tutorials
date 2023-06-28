@@ -120,7 +120,7 @@ int main( int argc, char* argv[] )
     double result = 0;
 
     // EXERCISE: Convert from range_policy to team_policy.
-    Kokkos::parallel_reduce( range_policy( 0, N ), KOKKOS_LAMBDA ( int j, double &update ) {
+    Kokkos::parallel_reduce( "yAx", range_policy( 0, N ), KOKKOS_LAMBDA ( int j, double &update ) {
       // EXERCISE: Convert to nested Kokkos::parallel_reduce.
       // EXERCISE hint: Kokkos::TeamThreadRange( ??? ) and [&].
       double temp2 = 0;

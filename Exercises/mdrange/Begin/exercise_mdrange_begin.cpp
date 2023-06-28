@@ -20,6 +20,7 @@
 //   For the rank 2 View "A", use an MDRangePolicy
 
 #include <limits>
+#include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>

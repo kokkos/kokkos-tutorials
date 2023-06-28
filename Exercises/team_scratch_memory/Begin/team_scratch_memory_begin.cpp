@@ -24,6 +24,7 @@
 //     6. Use the scratch view.
 
 #include <limits>
+#include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>

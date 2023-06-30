@@ -6,6 +6,14 @@ if(SPACK_CXX)
   set(ENV{CXX} ${SPACK_CXX})
 endif()
 
+if(NOT CMAKE_BUILD_TYPE)
+  set(default_build_type "RelWithDebInfo")
+  message(STATUS "Setting build type to '${default_build_type}' as none was specified.")
+  set(CMAKE_BUILD_TYPE "${default_build_type}" CACHE STRING
+    "Choose the type of build, options are: Debug, Release, RelWithDebInfo and MinSizeRel."
+    FORCE)
+endif()
+
 set(Kokkos_COMMON_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../dep/Kokkos)
 
 find_package(Kokkos CONFIG)

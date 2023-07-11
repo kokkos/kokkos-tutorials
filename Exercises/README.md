@@ -22,7 +22,6 @@
 | team\_sratch\_memory | The purpose of this exercise is to utilize scratch memory to explicitly cache the x vector in the matrix-vector multiplication code. The goal is to improve performance by reducing memory accesses and taking advantage of data locality. |
 | team\_vector\_loop | The purpose of this exercise is to convert the existing code to three-level team parallelism using the team policy within the nested loops. |
 | tools\_minind |
- |
 | unique\_token | The purpose of the exercise is to modify the given code to utilize Kokkos' token-based team parallelism and implement a scatter-add algorithm using data replication |
 | unordered\_map | The purpose of this exercise is to practice using Kokkos' UnorderedMap container and perform operations on it. |
 | vectorshift | The goal of this exercise is to learn how to use Partitioned Global Address Space (PGAS) to implement a circular vector shift. |

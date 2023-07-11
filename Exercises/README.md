@@ -6,7 +6,6 @@
 | 04 | In this exercise, the code introduces additional features and customization options for the Kokkos execution space, memory space, layout, and range policy. |
 | dualview | This excercise example demonstrates the use of DualView to manage data and computations that take place on two different memory spaces, such as device memory and host memory. |
 | fortran-kokkosinterface |
- |
 | hpcbind | This excercise demonstrates the use of the Hardware Locality (hwloc) library and OpenMP to determine the binding of threads to CPU cores and processing units (PUs). |
 | instances | The exercises in the code is to introduce the use of instances in Kokkos. Instances allow you to partition the execution space into multiple subsets and execute parallel operations concurrently on each subset. |
 | mdrange | This exercise demonstrates the use of parallelize matrix-vector multiplication and dot product calculations using Kokkos' parallel patterns. |

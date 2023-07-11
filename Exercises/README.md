@@ -4,17 +4,17 @@
 | 02 | This exercise aims to replace memory allocations with Kokkos Views in the provided code. |
 | 03 | In this exercise, the code expands on the previous exercise by introducing the concept of Kokkos mirrors. Kokkos mirrors allow for synchronization and data transfer between the host and device memory spaces. |
 | 04 | In this exercise, the code introduces additional features and customization options for the Kokkos execution space, memory space, layout, and range policy. |
-| dualview | This excercise example demonstrates the use of DualView to manage data and computations that take place on two different memory spaces, such as device memory and host memory. |
+| dualview | This exercise example demonstrates the use of DualView to manage data and computations that take place on two different memory spaces, such as device memory and host memory. |
 | fortran-kokkosinterface |
-| hpcbind | This excercise demonstrates the use of the Hardware Locality (hwloc) library and OpenMP to determine the binding of threads to CPU cores and processing units (PUs). |
+| hpcbind | This exercise demonstrates the use of the Hardware Locality (hwloc) library and OpenMP to determine the binding of threads to CPU cores and processing units (PUs). |
 | instances | The exercises in the code is to introduce the use of instances in Kokkos. Instances allow you to partition the execution space into multiple subsets and execute parallel operations concurrently on each subset. |
 | mdrange | This exercise demonstrates the use of parallelize matrix-vector multiplication and dot product calculations using Kokkos' parallel patterns. |
 | mpi\_exch | This exercise demonstrates how to perform data exchange between MPI ranks using non-blocking communication operations |
-| mpi\_heat\_conduction | This excercise is a parallel simulation of a heat transfer problem using Kokkos and MPI. |
+| mpi\_heat\_conduction | This exercise is a parallel simulation of a heat transfer problem using Kokkos and MPI. |
 | mpi\_pack\_unpack | The purpose of this exercise is to demonstrate how to use MPI (Message Passing Interface) with Kokkos |
 | random\_number | This exercise showcases the usage of Kokkos' random number generator and how to perform parallel reduction to count hits within a circular region. The exercise also explores the impact of different parameters, such as the number of darts thrown and the generator type, on the accuracy of the pi estimation. |
-| scatter\_view | This excercise demonstrates the use of different parallelization strategies, namely atomic updates and data replication, for performing a scatter add operation. |
-| simd | The purpose of this excercise is to compare the performance of scalar computations and SIMD computations using the Kokkos library for a given problem size and number of iterations. |
+| scatter\_view | This exercise demonstrates the use of different parallelization strategies, namely atomic updates and data replication, for performing a scatter add operation. |
+| simd | The purpose of this exercise is to compare the performance of scalar computations and SIMD computations using the Kokkos library for a given problem size and number of iterations. |
 | simp\_warp | This exercise compares the performance of SIMD (Single Instruction, Multiple Data) operations and team-vector operations. |
 | subview | The purpose of this exercise is to demonstrate and practice using the Kokkos library to perform matrix-vector multiplication on different execution spaces (e.g., serial, threads, OpenMP, CUDA) with various memory spaces (e.g., host, device, CUDA unified memory). |
 | tasking | The purpose of this exercise is to convert the serial Fibonacci code into a task-parallel version using the Kokkos library. |

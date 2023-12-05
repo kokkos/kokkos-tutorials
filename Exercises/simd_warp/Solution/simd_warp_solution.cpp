@@ -100,7 +100,7 @@ void test_team_vector(int N, int M, int R, double a) {
 int main(int argc, char* argv[]) {
   Kokkos::initialize(argc,argv);
 
-  int N = argc>1?atoi(argv[1]):3200000;
+  int N = argc>1?atoi(argv[1]):32000000;
   int M = argc>2?atoi(argv[2]):3;
   int R = argc>3?atoi(argv[3]):10;
   double scal = argc>4?atof(argv[4]):1.5;

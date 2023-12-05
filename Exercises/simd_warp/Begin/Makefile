@@ -29,7 +29,7 @@ endif
 
 CXXFLAGS ?= -O3 -g
 override CXXFLAGS += -I$(MAKEFILE_PATH)
-override CXXFLAGS += -I$(KOKKOS_PATH)/../simd-math
+override CXXFLAGS += -I$(KOKKOS_PATH)/simd/src
 
 DEPFLAGS = -M
 LINK = ${CXX}

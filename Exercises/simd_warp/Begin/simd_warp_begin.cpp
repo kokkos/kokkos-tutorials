@@ -1,16 +1,11 @@
 #include<Kokkos_Core.hpp>
 //EXERCISE: include the right header (later Kokkos will include this)
-//#include<simd.hpp>
+//#include<Kokkos_SIMD.hpp>
 
 void test_simd(int N_in, int M, int R, double a) {
 
   //EXERCISE: get the right type here for CUDA/Non-Cuda
-  //#ifdef KOKKOS_ENABLE_CUDA
   //using simd_t = ...;
-  //#else
-  //using simd_t = ...;
-  //#endif
-  //using simd_storage_t = ...;
 
   //EXERCISE: What will the N now be?
   int N = N_in;
@@ -33,6 +28,13 @@ void test_simd(int N_in, int M, int R, double a) {
     });
   Kokkos::deep_copy(results_scalar,0.0);
 
+    //EXERCISE: use TeamPolicy here
+#ifdef KOKKOS_ENABLE_CUDA
+  constexpr int team_size = ...;
+#else
+  constexpr int team_size = ...;
+#endif
+
   Kokkos::Timer timer;
   for(int r = 0; r<R; r++) {
     //EXERCISE: use TeamPolicy here
@@ -40,8 +42,8 @@ void test_simd(int N_in, int M, int R, double a) {
       //EXERCISE Use the correct type here
       double tmp = 0.0;
       double b = a;
+      //EXERCISE: how do you related index i to team policy member ?
       for(int j=0; j<data.extent(1); j++) {
-        //EXERCISE: add storage_type to temporary type conversion
         tmp += b * data(i,j);
         b+=a+1.0*(j+1);
       }
@@ -64,7 +66,7 @@ void test_simd(int N_in, int M, int R, double a) {
 void test_team_vector(int N, int M, int R, double a) {
 
   constexpr int V = 32;
-  Kokkos::View<double**,Kokkos::LayoutLeft> data("D",N,M);
+  Kokkos::View<double**, Kokkos::LayoutLeft> data("D",N,M);
   Kokkos::View<double*> results("R",N);
 
   // Lets fill the input data
@@ -105,7 +107,7 @@ void test_team_vector(int N, int M, int R, double a) {
 int main(int argc, char* argv[]) {
   Kokkos::initialize(argc,argv);
 
-  int N = argc>1?atoi(argv[1]):320000;
+  int N = argc>1?atoi(argv[1]):3200000;
   int M = argc>2?atoi(argv[2]):3;
   int R = argc>3?atoi(argv[3]):10;
   double scal = argc>4?atof(argv[4]):1.5;

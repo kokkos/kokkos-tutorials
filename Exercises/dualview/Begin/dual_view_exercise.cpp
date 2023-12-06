@@ -41,7 +41,7 @@
 //@HEADER
  */
 
-#include <ostream>
+#include <iostream>
 #include "functors.hpp"
 
 /*

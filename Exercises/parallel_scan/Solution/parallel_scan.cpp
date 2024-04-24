@@ -15,7 +15,7 @@
 //@HEADER
 
 #include <Kokkos_Core.hpp>
-#include <cstdio>
+#include <iostream>
 
 template <typename ValueType> struct Factorial {
   using value_type = ValueType;
@@ -27,11 +27,11 @@ template <typename ValueType> struct Factorial {
     lhs *= rhs;
   }
 
-  KOKKOS_FUNCTION void operator()(int i, value_type &update,
+  KOKKOS_FUNCTION void operator()(int i, value_type &partial_product,
                                   bool is_final) const {
     if (is_final)
-      m_view(i) = update;
-    update *= i + 1;
+      m_view(i) = partial_product;
+    partial_product *= i + 1;
   }
 
 private:

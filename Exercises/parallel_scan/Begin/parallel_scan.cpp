@@ -15,10 +15,10 @@
 //@HEADER
 
 #include <Kokkos_Core.hpp>
-#include <cstdio>
+#include <iostream>
 
 template <typename ValueType> struct Factorial {
-  /* FIXME */
+  /* EXERCISE */
 };
 
 int main(int argc, char *argv[]) {

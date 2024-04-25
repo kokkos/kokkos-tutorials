@@ -31,7 +31,7 @@ int main(int argc, char *argv[]) {
 
     auto host_view =
         Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, view);
-    Kokkos::View<double *> reference_view("reference", n);
+    Kokkos::View<double *, Kokkos::HostSpace> reference_view("reference", n);
     double reference = 1.;
     for (int i = 0; i < n; ++i) {
       reference_view(i) = reference;

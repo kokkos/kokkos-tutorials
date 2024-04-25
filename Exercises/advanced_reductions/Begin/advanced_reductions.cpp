@@ -17,14 +17,14 @@
 #include <Kokkos_Core.hpp>
 #include <iostream>
 
-template <typename ValueType>
-struct GeometricMean {
+template <typename ValueType> struct GeometricMean {
   using value_type = ValueType;
 
   GeometricMean(Kokkos::View<value_type *> view)
       : m_view(view), n(view.size()) {}
 
-  /* EXERCISE Implement init, join, and final */
+  /* EXERCISE Implement init, join, and final. Take the n-th square root in
+   * final */
 
 private:
   Kokkos::View<value_type *> m_view;

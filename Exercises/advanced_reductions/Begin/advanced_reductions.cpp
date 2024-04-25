@@ -24,7 +24,7 @@ struct GeometricMean {
   GeometricMean(Kokkos::View<value_type *> view)
       : m_view(view), n(view.size()) {}
 
-  /* Fill class */
+  /* EXERCISE Implement init, join, and final */
 
 private:
   Kokkos::View<value_type *> m_view;

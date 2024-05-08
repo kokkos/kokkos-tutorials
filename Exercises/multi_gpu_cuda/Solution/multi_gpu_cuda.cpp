@@ -40,7 +40,7 @@ struct CudaStreams {
     int n_devices;
     cudaGetDeviceCount(&n_devices);
 
-    // Chose 2 devices for this tutorial
+    // Choose 2 devices for this tutorial
     devices = {0, n_devices - 1};
 
     for (auto i = 0; i < devices.size(); ++i) {

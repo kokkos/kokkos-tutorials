@@ -38,27 +38,27 @@ struct CudaStreams {
   CudaStreams() {
     // Query number of devices available
     int n_devices;
-    KOKKOS_IMPL_CUDA_SAFE_CALL(cudaGetDeviceCount(&n_devices));
+    cudaGetDeviceCount(&n_devices);
 
     // Chose 2 devices for this tutorial
     devices = {0, n_devices - 1};
 
     for (auto i = 0; i < devices.size(); ++i) {
       // Set device for Cuda API calls
-      KOKKOS_IMPL_CUDA_SAFE_CALL(cudaSetDevice(devices[i]));
+      cudaSetDevice(devices[i]);
 
       // Create Cuda stream
-      KOKKOS_IMPL_CUDA_SAFE_CALL(cudaStreamCreate(&streams[i]));
+      cudaStreamCreate(&streams[i]);
     }
   }
 
   ~CudaStreams() {
     for (auto i = 0; i < devices.size(); ++i) {
       // Set device for Cuda API calls
-      KOKKOS_IMPL_CUDA_SAFE_CALL(cudaSetDevice(devices[i]));
+      cudaSetDevice(devices[i]);
 
       // Destroy Cuda stream
-      KOKKOS_IMPL_CUDA_SAFE_CALL(cudaStreamDestroy(streams[i]));
+      cudaStreamDestroy(streams[i]);
     }
   }
 };

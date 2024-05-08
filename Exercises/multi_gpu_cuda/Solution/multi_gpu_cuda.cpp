@@ -116,74 +116,74 @@ int main(int argc, char* argv[]) {
     }
   }
 
+  // Create Cuda streams
+  CudaStreams cuda_streams;
+
   Kokkos::initialize(argc, argv);
   {
-    CudaStreams cuda_streams;
+    // We scope the creation of all execution spaces and views to ensure
+    // they are destroyed before the cuda streams themselves are destroyed.
 
-    // Scope to ensure all execution spaces and views are destroyed
-    // before the cuda streams themselves are destroyed.
-    {
-      // Use streams to construct execution space on different devices.
-      std::array<ExecSpace, 2> execs = {ExecSpace(cuda_streams.streams[0]),
-                                        ExecSpace(cuda_streams.streams[1])};
+    // Use streams to construct execution space on different devices.
+    std::array<ExecSpace, 2> execs = {ExecSpace(cuda_streams.streams[0]),
+                                      ExecSpace(cuda_streams.streams[1])};
 
-      // Allocate views for use on different devices
-      ViewVectorType y0(Kokkos::view_alloc("y0", execs[0]), N);
-      ViewVectorType x0(Kokkos::view_alloc("x0", execs[0]), N);
-      ViewMatrixType A0(Kokkos::view_alloc("A0", execs[0]), N, N);
+    // Allocate views for use on different devices
+    ViewVectorType y0(Kokkos::view_alloc("y0", execs[0]), N);
+    ViewVectorType x0(Kokkos::view_alloc("x0", execs[0]), N);
+    ViewMatrixType A0(Kokkos::view_alloc("A0", execs[0]), N, N);
 
-      ViewVectorType y1(Kokkos::view_alloc("y1", execs[1]), N);
-      ViewVectorType x1(Kokkos::view_alloc("x1", execs[1]), N);
-      ViewMatrixType A1(Kokkos::view_alloc("A1", execs[1]), N, N);
+    ViewVectorType y1(Kokkos::view_alloc("y1", execs[1]), N);
+    ViewVectorType x1(Kokkos::view_alloc("x1", execs[1]), N);
+    ViewMatrixType A1(Kokkos::view_alloc("A1", execs[1]), N, N);
 
-      // Timer
-      Kokkos::Timer timer;
+    // Timer
+    Kokkos::Timer timer;
 
-      // Allocate result views for use on different devices
-      ResultType result0(Kokkos::view_alloc("result0", execs[0]));
-      ResultType result1(Kokkos::view_alloc("result1", execs[1]));
-      for (int repeat = 0; repeat < nrepeat; repeat++) {
-        // Pass execution space instances for deep copying and launching
-        // kernels on different devices
-        operation(execs[0], result0, A0, y0, x0);
-        operation(execs[1], result1, A1, y1, x1);
+    // Allocate result views for use on different devices
+    ResultType result0(Kokkos::view_alloc("result0", execs[0]));
+    ResultType result1(Kokkos::view_alloc("result1", execs[1]));
+    for (int repeat = 0; repeat < nrepeat; repeat++) {
+      // Pass execution space instances for deep copying and launching
+      // kernels on different devices
+      operation(execs[0], result0, A0, y0, x0);
+      operation(execs[1], result1, A1, y1, x1);
 
-        // Get results on host
-        auto result0_h =
-            Kokkos::create_mirror_view_and_copy(HostSpace(), result0);
-        auto result1_h =
-            Kokkos::create_mirror_view_and_copy(HostSpace(), result1);
+      // Get results on host
+      auto result0_h =
+          Kokkos::create_mirror_view_and_copy(HostSpace(), result0);
+      auto result1_h =
+          Kokkos::create_mirror_view_and_copy(HostSpace(), result1);
 
-        // Check results
-        const double solution = (double)N * (double)N;
-        if (result0_h() != solution) {
-          printf("  Error: result0(%e) != solution(%e)\n", result0_h(),
-                 solution);
-        }
-        if (result1_h() != solution) {
-          printf("  Error: result1(%e) != solution(%e)\n", result1_h(),
-                 solution);
-        }
-
-        // Output results
-        if (repeat == (nrepeat - 1)) {
-          Kokkos::fence();
-          printf("  Computed results for N=%d and nrepeat=%d are %e and %e\n",
-                 N, nrepeat, result0_h(), result1_h());
-        }
+      // Check results
+      const double solution = (double)N * (double)N;
+      if (result0_h() != solution) {
+        printf("  Error: result0(%e) != solution(%e)\n", result0_h(),
+                solution);
+      }
+      if (result1_h() != solution) {
+        printf("  Error: result1(%e) != solution(%e)\n", result1_h(),
+                solution);
       }
 
-      // Calculate time.
-      double time = timer.seconds();
-
-      // Calculate bandwidth.
-      double Gbytes = 2.0e-9 * double(sizeof(double) * (4. * N + 2. * N * N));
-
-      // Print results (problem size, time and bandwidth in GB/s).
-      printf("  N( %ld ) nrepeat ( %d ) problem( %g MB ) time( %g s ) bandwidth( %g GB/s )\n",
-             N, nrepeat, 1.e-6 * (2 * N * N + 4 * N) * sizeof(double), time,
-             Gbytes * nrepeat / time);
+      // Output results
+      if (repeat == (nrepeat - 1)) {
+        Kokkos::fence();
+        printf("  Computed results for N=%d and nrepeat=%d are %e and %e\n",
+                N, nrepeat, result0_h(), result1_h());
+      }
     }
+
+    // Calculate time.
+    double time = timer.seconds();
+
+    // Calculate bandwidth.
+    double Gbytes = 2.0e-9 * double(sizeof(double) * (4. * N + 2. * N * N));
+
+    // Print results (problem size, time and bandwidth in GB/s).
+    printf("  N( %ld ) nrepeat ( %d ) problem( %g MB ) time( %g s ) bandwidth( %g GB/s )\n",
+            N, nrepeat, 1.e-6 * (2 * N * N + 4 * N) * sizeof(double), time,
+            Gbytes * nrepeat / time);
   }
   Kokkos::finalize();
 

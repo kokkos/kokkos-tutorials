@@ -105,63 +105,62 @@ int main(int argc, char* argv[]) {
     }
   }
 
+  // EXERCISE: create a CudaStreams object
+
   Kokkos::initialize(argc, argv);
   {
-    // EXERCISE: create a CudaStreams object
-    {
-      // EXERCISE: create execution space instances using the streams in CudaStreams
+    // EXERCISE: create execution space instances using the streams in CudaStreams
 
-      // EXERCISE: allocate on device 0
-      ViewVectorType y0("y0", N);
-      ViewVectorType x0("x0", N);
-      ViewMatrixType A0("A0", N, N);
+    // EXERCISE: allocate on device 0
+    ViewVectorType y0("y0", N);
+    ViewVectorType x0("x0", N);
+    ViewMatrixType A0("A0", N, N);
 
-      // EXERCISE: allocate on device 1
-      ViewVectorType y1("y1", N);
-      ViewVectorType x1("x1", N);
-      ViewMatrixType A1("A1", N, N);
+    // EXERCISE: allocate on device 1
+    ViewVectorType y1("y1", N);
+    ViewVectorType x1("x1", N);
+    ViewMatrixType A1("A1", N, N);
 
-      // Timer
-      Kokkos::Timer timer;
+    // Timer
+    Kokkos::Timer timer;
 
-      // EXERCISE: correctly allocate new ResultType
-      ResultType result0;
-      ResultType result1;
-      for (int repeat = 0; repeat < nrepeat; repeat++) {
-        // EXERCISE: pass an execution space instances
-        operation(result0, A0, y0, x0);
-        operation(result1, A1, y1, x1);
+    // EXERCISE: correctly allocate new ResultType
+    ResultType result0;
+    ResultType result1;
+    for (int repeat = 0; repeat < nrepeat; repeat++) {
+      // EXERCISE: pass an execution space instances
+      operation(result0, A0, y0, x0);
+      operation(result1, A1, y1, x1);
 
-        // EXERCISE: process results correctly after changing result type
+      // EXERCISE: process results correctly after changing result type
 
-        // Check results
-        const double solution = (double)N * (double)N;
-        if (result0 != solution) {
-          printf("  Error: result0(%e) != solution(%e)\n", result0, solution);
-        }
-        if (result1 != solution) {
-          printf("  Error: result1(%e) != solution(%e)\n", result1, solution);
-        }
-
-        // Output result.
-        if (repeat == (nrepeat - 1)) {
-          Kokkos::fence();
-          printf("  Computed results for N=%d and nrepeat=%d are %e and %e\n",
-                 N, nrepeat, result0, result1);
-        }
+      // Check results
+      const double solution = (double)N * (double)N;
+      if (result0 != solution) {
+        printf("  Error: result0(%e) != solution(%e)\n", result0, solution);
+      }
+      if (result1 != solution) {
+        printf("  Error: result1(%e) != solution(%e)\n", result1, solution);
       }
 
-      // Calculate time.
-      double time = timer.seconds();
-
-      // Calculate bandwidth.
-      double Gbytes = 2.0e-9 * double(sizeof(double) * (4. * N + 2. * N * N));
-
-      // Print results (problem size, time and bandwidth in GB/s).
-      printf("  N( %ld ) nrepeat ( %d ) problem( %g MB ) time( %g s ) bandwidth( %g GB/s )\n",
-             N, nrepeat, 1.e-6 * (2 * N * N + 4 * N) * sizeof(double), time,
-             Gbytes * nrepeat / time);
+      // Output result.
+      if (repeat == (nrepeat - 1)) {
+        Kokkos::fence();
+        printf("  Computed results for N=%d and nrepeat=%d are %e and %e\n",
+                N, nrepeat, result0, result1);
+      }
     }
+
+    // Calculate time.
+    double time = timer.seconds();
+
+    // Calculate bandwidth.
+    double Gbytes = 2.0e-9 * double(sizeof(double) * (4. * N + 2. * N * N));
+
+    // Print results (problem size, time and bandwidth in GB/s).
+    printf("  N( %ld ) nrepeat ( %d ) problem( %g MB ) time( %g s ) bandwidth( %g GB/s )\n",
+            N, nrepeat, 1.e-6 * (2 * N * N + 4 * N) * sizeof(double), time,
+            Gbytes * nrepeat / time);
   }
   Kokkos::finalize();
 

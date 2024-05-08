@@ -49,6 +49,10 @@ struct CudaStreams {
     //             - Use cudaSetDevice() to direct Cuda API to use particular device
     //             - Destroy stream using cudaStreamDestroy()
   }
+
+  // Removing the following ensure that we manage the lifetime of the streams
+  CudaStreams(const CudaStreams &) = delete;
+  CudaStreams &operator=(const CudaStreams &) = delete;
 };
 
 // EXERCISE: pass in an execution space instance

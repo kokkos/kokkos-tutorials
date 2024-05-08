@@ -61,6 +61,10 @@ struct CudaStreams {
       cudaStreamDestroy(streams[i]);
     }
   }
+
+  // Removing the following ensure that we manage the lifetime of the streams
+  CudaStreams(const CudaStreams &) = delete;
+  CudaStreams &operator=(const CudaStreams &) = delete;
 };
 
 void operation(ExecSpace& exec_space, ResultType& result, ViewMatrixType& A,

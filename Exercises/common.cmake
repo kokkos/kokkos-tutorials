@@ -1,3 +1,7 @@
+# Early return if Kokkos is already set up
+if (TARGET Kokkos::kokkos)
+  return()
+endif()
 
 set(SPACK_CXX $ENV{SPACK_CXX})
 if(SPACK_CXX)
@@ -31,5 +35,6 @@ else()
       SOURCE_DIR ${Kokkos_COMMON_SOURCE_DIR}
     )
     FetchContent_MakeAvailable(Kokkos)
+    set(Kokkos_FOUND True)
   endif()
 endif()

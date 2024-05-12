@@ -14,6 +14,9 @@ add_subdirectory(team_policy)
 add_subdirectory(team_vector_loop)
 add_subdirectory(team_scratch_memory)
 add_subdirectory(tasking)
+add_subdirectory(simd)
+# FIXME update the code
+# add_subdirectory(simd_warp)
 
 add_subdirectory(advanced_reductions)
 add_subdirectory(parallel_scan)

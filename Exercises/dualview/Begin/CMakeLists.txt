@@ -4,5 +4,3 @@ include(../../common.cmake)
 
 add_executable(dualview dual_view_exercise.cpp)
 target_link_libraries(dualview Kokkos::kokkos)
-
-

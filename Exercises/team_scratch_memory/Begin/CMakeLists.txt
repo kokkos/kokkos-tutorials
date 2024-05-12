@@ -4,5 +4,3 @@ include(../../common.cmake)
 
 add_executable(TeamScratchMemory team_scratch_memory_begin.cpp)
 target_link_libraries(TeamScratchMemory Kokkos::kokkos)
-
-

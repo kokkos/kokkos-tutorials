@@ -29,6 +29,40 @@ Tutorials in the **Intro-Full** directory cover
 
 All the tutorial folders can be built using either the `Makefile` or the CMake `CMakeLists.txt` file in each folder.
 
+## CMake
+
+CMake can build against an installed Kokkos library or download one automatically using `FetchContent`.
+
+Without any Kokkos already installed in an exercise directory, one can run the following:
+
+```shell
+cmake -B build_dir . # -DKokkos_* options
+cmake --build build_dir
+```
+
+Kokkos options are described in [CMake options](https://kokkos.org/kokkos-core-wiki/keywords.html).
+
+For example, OpenMP CPU exercises can be built as:
+```shell
+cmake -B build_openmp -S . -DKokkos_ARCH_NATIVE=ON -DKokkos_ENABLE_OPENMP=ON
+cmake --build build_openmp --parallel
+```
+
+On Mac, if OpenMP is not available, one can use the Threads backend:
+```shell
+cmake -B build_threads -S . -DKokkos_ARCH_NATIVE=ON -DKokkos_ENABLE_THREADS=ON
+cmake --build build_threads --parallel
+```
+
+For a NVIDIA V100 gpu:
+
+```shell
+cmake -B build_cuda -S . -DKokkos_ARCH_NATIVE=ON Kokkos_ARCH_VOLTA70=ON -DKokkos_ENABLE_CUDA=ON
+cmake --build build_cuda --parallel
+```
+
+To pass an already installed Kokkos library, you can use classical CMake variables, such as `KOKKOS_ROOT` (for newer CMake), `Kokkos_ROOT`, or `CMAKE_PREFIX_PATH`.
+
 ## Makefiles
 
 The raw Makefiles require Makefile variables to be properly configured. 
@@ -37,7 +71,7 @@ and `KOKKOS_DEVICES` which contains the list of device backends to build.
 This will build a new Kokkos library for each exercise.
 
 If you are on a system compatible to our AWS instances, you can type 
-```
+```shell
 make
 make test
 ```
@@ -46,33 +80,3 @@ in the `Exercises` directory.
 Compatible means:
  * X86 with a NVIDIA V100 GPU
  * kokkos was cloned to ${HOME}/Kokkos/kokkos
-
-## CMake + Spack
-
-The CMake files build against an installed Kokkos library. 
-The easiest way to do this is using Spack.
-There is a `spack.sh` script that automates most of this.
-The Spack script can be run in any excercise folder with a `CMakeLists.txt`.
-
-````
-../../BuildScripts/spack.sh +openmp %gcc@7.3.0
-````
-This will make sure Kokkos is installed with the OpenMP backend for the GCC 7.3.0 compiler.
-It will then configure CMake and create a `spack-build` folder where `make` can be run.
-The `spack.sh` accepts the full list of variants and specs as the parent Kokkos package,
-which can be viewed by running:
-
-````
-spack info kokkos
-````
-
-The `spack.sh` script uses the special DIY mode of Spack to install dependencies and configure the current source folder to build.
-
-For Kokkos Kernels tutorials, there is similarly a `kk-spack.sh` script, e.g.
-````
-../../BuildScripts/kk-spack.sh +openmp %gcc@7.3.0 ^kokkos+aggressive_vectorization
-````
-All the arguments to the script get passed as a spec for the tutorial.
-We are indirectly configuring Kokkos, hence the `^` notation for specifying the exact Kokkos dependency spec.
-
-

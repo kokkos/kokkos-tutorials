@@ -36,7 +36,7 @@ CMake can build against an installed Kokkos library or download one automaticall
 Without any Kokkos already installed in an exercise directory, one can run the following:
 
 ```shell
-cmake -B build_dir . # -DKokkos_* options
+cmake -B build_dir # -DKokkos_* options
 cmake --build build_dir
 ```
 

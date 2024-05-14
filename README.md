@@ -44,20 +44,20 @@ Kokkos options are described in [CMake options](https://kokkos.org/kokkos-core-w
 
 For example, OpenMP CPU exercises can be built as:
 ```shell
-cmake -B build_openmp -DKokkos_ARCH_NATIVE=ON -DKokkos_ENABLE_OPENMP=ON
+cmake -B build_openmp -DKokkos_ENABLE_OPENMP=ON
 cmake --build build_openmp
 ```
 
 On Mac, if OpenMP is not available, one can use the Threads backend:
 ```shell
-cmake -B build_threads -DKokkos_ARCH_NATIVE=ON -DKokkos_ENABLE_THREADS=ON
+cmake -B build_threads -DKokkos_ENABLE_THREADS=ON
 cmake --build build_threads
 ```
 
-For a NVIDIA V100 gpu:
+For a NVIDIA gpu, using gpu arch autodetection:
 
 ```shell
-cmake -B build_cuda -DKokkos_ARCH_NATIVE=ON Kokkos_ARCH_VOLTA70=ON -DKokkos_ENABLE_CUDA=ON
+cmake -B build_cuda -DKokkos_ENABLE_CUDA=ON
 cmake --build build_cuda
 ```
 

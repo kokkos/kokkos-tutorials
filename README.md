@@ -33,7 +33,7 @@ All the tutorial folders can be built using either the `Makefile` or the CMake `
 
 CMake can build against an installed Kokkos library or download one automatically using `FetchContent`.
 
-Without any Kokkos already installed in an exercise directory, one can run the following:
+Without any Kokkos already installed, from an exercise directory, one can run the following:
 
 ```shell
 cmake -B build_dir # -DKokkos_* options
@@ -44,24 +44,25 @@ Kokkos options are described in [CMake options](https://kokkos.org/kokkos-core-w
 
 For example, OpenMP CPU exercises can be built as:
 ```shell
-cmake -B build_openmp -S . -DKokkos_ARCH_NATIVE=ON -DKokkos_ENABLE_OPENMP=ON
-cmake --build build_openmp --parallel
+cmake -B build_openmp -DKokkos_ARCH_NATIVE=ON -DKokkos_ENABLE_OPENMP=ON
+cmake --build build_openmp
 ```
 
 On Mac, if OpenMP is not available, one can use the Threads backend:
 ```shell
-cmake -B build_threads -S . -DKokkos_ARCH_NATIVE=ON -DKokkos_ENABLE_THREADS=ON
-cmake --build build_threads --parallel
+cmake -B build_threads -DKokkos_ARCH_NATIVE=ON -DKokkos_ENABLE_THREADS=ON
+cmake --build build_threads
 ```
 
 For a NVIDIA V100 gpu:
 
 ```shell
-cmake -B build_cuda -S . -DKokkos_ARCH_NATIVE=ON Kokkos_ARCH_VOLTA70=ON -DKokkos_ENABLE_CUDA=ON
-cmake --build build_cuda --parallel
+cmake -B build_cuda -DKokkos_ARCH_NATIVE=ON Kokkos_ARCH_VOLTA70=ON -DKokkos_ENABLE_CUDA=ON
+cmake --build build_cuda
 ```
 
-To pass an already installed Kokkos library, you can use classical CMake variables, such as `KOKKOS_ROOT` (for newer CMake), `Kokkos_ROOT`, or `CMAKE_PREFIX_PATH`.
+To pass an already installed Kokkos library, you can use classical CMake variables,
+such as `Kokkos_ROOT`, or `CMAKE_PREFIX_PATH`.
 
 ## Makefiles
 

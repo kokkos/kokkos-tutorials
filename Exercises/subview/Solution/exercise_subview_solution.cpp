@@ -67,20 +67,22 @@ int main( int argc, char* argv[] )
 
   // typedef Kokkos::Serial   ExecSpace;
   // typedef Kokkos::Threads  ExecSpace;
-  typedef Kokkos::OpenMP   ExecSpace;
+  // typedef Kokkos::OpenMP   ExecSpace;
   // typedef Kokkos::Cuda     ExecSpace;
-  // typedef Kokkos::Experimental::HIP ExecSpace;
+
+  typedef Kokkos::DefaultExecutionSpace ExecSpace;
 
   // typedef Kokkos::HostSpace     MemSpace;
-  typedef Kokkos::OpenMP        MemSpace;
+  // typedef Kokkos::OpenMP        MemSpace;
   // typedef Kokkos::CudaSpace     MemSpace;
   // typedef Kokkos::CudaUVMSpace  MemSpace;
-  // typedef Kokkos::Experimental::HIPSpace MemSpace;
 
-  // typedef Kokkos::LayoutLeft   Layout;
-  typedef Kokkos::LayoutRight  Layout;
+  typedef Kokkos::DefaultExecutionSpace::memory_space MemSpace;
 
-  typedef Kokkos::RangePolicy<ExecSpace>  range_policy;
+  typedef Kokkos::LayoutLeft Layout;
+  // typedef Kokkos::LayoutRight  Layout;
+
+  typedef Kokkos::RangePolicy<ExecSpace> range_policy;
 
   // Allocate y, x vectors and Matrix A on device.
   typedef Kokkos::View<double*, Layout, MemSpace>   ViewVectorType;

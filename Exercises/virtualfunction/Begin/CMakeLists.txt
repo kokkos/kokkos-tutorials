@@ -8,4 +8,3 @@ find_package(Kokkos REQUIRED)
 
 add_executable(virtual_function virtual_function.cpp classes.cpp)
 target_link_libraries(virtual_function Kokkos::kokkos)
-target_include_directories(virtual_function PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})

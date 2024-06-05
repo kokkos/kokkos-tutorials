@@ -6,6 +6,5 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/../../.cm
 
 find_package(Kokkos REQUIRED)
 
-add_executable(virtual_function virtual_function.cpp classes.cpp)
-target_link_libraries(virtual_function Kokkos::kokkos)
-target_include_directories(virtual_function PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+add_executable(virtual_function_solution virtual_function.cpp classes.cpp)
+target_link_libraries(virtual_function_solution Kokkos::kokkos)

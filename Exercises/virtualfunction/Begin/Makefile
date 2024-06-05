@@ -20,7 +20,6 @@ EXE = ${EXE_NAME}.host
 KOKKOS_ARCH = "BDW"
 endif
 
-override CXXFLAGS += -I./
 LINK = ${CXX}
 LINKFLAGS =
 

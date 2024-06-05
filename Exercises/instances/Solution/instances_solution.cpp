@@ -64,7 +64,7 @@ int main( int argc, char* argv[] )
   for ( int i = 0; i < argc; i++ ) {
     if ( ( strcmp( argv[ i ], "-N" ) == 0 ) || ( strcmp( argv[ i ], "-Rows" ) == 0 ) ) {
       N = atoi( argv[ ++i ] );
-      printf( "  User N is %d\n", N );
+      printf( "  User N is %ld\n", N );
     }
     else if ( strcmp( argv[ i ], "-nrepeat" ) == 0 ) {
       nrepeat = atoi( argv[ ++i ] );

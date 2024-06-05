@@ -20,3 +20,4 @@ add_subdirectory(simd)
 
 add_subdirectory(advanced_reductions)
 add_subdirectory(parallel_scan)
+add_subdirectory(instances)

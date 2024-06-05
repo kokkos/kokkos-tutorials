@@ -25,3 +25,14 @@ add_subdirectory(random_number)
 add_subdirectory(unique_token)
 add_subdirectory(unordered_map)
 add_subdirectory(virtualfunction)
+
+# Not done yet
+# TODO, require fortran
+# add_subdirectory(fortran-kokkosinterface)
+# TODO, require Kokkos Kernels
+# add_subdirectory(kokkoskernels)
+# TODO
+# add_subdirectory(multi_gpu_cuda)
+# add_subdirectory(tools_minimd)
+# require remote spaces
+# add_subdirectory(vectorshift)

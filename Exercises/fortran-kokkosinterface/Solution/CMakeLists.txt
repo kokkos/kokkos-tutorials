@@ -20,15 +20,7 @@ if (SPACK_F77)
     set(ENV{F77} ${SPACK_F77})
 endif ()
 
-execute_process(
-        COMMAND bash -c "printenv"
-        OUTPUT_VARIABLE outVar
-)
-message("${outVar}")
-
 enable_language(Fortran)
 
-add_executable(ftest.x abi.f90 f_interface.f90 main.f90 c_interface.cpp)
-target_link_libraries(ftest.x Kokkos::kokkos)
-
-
+add_executable(ftest_solution abi.f90 f_interface.f90 main.f90 c_interface.cpp)
+target_link_libraries(ftest_solution Kokkos::kokkos)

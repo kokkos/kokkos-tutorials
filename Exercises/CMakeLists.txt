@@ -27,8 +27,8 @@ add_subdirectory(unordered_map)
 add_subdirectory(virtualfunction)
 
 # Not done yet
-# TODO, require fortran
-# add_subdirectory(fortran-kokkosinterface)
+# TODO, Add a check for fortran
+add_subdirectory(fortran-kokkosinterface)
 # TODO, require Kokkos Kernels
 # add_subdirectory(kokkoskernels)
 # TODO

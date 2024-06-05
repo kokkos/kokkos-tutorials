@@ -32,7 +32,7 @@ add_subdirectory(fortran-kokkosinterface)
 # TODO, require Kokkos Kernels
 # add_subdirectory(kokkoskernels)
 # TODO
-# add_subdirectory(multi_gpu_cuda)
+add_subdirectory(multi_gpu_cuda)
 # add_subdirectory(tools_minimd)
 # require remote spaces
 # add_subdirectory(vectorshift)

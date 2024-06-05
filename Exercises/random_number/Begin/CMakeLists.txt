@@ -6,7 +6,5 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/../../.cm
 
 find_package(Kokkos REQUIRED)
 
-add_executable(MC_DartSampler MC_DartSampler.cpp)
-target_link_libraries(MC_DartSampler Kokkos::kokkos)
-
-
+add_executable(random_number_exercise MC_DartSampler.cpp)
+target_link_libraries(random_number_exercise Kokkos::kokkos)

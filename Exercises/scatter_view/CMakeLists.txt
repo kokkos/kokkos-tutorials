@@ -3,3 +3,4 @@ project(KokkosTutorialScatterView)
 
 add_subdirectory(Begin)
 add_subdirectory(Solution)
+add_subdirectory(Usage)

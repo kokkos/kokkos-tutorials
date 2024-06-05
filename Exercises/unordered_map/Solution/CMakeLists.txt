@@ -6,7 +6,5 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/../../.cm
 
 find_package(Kokkos REQUIRED)
 
-add_executable(unordered_map unordered_map.cpp)
-target_link_libraries(unordered_map Kokkos::kokkos)
-
-
+add_executable(unordered_map_solution unordered_map.cpp)
+target_link_libraries(unordered_map_solution Kokkos::kokkos)

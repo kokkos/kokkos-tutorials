@@ -19,7 +19,7 @@ if (NOT CMAKE_BUILD_TYPE)
             FORCE)
 endif ()
 
-set(Kokkos_COMMON_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../dep/Kokkos)
+set(Kokkos_COMMON_SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/dep/Kokkos)
 
 if (NOT KokkosTutorials_FORCE_INTERNAL_Kokkos)
     find_package(Kokkos CONFIG)

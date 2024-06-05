@@ -1,5 +1,7 @@
 #include<Kokkos_Core.hpp>
 
+#include <iostream> // for std::cout
+
 // EXERCISE: convert this loop into using ScatterView
 // #include<Kokkos_ScatterView.hpp>
 

@@ -6,5 +6,10 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/../../.cm
 
 find_package(Kokkos REQUIRED)
 
+if (Kokkos_DEVICES)
+    message(WARNING "${CMAKE_CURRENT_SOURCE_DIR}"
+            "Kokkos device is enabled, it might cause issue with the current program")
+endif ()
+
 add_executable(01_Solution exercise_1_solution.cpp)
 target_link_libraries(01_Solution Kokkos::kokkos)

@@ -6,7 +6,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../.cmake")
 
 find_package(Kokkos REQUIRED)
 
-if (NOT Kokkos_DEVICES MATCHES "CUDA")
+if (NOT Kokkos_ENABLE_CUDA)
   message(WARNING "This example requires CUDA, enable with -DKokkos_ENABLE_CUDA=ON")
   return()
 endif()

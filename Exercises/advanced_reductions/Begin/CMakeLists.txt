@@ -8,4 +8,3 @@ find_package(Kokkos REQUIRED)
 
 add_executable(AdvancedReductions advanced_reductions.cpp)
 target_link_libraries(AdvancedReductions Kokkos::kokkos)
-

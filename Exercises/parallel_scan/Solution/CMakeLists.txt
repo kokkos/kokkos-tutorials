@@ -8,4 +8,3 @@ find_package(Kokkos REQUIRED)
 
 add_executable(ParallelScan_Solution parallel_scan.cpp)
 target_link_libraries(ParallelScan_Solution Kokkos::kokkos)
-

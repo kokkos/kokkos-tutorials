@@ -90,7 +90,7 @@ int main( int argc, char* argv[] )
   double * const A = new double[ N * M ];
 
   // Initialize y vector on host.
-  // EXERCISE: Convert y to 1D View's member access API: x(i)
+  // EXERCISE: Convert y to 1D View's member access API: y(i)
   for ( int i = 0; i < N; ++i ) {
     y[ i ] = 1;
   }

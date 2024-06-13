@@ -2,6 +2,8 @@
 spack-build/
 spack-build-env.txt
 spack-build-out.txt
+spack.lock
+.spack-env/
 cmake_install.cmake
 CMakeFiles/
 LibInstalls/

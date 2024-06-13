@@ -20,15 +20,13 @@ add_subdirectory(simd)
 # FIXME update the code
 # add_subdirectory(simd_warp)
 
-# These directories are "independent" and  listed in alphabetical order
-
 add_subdirectory(advanced_reductions)
 add_subdirectory(fortran-kokkosinterface)  # TODO, Add a check for fortran
 add_subdirectory(instances)
 add_subdirectory(multi_gpu_cuda)
 add_subdirectory(parallel_scan)
-add_subdirectory(tools_minimd)
 add_subdirectory(random_number)
+add_subdirectory(tools_minimd)
 add_subdirectory(unique_token)
 add_subdirectory(unordered_map)
 add_subdirectory(virtualfunction)

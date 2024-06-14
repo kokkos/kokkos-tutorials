@@ -9,4 +9,3 @@ spack:
   view: false
   concretizer:
     unify: true
-

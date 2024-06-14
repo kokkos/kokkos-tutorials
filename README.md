@@ -33,13 +33,22 @@ All the tutorial folders can be built using either the `Makefile` or the CMake `
 
 CMake can build against an installed Kokkos library or download one automatically using `FetchContent`.
 
-Without any Kokkos already installed, from an exercise directory, one can run the following:
+You can use the global `CMakeLists.txt` at the top level directory to build all the exercises simultaneously.
 
 ```shell
-cmake -B build_dir # -DKokkos_* options
-cmake --build build_dir
+cmake -B build_all
+cmake --build build_all
 ```
 
+A specific CMake option, `KokkosTutorials_FORCE_INTERNAL_Kokkos`, can be used to force the use of the internal Kokkos
+library and only use an already installed one that can be too old or not configured as wished.
+
+```shell
+cmake -B build_all -DKokkosTutorials_FORCE_INTERNAL_Kokkos=ON # -DKokkos_* options
+cmake --build build_all
+```
+
+Kokkos setup is covered by the [quickstart guide](https://kokkos.org/kokkos-core-wiki/quick_start.html) and an exhaustive
 Kokkos options are described in [CMake options](https://kokkos.org/kokkos-core-wiki/keywords.html).
 
 For example, OpenMP CPU exercises can be built as:

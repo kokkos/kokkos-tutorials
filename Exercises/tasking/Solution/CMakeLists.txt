@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.16)
 project(KokkosTutorialTasking)
-include(../../common.cmake)
 
-add_executable(Tasking tasking_solution.cpp)
-target_link_libraries(Tasking Kokkos::kokkos)
+# Add a custom module path for find_package
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../.cmake")
+
+find_package(Kokkos REQUIRED)
+
+add_executable(Tasking_Solution tasking_solution.cpp)
+target_link_libraries(Tasking_Solution Kokkos::kokkos)

@@ -19,7 +19,8 @@ if (NOT CMAKE_BUILD_TYPE)
             FORCE)
 endif ()
 
-set(Kokkos_COMMON_SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/dep/Kokkos)
+# Where to find Kokkos' source code. This might be set by the user.
+set(KokkosTutorials_KOKKOS_SOURCE_DIR "${CMAKE_CURRENT_BINARY_DIR}/dep/kokkos" CACHE PATH "Description for KokkosTutorials_KOKKOS_SOURCE_DIR")
 
 if (NOT KokkosTutorials_FORCE_INTERNAL_Kokkos)
     find_package(Kokkos CONFIG)
@@ -28,15 +29,15 @@ endif ()
 if (Kokkos_FOUND)
     message(STATUS "Found Kokkos: ${Kokkos_DIR} (version \"${Kokkos_VERSION}\")")
 elseif (NOT KokkosTutorials_FORCE_EXTERNAL_Kokkos)
-    if (EXISTS ${Kokkos_COMMON_SOURCE_DIR})
-        add_subdirectory(${Kokkos_COMMON_SOURCE_DIR} Kokkos)
+    if (EXISTS ${KokkosTutorials_KOKKOS_SOURCE_DIR})
+        add_subdirectory(${KokkosTutorials_KOKKOS_SOURCE_DIR} Kokkos)
     else ()
         include(FetchContent)
         FetchContent_Declare(
                 Kokkos
                 GIT_REPOSITORY https://github.com/kokkos/kokkos.git
                 GIT_TAG 4.0.01
-                SOURCE_DIR ${Kokkos_COMMON_SOURCE_DIR}
+                SOURCE_DIR ${KokkosTutorials_KOKKOS_SOURCE_DIR}
         )
         FetchContent_MakeAvailable(Kokkos)
         set(Kokkos_FOUND True)

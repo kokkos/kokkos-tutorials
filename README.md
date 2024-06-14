@@ -81,3 +81,39 @@ in the `Exercises` directory.
 Compatible means:
  * X86 with a NVIDIA V100 GPU
  * kokkos was cloned to ${HOME}/Kokkos/kokkos
+
+# Using `spack` to build Kokkos and Kokkos-Kernels
+
+[`spack`](https://spack.io) is a package manager for supercomputers, Linux, and macOS. It makes installing scientific
+software easy. With `spack`, you can build Kokkos and its dependencies with a single command.
+
+We provide environments to ease the setup of Kokkos and Kokkos-Kernels for the tutorials. The environments are located
+in the `spack-envs` directory.
+
+To use the environments, first install `spack` by following the
+instructions [here](https://spack.readthedocs.io/en/latest/getting_started.html).
+
+To build Kokkos and Kokkos-Kernels with OpenMP backend, you can use the following commands:
+
+```bash
+source <spack_install_dir>/share/spack/setup-env.sh
+spack compiler add  # find compilers on your system
+spack env activate spack-envs/kokkos-kernels/openmp
+spack install
+spack load kokkos-kernels
+```
+
+Now you can go to the tutorial directory and build the tutorials using the installed Kokkos-Kernels library.
+
+For example:
+
+```bash
+# Select the exercise, and cheat to the solution directory
+cd Exercises/kokkoskernels/GaussSeidel/Solution
+# Configure the build
+cmake -B build_dir
+# Build the exercise
+cmake --build build_dir
+# Run the exercise
+./build_dir/gauss_seidel
+```

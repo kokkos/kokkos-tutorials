@@ -1,6 +1,12 @@
 cmake_minimum_required(VERSION 3.16)
 project(KokkosTutorials)
 
+# This option is used to force the use of an internal Kokkos
+# It is useful if you have a Kokkos installed but you do not want to use it
+# It is especially useful if you have a debian based system with Kokkos installed by apt
+# as the CMakeConfig.cmake is partially broken
+option(KokkosTutorials_FORCE_INTERNAL_Kokkos "Do not look for any installed Kokkos and use an internal one" OFF)
+
 # These directories follow IntroFull order of introduction
 
 add_subdirectory(Exercises/01)

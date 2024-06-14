@@ -7,6 +7,15 @@ project(KokkosTutorials)
 # as the CMakeConfig.cmake is partially broken
 option(KokkosTutorials_FORCE_INTERNAL_Kokkos "Do not look for any installed Kokkos and use an internal one" OFF)
 
+# This option is used to force the use of an external Kokkos
+# It is useful to ensure that the code is compatible with an installed Kokkos
+option(KokkosTutorials_FORCE_EXTERNAL_Kokkos "Do not use an internal Kokkos and always look for an installed one" OFF)
+
+if (KokkosTutorials_FORCE_INTERNAL_Kokkos AND KokkosTutorials_FORCE_EXTERNAL_Kokkos)
+  message(FATAL_ERROR "You cannot force both internal and external Kokkos:"
+          "choose one of KokkosTutorials_FORCE_INTERNAL_Kokkos or KokkosTutorials_FORCE_EXTERNAL_Kokkos")
+endif()
+
 # These directories follow IntroFull order of introduction
 
 add_subdirectory(Exercises/01)

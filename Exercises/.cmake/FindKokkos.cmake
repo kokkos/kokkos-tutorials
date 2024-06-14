@@ -27,7 +27,7 @@ endif ()
 
 if (Kokkos_FOUND)
     message(STATUS "Found Kokkos: ${Kokkos_DIR} (version \"${Kokkos_VERSION}\")")
-else ()
+elseif (NOT KokkosTutorials_FORCE_EXTERNAL_Kokkos)
     if (EXISTS ${Kokkos_COMMON_SOURCE_DIR})
         add_subdirectory(${Kokkos_COMMON_SOURCE_DIR} Kokkos)
     else ()

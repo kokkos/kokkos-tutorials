@@ -1,6 +1,8 @@
 #include<Kokkos_Core.hpp>
 #include<Kokkos_ScatterView.hpp>
 
+#include <iostream> // for std::cout
+
 // Scatter Add algorithm using atomics
 double scatter_view_loop(Kokkos::View<int**> v, 
 		 Kokkos::View<int*> r) {

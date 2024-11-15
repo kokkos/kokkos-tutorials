@@ -3,24 +3,16 @@
 set -eou pipefail
 
 kokkos_root="$1"
-tutorials_src="$2"
-cpp_compiler="$3"
-build_type="$4"
-backend="$5"
+kernels_root="$2"
+tutorials_src="$3"
+cpp_compiler="$4"
+build_type="$5"
+backend="$6"
 
 # These are exercises with CMakeLists.txt in Begin and Solution subdirectories
 # TODO: advanced_reductions seems broken
 # TODO: hpcbind does not use cmake
 # TODO: instances does not use cmake
-# TODO: kokkoskernels/BlockJacobi requires kokkos-kernels
-# TODO: kokkoskernels/CGSolve requires kokkos-kernels
-# TODO: kokkoskernels/CGSolve_SpILUKprecond requires kokkos-kernels
-# TODO: kokkoskernels/GaussSeidel requires kokkos-kernels
-# TODO: kokkoskernels/GraphColoring requires kokkos-kernels
-# TODO: kokkoskernels/InnerProduct requires kokkos-kernels
-# TODO: kokkoskernels/SpGEMM requires kokkos-kernels
-# TODO: kokkoskernels/SpILUK requires kokkos-kernels
-# TODO: kokkoskernels/TeamGemm requires kokkos-kernels
 # TODO: mpi_exch needs MPI
 # TODO: mpi_heat_conduction needs MPI
 # TODO: mpi_pack_unpack needs MPI
@@ -28,11 +20,18 @@ backend="$5"
 # TODO: simd_warp seems broken
 # TODO: subview seems broken
 # TODO: vectorshift needs Kokkos Remote Spaces
+# TODO: kokkoskernels/CGSolve_SpILUKprecond needs to know where Kokkos Kernels source directory is
+# TODO: kokkoskernels/SpILUK needs to know where Kokkos Kernels source directory is
+# TODO: kokkoskernels/TeamGemm seems broken
 BEGIN_SOLUTION_EXERCISES=(
 01
 02
 03
 dualview
+kokkoskernels/BlockJacobi
+kokkoskernels/GaussSeidel
+kokkoskernels/GraphColoring
+kokkoskernels/InnerProduct
 mdrange
 random_number
 scatter_view
@@ -60,6 +59,8 @@ fi
 
 # These are exercises with CMakeLists.txt in the root directory
 EXERCISES=(
+kokkoskernels/CGSolve/Solution # Begin does not include the proper headers (on purpose) so it can't be compiled
+kokkoskernels/SpGEMM/Solution # Begin does not include the proper headers (on purpose) so it can't be compiled
 tools_minimd
 )
 
@@ -77,7 +78,8 @@ for e in "${EXERCISES[@]}"; do
   echo building "$source_dir"
   cmake -S "$source_dir" -B "$build_dir" \
     -DCMAKE_CXX_COMPILER="$cpp_compiler" \
-    -DCMAKE_BUILD_TYPE="$build_type"
+    -DCMAKE_BUILD_TYPE="$build_type" \
+    -DKokkosKernels_ROOT="$kernels_root"
 
   # --config needed for windows
   cmake --build "$build_dir" --config "$build_type"

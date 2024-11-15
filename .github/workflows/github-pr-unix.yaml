@@ -36,22 +36,41 @@ jobs:
         ref: master
         path: kokkos
 
+    - name: Checkout Kokkos Kernels
+      uses: actions/checkout@v4
+      with:
+        repository: 'kokkos/kokkos-kernels'
+        ref: master
+        path: kokkos-kernels
+
     - name: Configure Kokkos
       run: >
-        cmake -S ${{ github.workspace}}/kokkos -B ${{ github.workspace}}/build-kokkos
-        -DCMAKE_INSTALL_PREFIX=${{ github.workspace}}/install-kokkos
+        cmake -S "${GITHUB_WORKSPACE}"/kokkos -B "${GITHUB_WORKSPACE}"/build-kokkos
+        -DCMAKE_INSTALL_PREFIX="${GITHUB_WORKSPACE}"/install-kokkos
         -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
         -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
         -DKokkos_ENABLE_COMPILER_WARNINGS=ON
 
     - name: Build & Install Kokkos
-      run: cmake --build ${{ github.workspace}}/build-kokkos --config ${{ matrix.build_type }} --parallel 2 --target install
+      run: cmake --build "${GITHUB_WORKSPACE}"/build-kokkos --config ${{ matrix.build_type }} --parallel 2 --target install
+
+    - name: Configure Kokkos Kernels
+      run: >
+        cmake -S "${GITHUB_WORKSPACE}"/kokkos-kernels -B "${GITHUB_WORKSPACE}"/build-kokkos-kernels
+        -DCMAKE_INSTALL_PREFIX="${GITHUB_WORKSPACE}"/install-kokkos-kernels
+        -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
+        -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+        -DKokkos_ROOT="${GITHUB_WORKSPACE}"/install-kokkos
+
+    - name: Build & Install Kokkos Kernels
+      run: cmake --build "${GITHUB_WORKSPACE}"/build-kokkos-kernels --config ${{ matrix.build_type }} --parallel 2 --target install
 
     - name: Configure and Build Exercises
       run: |
-        bash ${{ github.workspace}}/kokkos-tutorials/Scripts/ci-configure-build-test.sh \
-        ${{ github.workspace}}/install-kokkos/lib/cmake/Kokkos \
-        ${{ github.workspace}}/kokkos-tutorials \
+        bash "${GITHUB_WORKSPACE}"/kokkos-tutorials/Scripts/ci-configure-build-test.sh \
+        "${GITHUB_WORKSPACE}"/install-kokkos/lib/cmake/Kokkos \
+        "${GITHUB_WORKSPACE}"/install-kokkos-kernels \
+        "${GITHUB_WORKSPACE}"/kokkos-tutorials \
         ${{ matrix.cpp_compiler}} \
         ${{ matrix.build_type}} \
         ${{ matrix.backend }}

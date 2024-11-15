@@ -11,11 +11,11 @@ jobs:
     runs-on: ubuntu-latest
     container: nvidia/cuda:12.6.2-devel-ubuntu22.04
     steps:
-    - name: Install cmake
+    - name: Install Packages
       run: >
         apt-get update && apt-get install 
         -y --no-install-suggests --no-install-recommends
-        cmake
+        cmake openmpi-bin libopenmpi-dev
 
     - name: Checkout Kokkos Tutorials
       uses: actions/checkout@v4

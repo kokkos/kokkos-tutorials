@@ -12,18 +12,16 @@ EXERCISES=(
   01
   02
   03
-  04
 )
+
+# Add CUDA exercise when backend is CUDA
+if [ "$backend" == CUDA ]; then
+  EXERCISES+=(04)
+fi
 
 export Kokkos_ROOT="$kokkos_root"
 mkdir -p build
 for e in "${EXERCISES[@]}"; do
-
-  # CUDA hard-coded in, so CUDA needs to be enabled
-  if [ "$e" == 04 ] && [ ! "$backend" == CUDA ]; then
-    continue;
-  fi
-
   for k in Begin Solution; do
     source_dir="$tutorials_src"/Exercises/"$e"/"$k"
     build_dir=build/"$source_dir"

@@ -24,7 +24,7 @@ mkdir -p build
 for e in "${EXERCISES[@]}"; do
   for k in Begin Solution; do
     source_dir="$tutorials_src"/Exercises/"$e"/"$k"
-    build_dir=build/"$source_dir"
+    build_dir=build/Exercises/"$e"/"$k"
     echo building "$source_dir"
     cmake -S "$source_dir" -B "$build_dir" \
       -DCMAKE_CXX_COMPILER="$cpp_compiler" \

@@ -1,6 +1,4 @@
-# This starter workflow is for a CMake project running on multiple platforms. There is a different starter workflow if you just want a single platform.
-# See: https://github.com/actions/starter-workflows/blob/main/ci/cmake-single-platform.yml
-name: Hosted Runners
+name: Hosted Runners (unix)
 
 on:
   push:
@@ -16,10 +14,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # - os: windows-latest
-          #   cpp_compiler: cl
-          #   build_type: Release
-          #   backend: SERIAL
           - os: ubuntu-latest
             cpp_compiler: g++
             build_type: RelWithDebInfo
@@ -54,10 +48,10 @@ jobs:
       run: cmake --build ${{ github.workspace}}/build-kokkos --config ${{ matrix.build_type }} --parallel 2 --target install
 
     - name: Configure and Build Exercises
-      run: > 
-        bash ${{ github.workspace}}/kokkos-tutorials/Scripts/ci-configure-build-test.sh
-        ${{ github.workspace}}/install-kokkos/lib/cmake/Kokkos
-        ${{ github.workspace}}/kokkos-tutorials
-        ${{ matrix.cpp_compiler}}
-        ${{ matrix.build_type}}
+      run: |
+        bash ${{ github.workspace}}/kokkos-tutorials/Scripts/ci-configure-build-test.sh \
+        ${{ github.workspace}}/install-kokkos/lib/cmake/Kokkos \
+        ${{ github.workspace}}/kokkos-tutorials \
+        ${{ matrix.cpp_compiler}} \
+        ${{ matrix.build_type}} \
         ${{ matrix.backend }}

@@ -6,3 +6,4 @@ find_package(MPI REQUIRED)
 
 add_executable(mpi_exch mpi_exch.cpp)
 target_link_libraries(mpi_exch Kokkos::kokkos)
+target_link_libraries(heat3d MPI::MPI_CXX)

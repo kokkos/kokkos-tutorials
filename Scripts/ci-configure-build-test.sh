@@ -20,6 +20,7 @@ backend="$6"
 # TODO: kokkoskernels/CGSolve_SpILUKprecond needs to know where Kokkos Kernels source directory is
 # TODO: kokkoskernels/SpILUK needs to know where Kokkos Kernels source directory is
 # TODO: kokkoskernels/TeamGemm seems broken
+# TODO: mpi_heat_conduction/no-mpi does not use cmake
 BEGIN_SOLUTION_EXERCISES=(
 01
 02
@@ -30,7 +31,7 @@ kokkoskernels/GaussSeidel
 kokkoskernels/GraphColoring
 kokkoskernels/InnerProduct
 mdrange
-mpi_heat_conduction
+mpi_exch
 mpi_pack_unpack
 random_number
 scatter_view
@@ -65,7 +66,7 @@ fi
 EXERCISES=(
 kokkoskernels/CGSolve/Solution # Begin does not include the proper headers (on purpose) so it can't be compiled
 kokkoskernels/SpGEMM/Solution # Begin does not include the proper headers (on purpose) so it can't be compiled
-mpi_exch
+mpi_heat_condution/Solution # TODO: mpi_heat_conduction/Begin does not use cmake
 tools_minimd
 )
 

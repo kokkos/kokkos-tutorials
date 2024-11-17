@@ -39,7 +39,6 @@ team_policy
 team_scratch_memory
 team_vector_loop
 unordered_map
-virtualfunction
 )
 
 if [ "$backend" == CUDA ]; then
@@ -47,9 +46,10 @@ if [ "$backend" == CUDA ]; then
   BEGIN_SOLUTION_EXERCISES+=(multi_gpu_cuda)
 fi
 
-# tasking doesn't seem to work on CUDA
+
 if [ ! "$backend" == CUDA ]; then
-  BEGIN_SOLUTION_EXERCISES+=(tasking)
+  BEGIN_SOLUTION_EXERCISES+=(tasking) # tasking doesn't seem to work on CUDA
+  BEGIN_SOLUTION_EXERCISES+=(virtualfunction) # TODO: virtualfunction needs Kokkos with CUDA RDC
 fi
 
 if [ "$backend" == OPENMP ]; then

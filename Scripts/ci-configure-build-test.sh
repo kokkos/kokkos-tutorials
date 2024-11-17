@@ -86,7 +86,6 @@ for e in "${EXERCISES[@]}"; do
     -DCMAKE_CXX_COMPILER="$cpp_compiler" \
     -DCMAKE_BUILD_TYPE="$build_type" \
     -DKokkosKernels_ROOT="$kernels_root"
-
-  # --config needed for windows
-  cmake --build "$build_dir" --config "$build_type"
+    
+  cmake --build "$build_dir"
 done

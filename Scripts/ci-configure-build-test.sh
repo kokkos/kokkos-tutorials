@@ -31,7 +31,6 @@ kokkoskernels/GaussSeidel
 kokkoskernels/GraphColoring
 kokkoskernels/InnerProduct
 mdrange
-mpi_exch
 mpi_pack_unpack
 random_number
 scatter_view
@@ -66,6 +65,7 @@ fi
 EXERCISES=(
 kokkoskernels/CGSolve/Solution # Begin does not include the proper headers (on purpose) so it can't be compiled
 kokkoskernels/SpGEMM/Solution # Begin does not include the proper headers (on purpose) so it can't be compiled
+mpi_exch
 tools_minimd
 )
 

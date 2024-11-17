@@ -66,7 +66,7 @@ fi
 EXERCISES=(
 kokkoskernels/CGSolve/Solution # Begin does not include the proper headers (on purpose) so it can't be compiled
 kokkoskernels/SpGEMM/Solution # Begin does not include the proper headers (on purpose) so it can't be compiled
-mpi_heat_condution/Solution # TODO: mpi_heat_conduction/Begin does not use cmake
+mpi_heat_conduction/Solution # TODO: mpi_heat_conduction/Begin does not use cmake
 tools_minimd
 )
 
@@ -86,6 +86,6 @@ for e in "${EXERCISES[@]}"; do
     -DCMAKE_CXX_COMPILER="$cpp_compiler" \
     -DCMAKE_BUILD_TYPE="$build_type" \
     -DKokkosKernels_ROOT="$kernels_root"
-    
+
   cmake --build "$build_dir"
 done

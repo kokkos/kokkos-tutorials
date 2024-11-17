@@ -13,9 +13,6 @@ backend="$6"
 # TODO: advanced_reductions seems broken
 # TODO: hpcbind does not use cmake
 # TODO: instances does not use cmake
-# TODO: mpi_exch needs MPI
-# TODO: mpi_heat_conduction needs MPI
-# TODO: mpi_pack_unpack needs MPI
 # TODO: parallel_scan seems broken
 # TODO: simd_warp seems broken
 # TODO: subview seems broken
@@ -33,6 +30,8 @@ kokkoskernels/GaussSeidel
 kokkoskernels/GraphColoring
 kokkoskernels/InnerProduct
 mdrange
+mpi_heat_conduction
+mpi_pack_unpack
 random_number
 scatter_view
 simd
@@ -66,6 +65,7 @@ fi
 EXERCISES=(
 kokkoskernels/CGSolve/Solution # Begin does not include the proper headers (on purpose) so it can't be compiled
 kokkoskernels/SpGEMM/Solution # Begin does not include the proper headers (on purpose) so it can't be compiled
+mpi_exch
 tools_minimd
 )
 

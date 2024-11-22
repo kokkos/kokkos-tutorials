@@ -40,7 +40,8 @@ int main(int argc, char *argv[]) {
         n, KOKKOS_LAMBDA(int i) { view(i) = 1 + i / 10.; });
 
     double result;
-    Kokkos::parallel_reduce(n, GeometricMean{view}, result);
+    /* EXERCISE */
+    // Kokkos::parallel_reduce(n, GeometricMean{view}, result);
 
     auto host_view =
         Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, view);

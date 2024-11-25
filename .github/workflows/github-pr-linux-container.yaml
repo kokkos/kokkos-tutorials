@@ -44,7 +44,6 @@ jobs:
         -DCMAKE_BUILD_TYPE=RelWithDebInfo
         -DKokkos_ENABLE_CUDA=ON
         -DKokkos_ARCH_AMPERE80=ON
-        -DKokkos_ENABLE_COMPILER_WARNINGS=ON
 
     - name: Build & Install Kokkos
       run: cmake --build "${GITHUB_WORKSPACE}"/build-kokkos --config RelWithDebInfo --parallel 2 --target install

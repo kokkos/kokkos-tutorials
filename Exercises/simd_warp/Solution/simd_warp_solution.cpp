@@ -1,19 +1,14 @@
 #include<Kokkos_Core.hpp>
-#include<simd.hpp>
+#include<Kokkos_SIMD.hpp>
 
 void test_simd(int N_in, int M, int R, double a) {
 
-#ifdef KOKKOS_ENABLE_CUDA
-  using simd_t = simd::simd<double,simd::simd_abi::cuda_warp<32>>;
-#else
-  using simd_t = simd::simd<double,simd::simd_abi::native>;
-#endif
-  using simd_storage_t = simd_t::storage_type;
+  using simd_t = Kokkos::Experimental::native_simd<double>;
 
   int N = N_in/simd_t::size();
 
-  Kokkos::View<simd_storage_t**, Kokkos::LayoutLeft> data("D",N,M);
-  Kokkos::View<simd_storage_t*> results("R",N);
+  Kokkos::View<simd_t**,Kokkos::LayoutLeft> data("D",N,M);
+  Kokkos::View<simd_t*> results("R",N);
 
   // For the final reduction we gonna need a scalar view of the data for now
   // Relying on knowing the data layout, we will add SIMD Layouts later
@@ -21,22 +16,28 @@ void test_simd(int N_in, int M, int R, double a) {
   Kokkos::View<double**, Kokkos::LayoutLeft> data_scalar((double*)data.data(),N_in,M);
   Kokkos::View<double*> results_scalar((double*)results.data(),N_in);
 
-  // Lets fill the data
+  // Lets fill the input data using scalar view
   Kokkos::parallel_for("init",data_scalar.extent(0), KOKKOS_LAMBDA(const int i) {
       for (int j=0; j<data_scalar.extent(1); j++)
         data_scalar(i,j) = i%8;
     });
   Kokkos::deep_copy(results_scalar,0.0);
 
+#ifdef KOKKOS_ENABLE_CUDA
+  constexpr int team_size = 32;
+#else
+  constexpr int team_size = 1;
+#endif
+
   Kokkos::Timer timer;
   for(int r = 0; r<R; r++) {
-    Kokkos::parallel_for("Combine",Kokkos::TeamPolicy<>(data.extent(0),1,simd_t::size()),
+      Kokkos::parallel_for("Combine",Kokkos::TeamPolicy<>(data.extent(0)/team_size,team_size,simd_t::size()),
       KOKKOS_LAMBDA(const Kokkos::TeamPolicy<>::member_type& team) {
       simd_t tmp = 0.0;
       double b = a;
-      const int i = team.league_rank();
+      const int i = team.league_rank() * team.team_size() + team.team_rank();
       for(int j=0; j<data.extent(1); j++) {
-        tmp += b * simd_t(data(i,j));
+        tmp += b * data(i,j);
         b+=a+1.0*(j+1);
       }
       results(i) = tmp;
@@ -58,7 +59,7 @@ void test_simd(int N_in, int M, int R, double a) {
 void test_team_vector(int N, int M, int R, double a) {
 
   constexpr int V = 32;
-  Kokkos::View<double**,Kokkos::LayoutLeft> data("D",N,M);
+  Kokkos::View<double**, Kokkos::LayoutLeft> data("D",N,M);
   Kokkos::View<double*> results("R",N);
 
   // Lets fill the input data
@@ -99,7 +100,7 @@ void test_team_vector(int N, int M, int R, double a) {
 int main(int argc, char* argv[]) {
   Kokkos::initialize(argc,argv);
 
-  int N = argc>1?atoi(argv[1]):320000;
+  int N = argc>1?atoi(argv[1]):32000000;
   int M = argc>2?atoi(argv[2]):3;
   int R = argc>3?atoi(argv[3]):10;
   double scal = argc>4?atof(argv[4]):1.5;

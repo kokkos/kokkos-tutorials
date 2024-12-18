@@ -64,20 +64,3 @@ cmake --build build_cuda
 To pass an already installed Kokkos library, you can use classical CMake variables,
 such as `Kokkos_ROOT`, or `CMAKE_PREFIX_PATH`.
 
-## Makefiles
-
-The raw Makefiles require Makefile variables to be properly configured. 
-In most examples, this is `KOKKOS_PATH` pointing to the Kokkos source directory
-and `KOKKOS_DEVICES` which contains the list of device backends to build.
-This will build a new Kokkos library for each exercise.
-
-If you are on a system compatible to our AWS instances, you can type 
-```shell
-make
-make test
-```
-in the `Exercises` directory.
-
-Compatible means:
- * X86 with a NVIDIA V100 GPU
- * kokkos was cloned to ${HOME}/Kokkos/kokkos

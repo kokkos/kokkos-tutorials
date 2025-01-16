@@ -27,7 +27,7 @@ Tutorials in the **Intro-Full** directory cover
 
 # Building the Tutorials
 
-All the tutorial folders can be built using either the `Makefile` or the CMake `CMakeLists.txt` file in each folder.
+All the tutorial folders can be built using CMake.
 
 ## CMake
 

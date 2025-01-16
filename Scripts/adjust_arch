@@ -1,6 +1,0 @@
-for file in $1/*/*/Makefile
-do
-  sed -i.bak 's|'$2'|'$3'|g' $file
-  #sed -i.bak 's|${HOME}/kokkos|${HOME}/Kokkos/kokkos|g' $file
-  rm ${file}.bak
-done

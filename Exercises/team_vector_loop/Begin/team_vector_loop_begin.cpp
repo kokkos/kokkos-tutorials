@@ -74,13 +74,13 @@ int main( int argc, char* argv[] )
   Kokkos::initialize( argc, argv );
   {
 
-  typedef Kokkos::LayoutRight  Layout;
+  using Layout = Kokkos::LayoutRight;
 
-  typedef Kokkos::RangePolicy<> range_policy;
+  using range_policy = Kokkos::RangePolicy<>;
 
   // Allocate y, x vectors and Matrix A on device.
-  typedef Kokkos::View<double**, Layout>   ViewVectorType;
-  typedef Kokkos::View<double***, Layout>  ViewMatrixType;
+  using ViewVectorType = Kokkos::View<double**, Layout>;
+  using ViewMatrixType = Kokkos::View<double***, Layout>;
   ViewVectorType y( "y", E, N );
   ViewVectorType x( "x", E, M );
   ViewMatrixType A( "A", E, N, M );
@@ -114,8 +114,8 @@ int main( int argc, char* argv[] )
   Kokkos::deep_copy( x, h_x );
   Kokkos::deep_copy( A, h_A );
 
-  typedef Kokkos::TeamPolicy<>               team_policy;
-  typedef Kokkos::TeamPolicy<>::member_type  member_type;
+  using team_policy = Kokkos::TeamPolicy<>;
+  using member_type = Kokkos::TeamPolicy<>::member_type;
 
   // Timer products.
   Kokkos::Timer timer;

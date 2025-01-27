@@ -76,8 +76,8 @@ int main( int argc, char* argv[] )
   // EXERCISE: Create views of the right size.
 
   // 1. Device Views
-  // typedef Kokkos::View<double*>   ViewVectorType;
-  // typedef Kokkos::View<double**>  ViewMatrixType;
+  // using ViewVectorType = Kokkos::View<double*>;
+  // using ViewMatrixType = Kokkos::View<double**>;
   // ViewVectorType y( "y", N );
   // ViewVectorType x( "x", M );
   // ViewMatrixType A( "A", N, M );

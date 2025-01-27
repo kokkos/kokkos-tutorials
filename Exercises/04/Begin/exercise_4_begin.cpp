@@ -72,31 +72,31 @@ int main( int argc, char* argv[] )
   {
 
   // EXERCISE give-away: Choose an Execution Space.
-  // typedef Kokkos::Serial   ExecSpace;
-  // typedef Kokkos::Threads  ExecSpace;
-  // typedef Kokkos::OpenMP   ExecSpace;
-  // typedef Kokkos::Cuda     ExecSpace;
+  // using ExecSpace = Kokkos::Serial;
+  // using ExecSpace = Kokkos::Threads;
+  // using ExecSpace = Kokkos::OpenMP;
+  // using ExecSpace = Kokkos::Cuda;
 
   // EXERCISE: Choose device memory space.
-  // typedef Kokkos::HostSpace     MemSpace;
-  // typedef Kokkos::CudaSpace     MemSpace;
-  // typedef Kokkos::CudaUVMSpace  MemSpace;
+  // using MemSpace = Kokkos::HostSpace;
+  // using MemSpace = Kokkos::CudaSpace;
+  // using MemSpace = Kokkos::CudaUVMSpace;
 
   // EXERCISE give-away: Choose a Layout.
   // EXERCISE: When exercise is correctly implemented, then
   //           either layout will generate the correct answer.
   //           However, performance will be different!
 
-  // typedef Kokkos::LayoutLeft   Layout;
-  // typedef Kokkos::LayoutRight  Layout;
+  // using Layout = Kokkos::LayoutLeft;
+  // using Layout = Kokkos::LayoutRight;
 
   // EXERCISE give-away: Use a RangePolicy.
-  // typedef Kokkos::RangePolicy<ExecSpace>  range_policy;
+  // using range_policy = Kokkos::RangePolicy<ExecSpace>;
 
   // Allocate y, x vectors and Matrix A on device.
   // EXERCISE: Use MemSpace and Layout.
-  typedef Kokkos::View<double*>   ViewVectorType;
-  typedef Kokkos::View<double**>  ViewMatrixType;
+  using ViewVectorType = Kokkos::View<double*>;
+  using ViewMatrixType = Kokkos::View<double**>;
   ViewVectorType y( "y", N );
   ViewVectorType x( "x", M );
   ViewMatrixType A( "A", N, M );

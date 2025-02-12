@@ -1,0 +1,92 @@
+
+%==========================================================================
+
+\begin{frame}[fragile]
+
+  {\Huge Range/MDRangePolicy Updates}
+
+  \vspace{10pt}
+
+  \textbf{Content:}
+  \begin{itemize}
+    \item Begin and end bounds check
+    \item Unsafe implicit conversion check
+    \item RangePolicy variadic constructor removal 
+  \end{itemize}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Bounds Check}
+
+\textbf{Asserts that the upper bound is greater than the lower bound}
+
+\vspace{10pt}
+\begin{code}[keywords={BoundsCheck}]
+  Kokkos::RangePolicy<> policy(100, 90);
+  Kokkos::MDRangePolicy<Kokkos::Rank<2>> policy({100, 100}, {100, 90});
+\end{code}
+\vspace{10pt}
+
+Aborts with:
+\textit{Kokkos::MDRangePolicy bounds error: The lower bound (100) is greater than its upper bound (90) in dimension ...}
+\vspace{10pt}
+
+\begin{itemize}
+	\item If \texttt{KOKKOS\_ENABLE\_DEPRECATED\_CODE\_4} is not defined, aborts.
+	\item Else if \texttt{KOKKOS\_ENABLE\_DEPRECATION\_WARNINGS} is defined, outputs to \texttt{std::cerr}.
+\end{itemize}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Unsafe Implicit Conversion Check}
+
+\textbf{Checks for unsafe implicit index type conversions during RangePolicy construction}
+\begin{itemize}
+  \item Narrowing conversions
+  \item Sign conversions
+\end{itemize}
+\vspace{10pt}
+
+Aborts with:
+\textit{Kokkos::RangePolicy bound type error: an unsafe implicit conversion is performed on a bound (...)}
+\textit{which may not preserve its original value.}
+\vspace{10pt}
+
+\begin{itemize}
+	\item If \texttt{KOKKOS\_ENABLE\_DEPRECATED\_CODE\_4} is not defined, aborts.
+	\item Else if \texttt{KOKKOS\_ENABLE\_DEPRECATION\_WARNINGS} is defined, outputs to \texttt{std::cerr}.
+\end{itemize}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{RangePolicy constructor cleanup}
+
+\textbf{Removed RangePolicy variadic constructors}
+\bigskip
+
+\begin{code}[keywords={RangePolicyConstructorCleanup}]
+template<class ...InitArgs>
+RangePolicy(const IndexType&, const IndexType&, const InitArgs...)
+template<class ...InitArgs>
+RangePolicy(const ExecutionSpace&, const IndexType&, const IndexType&,
+            const InitArgs...)
+
+RangePolicy(const IndexType&, const IndexType&, const ChunkSize)
+RangePolicy(const ExecutionSpace&, const IndexType&, const IndexType&,
+            const ChunkSize)
+\end{code}
+
+\vspace{10pt}
+\texttt{template <class... Args> inline void set(Args...)} is deprecated in favor of
+
+\texttt{inline RangePolicy\& set\_chunk\_size(int chunk\_size)}.
+
+\end{frame}
+
+%==========================================================================

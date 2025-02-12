@@ -1,0 +1,327 @@
+\input{KokkosTutorial_PreTitle}
+%disclaimer for Sandia. uncomment and the whole blob goes away @ b80c116300122
+\def\sandid{SAND2020-7908 PE}
+
+% \title{Performance Portability with Kokkos}
+\title{The Kokkos Lectures}
+
+%BAD misuse of author field
+\author{Module 3: MultiDimensional Loops and Data Structures}
+
+%\author{
+%  Jeff Miles \inst{1},
+%  Christian Trott \inst{1}
+%}
+%\institute[shortinst]{\tiny \inst{1} Sandia National Laboratories, \inst{2} Oak Ridge National Laboratory \and \inst{3} Los Alamos National Laboratory}
+%\institute[shortinst]{\tiny \inst{1} Sandia National Laboratories}
+
+\input{KokkosTutorial_PostTitle}
+
+\shortfalse
+\mediumtrue
+\fulltrue
+\notoverviewtrue
+
+\begin{document}
+
+% \begin{frame}
+%   \titlepage
+% \end{frame}
+% \input{sections/Section_nvlabs}
+
+\begin{frame}
+	\titlepage
+\end{frame}
+
+\begin{frame}{Welcome to Kokkos}
+
+\textbf{Online Resources}:
+
+\begin{itemize}
+        \item \url{https://github.com/kokkos}:
+                \begin{itemize}
+                        \item Primary Kokkos GitHub Organization
+                \end{itemize}
+        \item \url{https://kokkos.github.io/kokkos-core-wiki}
+                \begin{itemize}
+			\item{Slides, recording and Q\&A for the Lectures}
+                \end{itemize}
+        \item \url{https://kokkos.org/kokkos-core-wiki}:
+                \begin{itemize}
+                        \item Wiki including API reference
+                \end{itemize}
+        \item \url{https://kokkosteam.slack.com}:
+                \begin{itemize}
+                        \item Slack channel for Kokkos.
+                        \item Please join: fastest way to get your questions answered.
+                        \item Can whitelist domains, or invite individual people.
+                \end{itemize}
+\end{itemize}
+
+\end{frame}
+
+
+\begin{frame}{Lecture Series Outline}
+
+\begin{itemize}
+        \item 07/17 Module 1: Introduction, Building and Parallel Dispatch
+        \item 07/24 Module 2: Views and Spaces
+	\item \textbf{07/31 Module 3: Data Structures + MultiDimensional Loops}
+        \item 08/07 Module 4: Hierarchical Parallelism
+        \item 08/14 Module 5: Tasking, Streams and SIMD
+        \item 08/21 Module 6: Internode: MPI and PGAS
+        \item 08/28 Module 7: Tools: Profiling, Tuning and Debugging
+        \item 09/04 Module 8: Kernels: Sparse and Dense Linear Algebra
+        \item 09/11 Reserve Day
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Module 1: Summary}
+	\textbf{Kokkos Ecosystem}
+
+	\textbf{Building Kokkos}
+
+	\textbf{Data Parallelism:}
+
+	\begin{itemize}
+		\item Simple parallel loops use the \texttt{parallel\_for} pattern:
+\begin{code}[linebackgroundcolor={\btLstHL<1->{3}{bodyColor}},frame=single]
+@patternparallel_for@pattern("Label",@policyN@policy, [=] (int64_t i) {
+  /* loop body */
+});
+\end{code}
+\item Reductions combine contributions from loop iterations
+\begin{code}[linebackgroundcolor={\btLstHL<1->{3}{bodyColor}},frame=single]
+int result;
+@patternparallel_reduce@pattern("Label",@policyN@policy, [=] (int64_t i, int& lres) {
+   /* loop body */
+    lres += /* something */
+  },result);
+\end{code}
+
+\end{itemize}
+
+	\textbf{Recording:} \url{https://bit.ly/kokkos-lecture-series-1}
+
+\end{frame}
+
+
+
+\begin{frame}[fragile]{Module 2: Summary}
+	\textbf{Kokkos View}
+	\begin{itemize}
+		\item Multi Dimensional Array.
+		\item Compile and Runtime Dimensions.
+		\item Reference counted like a \texttt{std::shared\_ptr} to an array.
+	\end{itemize}
+\begin{code}[keywords={View,int}]
+	Kokkos::View<int*[5]> a("A", N);
+	a(3,2) = 7;
+\end{code}
+
+	\textbf{Execution Spaces}
+	\begin{itemize}
+		\item{Parallel operations execute in a specified \textbf{Execution Space}}
+		\item{Can be controlled via template argument to \textbf{Execution Policy}}
+		\item{If no Execution Space is provided use \texttt{DefaultExecutionSpace}}
+	\end{itemize}
+\begin{code}[keywords={parallel_for,Cuda,RangePolicy}]
+// Equivalent:
+parallel_for("L", N, functor);
+parallel_for("L",
+  RangePolicy<DefaultExecutionSpace>(0, N), functor);
+\end{code}
+\end{frame}
+
+\begin{frame}[fragile]{Module 2: Summary}
+	\textbf{Memory Spaces}
+	\begin{itemize}
+		\item Kokkos Views store data in \textbf{Memory Spaces}.
+		\item Provided as template parameter.
+		\item If no Memory Space is given, use  \texttt{Kokkos::DefaultExecutionSpace::memory\_space}.
+		\item \texttt{deep\_copy} is used to transfer data: no hidden memory copies by Kokkos.
+	\end{itemize}
+\begin{code}[keywords={View,int,CudaSpace,create_mirror_view}]
+	View<int*, CudaSpace> a("A", M);
+	// View in host memory to load from file
+	auto h_a = create_mirror_view(a);
+        load_from_file(h_a);
+	// Copy
+	deep_copy(a,h_a);
+\end{code}
+
+\end{frame}
+
+\begin{frame}[fragile]{Module 2: Summary}
+	\textbf{Layouts}
+	\begin{itemize}
+		\item Kokkos Views use an index mapping to memory determined by a \textbf{Layout}.
+		\item Provided as template parameter.
+		\item If no \textbf{Layout} is given, derived from the execution space associated with the memory space.
+		\item Defaults are good if you parallelize over left most index!
+	\end{itemize}
+
+\begin{code}[keywords={View,int,CudaSpace}]
+	View<int**, LayoutLeft> a("A", N, M);
+	View<int**, LayoutRight> b("B", N, M);
+
+	parallel_for("Fill", N, KOKKOS_LAMBDA(int i) {
+          for(int j = 0; j < M; j++) {
+            a(i,j) = i * 1000 + j; // coalesced
+	    b(i,j) = i * 1000 + j; // cached
+          }
+	});
+\end{code}
+
+\end{frame}
+
+\begin{frame}[fragile]{Module 2: Summary}
+	\textbf{Advanced Reductions}
+	\begin{itemize}
+        \item \texttt{parallel\_reduce} defaults to summation
+        \item Kokkos reducers can be used to reduce over arbitrary operations
+        \item Reductions over multiple values are supported
+        \item Only reductions into scalar arguments are guaranteed to be synchronous
+        \item Support for custom reductions
+	\end{itemize}
+
+\begin{code}[keywords={View,int,CudaSpace}]
+    parallel_reduce("Join", n,
+      KOKKOS_LAMBDA(int i, double& a, int& b) {
+        int idx = foo();
+        if(idx > b) b = idx;
+        a += bar();
+      }, result, Kokkos::Max<int>{my_max});
+\end{code}
+
+\end{frame}
+
+\begin{frame}{Module 3}
+  \begin{block}{MultiDimensional Loops}
+    How to parallelize tightly nested loops using the MDRangePolicy?
+  \end{block}
+
+  \begin{block}{Subviews and Unmanaged Views}
+    How to get slices of Views, View assignment rules and interoperating with external memory.
+  \end{block}
+
+  \begin{block}{Atomic Data Access}
+    Using atomic functions. Implement an optimal scatter contribute pattern.
+  \end{block}
+
+  \begin{block}{DualView}
+    Managing data synchronization without global understanding of data flow.
+  \end{block}
+\end{frame}
+
+\input{../sections/Section_MDRangePolicy}
+\input{../sections/Section_Subviews}
+\input{../sections/Section_UnmanagedViews}
+\input{../sections/Section_Atomics}
+\input{../sections/Section_DualViews}
+
+\begin{frame}[fragile]{Module 3: Summary}
+
+	\textbf{MDRangePolicy}
+        \begin{itemize}
+                \item Tightly nested loops (similar to OpenMP collapse clause)
+                \item Available with \texttt{parallel\_for} and \texttt{parallel\_reduce}
+                \item Tiling strategy over the iteration space
+                \item Control iteration pattern at compile time
+        \end{itemize}
+
+\begin{code}[keywords={double,Iterate,Left,Right,int,MDRangePolicy,Rank}]
+View<double**,LayoutLeft> A("A",N0,N1);
+parallel_for("Label",
+  MDRangePolicy<Rank<2,Iterate::Left,Iterate::Left>>(
+	{0,0},{N0,N1}),
+  KOKKOS_LAMBDA(int i, int j) {
+    A(i,j) = 1000.0 * i + 1.0*j;
+});
+\end{code}
+
+\end{frame}
+
+\begin{frame}[fragile]{Module 3: Summary}
+
+	\textbf{Subviews}
+        \begin{itemize}
+                \item Taking slices of Views
+                \item Similar capability as provided by Matlab, Fortran, or Python
+                \item {Prefer the use of \texttt{auto} for the type
+\begin{code}[keywords={View,int,subview,ALL,make_pair}]
+View<int ***> v("v", N0, N1, N2);
+auto sv = subview(v, i0, ALL, make_pair(start,end));
+\end{code}}
+        \end{itemize}
+
+        \vspace{10pt}
+        \textbf{Unmanaged Views}
+        \begin{itemize}
+                \item Interoperability with externally allocated arrays
+                \item No reference counting, memory not deallocated at destruction
+                \item { User is responsible for insuring proper dynamic and/or static extents, MemorySpace, Layout, etc.
+\begin{code}[keywords={View, float, LayoutRight, HostSpace, MemoryTraits, Unmanaged}]
+View<float**, LayoutRight, HostSpace>
+  v_unmanaged(raw_ptr, N0, N1);
+\end{code}}
+        \end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{Module 3: Summary}
+
+	\textbf{Atomic operations}
+        \begin{itemize}
+                \item Atomic functions available on the host or the device (e.g. \texttt{Kokkos::atomic\_add})
+                \item {Use \texttt{Atomic} memory trait for atomic accesses on Views
+\begin{code}[keywords={View,int,MemoryTraits,Atomic}]
+View<int*> v("v", N0);
+View<int*, MemoryTraits<Atomic>> v_atomic = v;
+\end{code}}
+                \item Use \texttt{ScatterView} for scatter-add parallel pattern
+        \end{itemize}
+
+        \vspace{10pt}
+	\textbf{Dual Views}
+        \begin{itemize}
+                \item For managing data synchronization between host and device
+ 		\item Helps in codes with no holistic view of data flow
+		\begin{itemize}
+                   \item In particular when porting codes incrementally
+                \end{itemize}
+        \end{itemize}
+
+\end{frame}
+\begin{frame}{Module 4: Hierarchical Parallelism (08/07)}
+
+	\vspace{5pt}
+	\textbf{Hierarchical Parallelism}
+	\begin{itemize}
+        \item How to leverage more parallelism through nested loops.
+        \item The concept of Thread-Teams and Vectorlength.
+	\end{itemize}
+
+	\vspace{5pt}
+	\textbf{Scratch Space}
+	\begin{itemize}
+        \item Getting temporary workspace in kernels.
+        \item Leveraging GPU Shared Memory.
+	\end{itemize}
+
+        \vspace{5pt}
+        \textbf{Unique Token}
+        \begin{itemize}
+        \item How to acquire safely per-thread resources.
+        \end{itemize}
+
+	\vspace{10pt}
+    \textbf{Slack channel:} {\scriptsize \url{https://kokkosteam.slack.com/}}
+	
+	\vspace{10pt}
+	\textbf{Recordings/Slides:} {\scriptsize \url{https://kokkos.org/kokkos-core-wiki/videolectures.html}}
+
+\end{frame}
+
+\end{document}
+

@@ -1,0 +1,209 @@
+%==========================================================================
+
+\begin{frame}[fragile]
+
+	{\Huge Bit Manipulation}
+
+	\vspace{10pt}
+
+	\textbf{Content:}
+	\begin{itemize}
+		\item \texttt{Kokkos::} equivalents for C++20/C++23 components to access, manipulate and process both individual bits and bit sequences
+		      \begin{itemize}
+		      	\item \texttt{bit\_cast}
+		      	\item \texttt{byteswap}
+		      	\item Integral powers of 2
+		      	      \begin{itemize}
+		      	      	\item \texttt{has\_single\_bit}, \texttt{bit\_ceil}, \texttt{bit\_floor}, \texttt{bit\_width}
+		      	      \end{itemize}
+		      	\item Rotating
+		      	      \begin{itemize}
+		      	      	\item \texttt{rotl}, \texttt{rotr}
+		      	      \end{itemize}
+		      	\item Counting
+		      	      \begin{itemize}
+		      	      	\item \texttt{countl\_zero}, \texttt{countl\_one}, \texttt{countr\_zero}, \texttt{countr\_one}, \texttt{popcount}
+		      	      \end{itemize}
+		      \end{itemize}
+	\end{itemize}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{bit\_cast}
+	\texttt{\st{constexpr} To bit\_cast<To>(From const\& from) noexcept}
+	\begin{itemize}
+		\item Reinterpret the object representation of one type as that of another
+		      \begin{itemize}
+		      	\item \texttt{sizeof(From) == sizeof(To)}
+		      	\item \texttt{From} must be trivially copyable
+		      	\item \texttt{To} must be trivially copyable
+		      \end{itemize}
+		\item Not \texttt{constexpr} (differs from C++23 \texttt{std::bit\_cast})
+	\end{itemize}
+	\vfill
+	\lstset {language=C++}
+	\begin{lstlisting}
+    double d1 = 19880124.0;
+    auto  u64 = Kokkos::bit_cast<uint64_t>(d1);
+    auto   d2 = Kokkos::bit_cast<double>(u64);
+    
+    assert(d1 == d2);
+	\end{lstlisting}	
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{byteswap}
+	\texttt{constexpr T byteswap(T value) noexcept}
+	\begin{itemize}
+		\item Reverses the bytes in the given integer value
+		      \vfill
+		\item \texttt{T} is an integral type
+		      \begin{itemize}
+		      	\item \texttt{bool}, \texttt{char}, \texttt{char8\_t}, \texttt{char16\_t}, \texttt{char32\_t}, \texttt{wchar\_t}, \texttt{short}, \texttt{int}, \texttt{long}, \texttt{long long}, clang \texttt{\_\_128} (but not gcc \texttt{\_\_128})
+		      	      \begin{itemize}
+		      	      	\item \texttt{signed} and \texttt{unsigned} integer types
+		      	      \end{itemize}
+		      \end{itemize}
+	\end{itemize}
+	\vfill
+	\lstset {language=C++}
+	\begin{lstlisting}
+    int32_t i1 = 0xdeadbeef;
+    auto    i2 = Kokkos::byteswap(i1);
+    
+    assert(i2 == 0xefbeadde);
+	\end{lstlisting}	
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Integral Powers of 2}
+	\begin{itemize}
+		\item \texttt{constexpr bool has\_single\_bit(T x) noexcept}
+		      \begin {itemize}
+		\item Checks if a number is an integral power of 2
+	\end{itemize}
+	\item \texttt{constexpr T bit\_ceil(T x) noexcept}
+	\begin {itemize}
+	\item Finds the smallest integral power of two not less than \texttt{x}
+	\end{itemize}   
+	\item \texttt{constexpr T bit\_floor(T x) noexcept}
+	\begin{itemize}
+		\item Finds the largest integral power of 2 not greater than \texttt{x}
+	\end{itemize}
+	\item \texttt{constexpr int bit\_width(T x) noexcept}
+	\begin{itemize}
+		\item Finds the smallest number of bits needed to represent \texttt{x}
+	\end{itemize}
+	\vfill
+	\item \texttt{T} is an unsigned integer type
+	\begin{itemize}
+		\item \texttt{unsigned char}, \texttt{unsigned short}, \texttt{unsigned int}, \texttt{unsigned long}, \texttt{unsigned long long}
+	\end{itemize}
+	\end{itemize}
+	\lstset {language=C++}
+	\begin{lstlisting}
+    uint64_t x = 5;  // 0b101
+    assert(Kokkos::has_single_bit(x) == false);
+    assert(Kokkos::bit_ceil(x) == 8); 
+    assert(Kokkos::bit_floor(x) == 4); 
+    assert(Kokkos::bit_width(x) == 3); 
+	\end{lstlisting}	
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Rotating}
+	\begin{itemize}
+		\item \texttt{constexpr T rotl(T x, int x) noexcept}
+		      \begin {itemize}
+		\item Computes the result of a bitwise left-rotation
+	\end{itemize}
+	\item \texttt{constexpr T rotr(T x, int x) noexcept}
+	\begin {itemize}
+	\item Computes the result of a bitwise right-rotation
+	\end{itemize}
+	\vfill
+	\item \texttt{T} is an unsigned integer type
+	\end{itemize}
+	\vfill
+	\lstset {language=C++}
+	\begin{lstlisting}
+    uint16_t i16 = 0b1001110000111001;
+    assert(Kokkos::rotl(i16, 2) == 0b0111000011100110);
+    assert(Kokkos::rotr(i16, 3) == 0b0011001110000111);
+	\end{lstlisting}	
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Counting}
+	\begin{itemize}
+		\item \texttt{constexpr int countl\_zero(T x) noexcept}
+		      \begin {itemize}
+		\item Count the number of consecutive 0 bits, starting from the most significant bit
+	\end{itemize}
+	\item \texttt{constexpr int countl\_one(T x) noexcept}
+	\begin {itemize}
+	\item Count the number of consecutive 1 bits, starting from the most significant bit
+	\end{itemize}
+	\item \texttt{constexpr int countr\_zero(T x) noexcept}
+	\begin {itemize}
+	\item Count the number of consecutive 0 bits, starting from the least significant bit
+	\end{itemize}
+	\item \texttt{constexpr int countr\_one(T x) noexcept}
+	\begin {itemize}
+	\item Count the number of consecutive 1 bits, starting from the least significant bit
+	\end{itemize}
+	\item \texttt{constexpr int popcount(T x) noexcept}
+	\begin {itemize}
+	\item Count the number of 1 bits in an unsigned integer
+	\end{itemize}
+	\vfill
+	\item \texttt{T} is an unsigned integer type
+	\end{itemize}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Counting}
+	\lstset {language=C++}
+	\begin{lstlisting}
+    uint16_t bits = 0b1111101000110100;
+
+    assert(Kokkos::countl_zero(bits) == 0);
+    assert(Kokkos::countl_one(bits)  == 5);
+    assert(Kokkos::countr_zero(bits) == 2);
+    assert(Kokkos::countr_one(bits)  == 0);
+    assert(Kokkos::popcount(bits)    == 9);
+	\end{lstlisting}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Builtins}
+	\begin{itemize}
+		\item In \texttt{namespace Kokkos::Experimental::}
+		\item Not \texttt{constexpr}
+		\item Directly call the compiler builtin version, if beneficial
+		      \vfill
+		\item \texttt{bit\_cast\_builtin}
+		\item \texttt{byteswap\_builtin}
+		\item Integral powers of 2
+		      \begin{itemize}
+                         \item \texttt{has\_single\_bit\_builtin}, \texttt{bit\_ceil\_builtin}, \texttt{bit\_floor\_builtin}, \texttt{bit\_width\_builtin}
+		      \end{itemize}
+		\item Rotating
+		      \begin{itemize}
+                         \item \texttt{rotl\_builtin}, \texttt{rotr\_builtin}
+		      \end{itemize}
+		\item Counting
+		      \begin{itemize}
+                         \item \texttt{countl\_zero\_builtin}, \texttt{countl\_one\_builtin}, \texttt{countr\_zero\_builtin}, \texttt{countr\_one\_builtin}, \texttt{popcount\_builtin}
+		      \end{itemize}
+	\end{itemize}
+\end{frame}
+
+%==========================================================================

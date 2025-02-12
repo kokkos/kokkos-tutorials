@@ -1,0 +1,99 @@
+%==========================================================================
+
+%\begin{frame}[fragile]
+%
+%  {\Huge Drop volatile}
+%
+%  \vspace{10pt}
+%
+%  \textbf{Content:}
+%  \begin{itemize}
+%    \item {Drop \texttt{volatile} support from Atomic Views}
+%  \end{itemize}
+%
+%\end{frame}
+
+%==========================================================================
+\begin{frame}[fragile]{Drop \texttt{volatile}}
+
+\textbf{Drop \texttt{volatile} support from Atomic Views}
+
+\vspace{20pt}
+
+Historically, CUDA used \texttt{volatile} because it had a non-standard memory model.
+
+This lead to problems when using custom types with Atomic Views.
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Drop \texttt{volatile}}
+
+\begin{code}
+
+struct Custom {};
+// ...
+View<Custom[1], MemoryTraits<Atomic>> v(&a);
+v[0] = a;
+
+\end{code}
+
+\begin{verbatim}
+core/src/impl/Kokkos_Atomic_View.hpp:70: error:
+passing ‘volatile AtomicDataElement<...>::value_type’ 
+{aka ‘volatile Custom’} as ‘this’ argument discards
+qualifiers [-fpermissive]
+   70 |     *ptr = val;
+      |     ~~~~~^~~~~
+TestCustom.hpp: note: in call to
+‘constexpr Custom& Custom::operator=(const Custom&)’
+   |     struct Custom {};
+   |            ^~~~~~
+\end{verbatim}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Drop \texttt{volatile}}
+
+Previously, one would have to add \texttt{volatile} declarations to their custom types:
+
+\begin{code}
+struct Custom {
+    Custom& operator=(const Custom&) = default;
+    void operator=(const Custom& src) volatile { /* ... */ }
+    
+    // As well as other volatile qualified member functions
+};
+\end{code}
+
+
+However, internally Kokkos no longer uses the \texttt{volatile} overloads, and CUDA
+no longer requires combining \texttt{volatile} with \texttt{atomic}.
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Drop \texttt{volatile}}
+
+Kokkos changes to internal \texttt{Impl::AtomicDataElement}:
+
+\begin{itemize}
+\item {Dropped \texttt{volatile} overloads}
+\item {\texttt{operator=}  uses
+\texttt{atomic\_store(..., memory\_order\_relaxed)}}
+\item {\texttt{operator value\_type()} uses 
+\texttt{atomic\_load(..., memory\_order\_relaxed)}}
+\end{itemize}
+
+Users
+\begin{itemize}
+\item {Drop the (now unused) \texttt{volatile} overloads at your convenience}
+\end{itemize}
+
+\end{frame}
+
+

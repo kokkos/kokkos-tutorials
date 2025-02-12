@@ -1,0 +1,20 @@
+\mode<presentation>
+
+% Frame title
+\defbeamertemplate*{frametitle}{kokkos}[1][]
+{
+    {\begin{tikzpicture}[remember picture,overlay]
+    \node[yshift=-.75cm] at (current page.north west)
+      {\begin{tikzpicture}[remember picture, overlay]
+        \node[anchor=east,xshift=.9\paperwidth,rectangle,
+              rounded corners=10pt,inner sep=5pt,
+              fill=SandiaBlue,color=SandiaLightBlue]
+              {\color{white}{\small \insertframetitle}};
+       \end{tikzpicture}
+      };
+      
+   \end{tikzpicture}
+   }
+}
+
+\mode<all>

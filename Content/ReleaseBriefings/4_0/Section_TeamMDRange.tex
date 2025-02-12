@@ -1,0 +1,162 @@
+
+%==========================================================================
+
+\begin{frame}[fragile]
+
+  {\Huge Team-Level MDRange Policies}
+
+  \vspace{10pt}
+
+  \textbf{Content:}
+  Provide multidimensional support for nested parallelism
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{TeamMDRangePolicies}
+
+Additions to nested polcies:
+
+\vspace{10pt}
+
+\begin{itemize}
+ \item MD versions of nested team execution policies
+ \begin{itemize}
+  \item Supports multi dimension in nested parallel pattern
+ \end{itemize}
+\end{itemize}
+
+\vspace{10pt}
+
+\begin{itemize}
+ \item TeamThreadRange
+ \item \textbf{TeamThreadMDRange}
+ \item TeamVectorRange
+ \item \textbf{TeamVectorMDRange}
+ \item ThreadVectorRange
+ \item \textbf{ThreadVectorMDRange}
+\end{itemize}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{\texttt{TeamMDRangePolicies API}}
+
+API for TeamThreadMDRange, TeamVectorMDRange and ThreadVectorMDRange
+
+\vspace{10pt}
+
+\begin{code}[keywords={TeamVectorMDRange}]
+ parallel_for(
+   TeamVectorMDRange<Rank<2>, TeamHandle>(team_handle, N, M),
+   [=](int i, int j) { /* ... */ }
+ );
+\end{code}
+
+\vspace{10pt}
+
+\begin{itemize}
+  \item Takes in \texttt{Rank<N,OuterDir,InnerDir>} that describes its iteration pattern
+  \item Same behavior as regular \texttt{MDRangePolicy}
+  \begin{itemize}
+    \item \texttt{N} is number of dimensions (required to be [2, 8])
+    \item \texttt{Iterate} is an \texttt{enum \{ Default, Left, Right \}}
+    \item \texttt{Iterate} is used to choose iterating left-most dimension or right-most dimension
+    \item Only \texttt{OuterDir} is used for \texttt{TeamMDRange}
+  \end{itemize}
+\end{itemize}
+
+%\begin{code}
+%template <unsigned N, Iterate OuterDir = Iterate::Default,
+%          Iterate InnerDir = Iterate::Default>
+%struct Rank { /* ... */ };
+%\end{code}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{TeamThreadMDRange Example}
+
+\begin{code}[keywords={TeamThreadMDRange}]
+using TeamHandle = TeamPolicy<>::member_type;
+
+parallel_for(TeamPolicy<>(N,AUTO),
+             KOKKOS_LAMBDA (TeamHandle const& team) {
+  int leagueRank = team.league_rank();
+  auto teamThreadMDRange = TeamThreadMDRange<Rank<4>,
+                           TeamHandle>(team, n0, n1, n2, n3);
+  parallel_for(teamThreadMDRange,
+    [=](int i0, int i1, int i2, int i3) {
+      /* ... */
+  });
+}); 
+\end{code}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{ThreadVectorMDRange Example}
+
+\begin{code}[keywords={ThreadVectorMDRange}]
+using TeamHandle = TeamPolicy<>::member_type;
+
+parallel_for(TeamPolicy<>(N, AUTO),
+             KOKKOS_LAMBDA(TeamHandle const& team) { 
+  int leagueRank = team.league_rank(); 
+  auto teamThreadRange = TeamThreadRange(team, n0);
+  auto threadVectorMDRange = ThreadVectorMDRange<Rank<3>,
+                             TeamHandle>(team, n1, n2, n3);
+  parallel_for(teamThreadRange, [=](int i0) {
+    parallel_for(threadVectorMDRange,
+      [=](int i1, int i2, int i3) {
+        /* ... */
+    });
+  });
+}); 
+\end{code}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{TeamVectorMDRange Example}
+
+\begin{code}[keywords={TeamVectorMDRange}]
+using TeamHandle = TeamPolicy<>::member_type;
+
+parallel_for(TeamPolicy<>(N,AUTO),
+             KOKKOS_LAMBDA(TeamHandle const& team) {
+  int leagueRank = team.league_rank();
+  auto teamVectorMDRange = TeamVectorMDRange<Rank<4>,
+                           TeamHandle>(team, n0, n1, n2, n3);
+  parallel_for(teamVectorMDRange,
+    [=](int i0, int i1, int i2, int i3) {
+      /* ... */
+  });
+}); 
+\end{code}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{TeamMDRangePolicies Notes}
+\textit{Thread and Vector Parallelism:}
+
+\begin{itemize}
+  \item Based on iteration direction (\texttt{OuterDir})
+  \item For now, at most 2 dimensions are parallelized
+  \begin{itemize}
+    \item Thread parallelism is applied to the slowest dimension
+    \item Vector parallelism is applied to the fastest dimension
+  \end{itemize}
+\end{itemize}
+
+\end{frame}
+
+%==========================================================================
+

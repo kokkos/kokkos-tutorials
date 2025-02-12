@@ -1,0 +1,152 @@
+%==========================================================================
+
+\begin{frame}[fragile]
+
+  {\Huge Graphs Enhancements}
+
+  \vspace{10pt}
+
+\end{frame}
+
+%==========================================================================
+
+% Merged GitHub PR with 2 arguments:
+%  - PR number
+%  - PR title
+\newcommand{\mergedPR}[2]{
+    \item \href{https://github.com/kokkos/kokkos/pull/#1}{#2}
+}
+
+\usetikzlibrary{positioning}
+
+\begin{frame}[fragile]{Graphs Enhancements: Basics (1/5)}
+
+  \texttt{Kokkos::Graph} is an asynchronous execution model that requires all workloads
+  to be defined ahead of execution - as opposed to \emph{eager} execution that you get with
+  a regular execution space instance.
+
+  \vspace{1em}
+
+  \begin{columns}
+    \centering
+    \begin{column}{0.25\textwidth}
+      \centering
+      \begin{tikzpicture}[
+        main node/.style = {circle, fill = blue!20, draw, minimum size = 0.75cm, inner sep = 0pt}
+      ]  
+
+        \node[main node, fill=SandiaLightLightBlue] (A) at ( 0   ,  0) {$A$};
+        \node[main node, fill=SandiaLightLightBlue] (B) at (-1   , -1) {$B$};
+        \node[main node, fill=SandiaLightLightBlue] (C) at (-1.75, -2) {$C$};
+        \node[main node, fill=SandiaLightLightBlue] (D) at (-0.25, -2) {$D$};
+        \node[main node, fill=SandiaLightLightBlue] (E) at (-1   , -3) {$E$};
+        \node[main node, fill=SandiaLightLightBlue] (X) at ( 1   , -1) {$X$};
+        \node[main node, fill=SandiaLightLightBlue] (Y) at ( 1   , -2) {$Y$};
+
+        \path[draw,thick] (A) edge node {} (B);
+        \path[draw,thick] (A) edge node {} (X);
+        \path[draw,thick] (B) edge node {} (C);
+        \path[draw,thick] (B) edge node {} (D);
+        \path[draw,thick] (C) edge node {} (E);
+        \path[draw,thick] (D) edge node {} (E);
+        \path[draw,thick] (X) edge node {} (Y);
+
+      \end{tikzpicture}
+    \end{column}%
+    \begin{column}{0.75\textwidth}
+      \centering
+      \begin{block}{}
+        \begin{itemize}
+          \item Makes your code semantics clear and portable.
+          \item Reduces CPU overhead due to scheduling (\texttt{Cuda} and {\texttt{HIP}}).
+          \item Enables as many compiler/driver optimizations as possible.
+        \end{itemize}
+      \end{block}
+    \end{column}
+  \end{columns}
+
+\end{frame}
+
+\begin{frame}[fragile]{Graphs Enhancements: PRs (2/5)}
+
+  Main PRs for the current release that modified \texttt{Kokkos::Graph}
+  \begin{itemize}
+    \mergedPR{7240}{core(graph): \textbf{promote instantiate} to public API}
+    \mergedPR{7249}{core(graph): allow submission onto an \textbf{arbitrary exec} space instance}
+    \mergedPR{7271}{graph(fix): \textbf{defaulted graph submit} control flow}
+    \mergedPR{7248}{core(graph): allow \textit{create\_graph} \textbf{without closure}}
+    \mergedPR{6904}{graph: allow access to \textbf{native graph} object}
+    \mergedPR{7460}{graph(diagnostic): enable compile-time diagnostic of \textbf{illegal reduction target}}
+    \mergedPR{7365}{graph(global-kernel-launch): fix global launch for node kernel}
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{Graph Enhancements (3/5)}
+
+  \begin{itemize}
+    \item Using a \texttt{Kokkos::Graph} is a 3-phase process
+          \begin{enumerate}
+            \item Definition
+            \item Instantiation
+            \item Submission
+          \end{enumerate}
+
+    \item \texttt{Kokkos} will instantiate the graph on the first \texttt{submit} if needed.
+
+    \item \texttt{Kokkos} will \texttt{submit} the graph on the execution space instance provided
+  during \emph{definition} by default.
+  \end{itemize}
+
+  \begin{code}
+    auto graph = Kokkos::Experimental::create_graph<...>(exec,
+        [&](const auto& root) {... /* add nodes */ ...});
+
+    graph.instantiate(); // optional
+
+    graph.submit(/* other_exec */);
+  \end{code}
+
+\end{frame}
+
+\begin{frame}[fragile]{Graph Enhancements (4/5)}
+
+  Then...
+
+  \begin{code}
+    auto graph = Kokkos::Experimentalcreate_graph<Kokkos::HIP>(
+      exec, [&](const auto& root) {
+        auto node = root.then_parallel_...;
+    });
+  \end{code}
+
+  Now...
+
+  \begin{itemize}
+    \item \texttt{Kokkos} now allows graph \emph{definition} outside of a closure.
+
+    \item \texttt{Kokkos} allows access to the underlying backend graph (\texttt{hipGraph\_t} and so on).
+  \end{itemize}
+
+  \begin{code}
+    auto graph = Kokkos::Experimental::create_graph<Kokkos::HIP>(exec);
+    // Impl shall disappear at some point.
+    auto root  = Kokkos::Impl::GraphAccess::create_root_ref(graph);
+    auto node  = root.then_parallel_...;
+
+    size_t num_nodes;
+    hipGraphGetNodes(graph.native_graph(), nullptr, &num_nodes);
+  \end{code}
+
+\end{frame}
+
+\begin{frame}[fragile]{Graph Enhancements (5/5)}
+
+  \begin{itemize}
+    \item The defaulted graph implementation received some attention (\emph{exec} correctness), but can still be
+          enhanced.
+    \item Kernels nodes with global launch were fixed (\texttt{HIP} and \texttt{Cuda}).
+    \item Better compile-time diagnostic for illegal reduction target. It must be device-accessible.
+  \end{itemize}
+
+\end{frame}

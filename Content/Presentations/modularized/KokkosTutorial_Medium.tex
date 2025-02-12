@@ -1,0 +1,237 @@
+\input{KokkosTutorial_PreTitle}
+%disclaimer for Sandia. uncomment and the whole blob goes away @ b80c116300122
+\def\sandid{SAND2020-7475 PE}
+
+% \title{Performance Portability with Kokkos}
+\title{The Kokkos Lectures}
+
+%BAD misuse of author field
+\author{The Compact Course}
+
+%\author{
+%  Jeff Miles \inst{1},
+%  Christian Trott \inst{1}
+%}
+%\institute[shortinst]{\tiny \inst{1} Sandia National Laboratories, \inst{2} Oak Ridge National Laboratory \and \inst{3} Los Alamos National Laboratory}
+%\institute[shortinst]{\tiny \inst{1} Sandia National Laboratories}
+
+\input{KokkosTutorial_PostTitle}
+
+\shorttrue
+\mediumtrue
+\fullfalse
+
+\begin{document}
+
+
+\begin{frame}
+	\titlepage
+\end{frame}
+
+\begin{frame}{The Compact Course}
+	{\huge The Compact Course}
+
+	\textbf{A 1-Day Tutorial}
+
+	\vspace{10pt}
+	This lecture covers many concepts of Kokkos with Hands-On Exercises as homework.
+
+	Slides: \url{https://github.com/kokkos/kokkos-tutorials/Intro-Medium/KokkosTutorial_Medium.pdf}
+
+	\vspace{20pt}
+	For the full lectures, with more capabilities covered, and more in-depth explanations visit:
+
+	\url{https://github.com/kokkos/kokkos-tutorials/wiki/Kokkos-Lecture-Series}
+\end{frame}
+
+\input{../sections/Section_WhatIsKokkos}
+
+\begin{frame}{Welcome to Kokkos}
+
+\textbf{Online Resources}:
+
+\begin{itemize}
+        \item \url{https://github.com/kokkos}:
+                \begin{itemize}
+                        \item Primary Kokkos GitHub Organization
+                \end{itemize}
+        \item \url{https://github.com/kokkos/kokkos-tutorials/wiki/Kokkos-Lecture-Series}:
+                \begin{itemize}
+			\item{Slides, recording and Q\&A for the Full Lectures}
+                \end{itemize}
+        \item \url{https://github.com/kokkos/kokkos/wiki}:
+                \begin{itemize}
+                        \item Wiki including API reference
+                \end{itemize}
+        \item \url{https://kokkosteam.slack.com}:
+                \begin{itemize}
+                        \item Slack channel for Kokkos.
+                        \item Please join: fastest way to get your questions answered.
+                        \item Can whitelist domains, or invite individual people.
+                \end{itemize}
+\end{itemize}
+
+\end{frame}
+
+\input{../sections/Section_DataParallelPatterns}
+
+\input{../sections/Section_Views}
+
+\input{../sections/Section_Spaces}
+
+\input{../sections/Section_MemoryAccessPatterns}
+
+\input{../sections/Section_AdvancedReductions}
+
+\input{../sections/Section_Subviews}
+
+\input{../sections/Section_MDRangePolicy}
+
+\input{../sections/Section_Hierarchical}
+
+\input{../sections/Section_Tools_Simple}
+
+
+\begin{frame}[fragile]
+
+  {\Huge Kokkos Kernels: performance portable BLAS, sparse, dense and graph algorithms}
+  \vspace{20pt}
+
+  \textbf{Topics:}
+  \begin{itemize}
+    \item {BLAS kernels.}
+    \item {SPARSE math kernels.}
+  \end{itemize}
+
+  \vspace{-20pt}
+
+\end{frame}
+
+\input{../sections/Section_KokkosKernels_BLAS}
+
+% Exercise
+
+\begin{frame}[fragile]{Exercise Inner Product Using Kokkos Kernels}
+
+  \begin{small}
+  \begin{itemize}
+  \item Location: \ExerciseDirectory{kokkoskernels/InnerProduct/Begin}
+  \item Assignment: We return to the Inner Product example with two separate sub-exercises:
+  \begin{enumerate}
+    \item  Use Kokkos Kernels BLAS routines (gemv, dot) to compute the inner product
+    \item  Use Kokkos Kernels team-level BLAS routines (dot) within the TeamPolicy implementation within the matrix-vector product calculation
+  \end{enumerate}
+  \item Compile and run on CPU, GPU; test with NVIDIA's cuBLAS tpl enabled
+  \end{itemize}
+  \end{small}
+
+\end{frame}
+
+\begin{frame}[fragile]{Exercise Inner Product Using Kokkos Kernels}
+
+  For convenience, use the provided script to install KokkosKernels and generate a Makefile for the exercise
+
+  \begin{code}
+    ./run_installlibs_cmake.sh
+    make -j
+  \end{code}
+
+  Update path and configuration variables in the script as needed based on your based on your setup:
+
+  \begin{scriptsize}
+  \begin{itemize}
+    \item \textbf{KOKKOS PATH}: Point to your Kokkos source directory
+    \item \textbf{KOKKOSKERNELS PATH}: KokkosKernels source directory
+    \item \textbf{KOKKOS DEVICES}: Enabled execution spaces
+    \item \textbf{TPLS}: Blank by default, optionally set to cublas with Cuda builds
+  \end{itemize}
+  \end{scriptsize}
+
+  Run exercise
+
+  \begin{code}
+    ./innerproduct.exe -S 26
+    # Note the warnings, set appropriate environment variables
+  \end{code}
+
+  \begin{scriptsize}
+  \begin{itemize}
+  \item Vary problem size: \textbf{-S \#}
+  \item Vary number of rows: \textbf{-N \#}
+  \item Vary repeats: \textbf{-nrepeat \#}
+  \end{itemize}
+  \end{scriptsize}
+
+
+\end{frame}
+
+
+\input{../sections/Section_KokkosKernels_SPARSE}
+
+\begin{frame}[fragile]{What we didn't cover}
+	\textbf{This was a short introduction}
+	
+	Didn't cover many things:
+	\begin{itemize}
+		\item<2-> Full BuildSystem integration.
+%		\item<3-> Non-Sum reductions / multiple reductions.
+%		\item<4-> Multidimensional loops.
+		\item<3-> Advanced data structures.
+%		\item<6-> Subviews.
+		\item<4-> Atomic operations and Scatter Contribute patterns.
+		\item<5-> Team Scratch memory (GPU shared memory).
+		\item<6-> SIMD vectorization.
+		\item<7-> MPI and PGAS integration.
+		\item<8-> All Tools for Profiling, Debugging and Tuning.
+    \item<9-> All Math Kernels (Batched BLAS, Graphs, Sparse Solvers.
+	\end{itemize}
+
+\end{frame}
+
+\begin{frame}{The Kokkos Lectures}
+        
+	\begin{block}{The Kokkos Lectures}
+		Join The Kokkos Lectures for all of those and more in-depth explanations or do them on your own.
+	\end{block}
+
+\begin{itemize}
+	\item Module 1: Introduction, Building and Parallel Dispatch
+	\item Module 2: Views and Spaces
+	\item Module 3: Data Structures + MultiDimensional Loops
+	\item Module 4: Hierarchical Parallelism
+	\item Module 5: Tasking, Streams and SIMD
+	\item Module 6: Internode: MPI and PGAS
+	\item Module 7: Tools: Profiling, Tuning and Debugging
+	\item Module 8: Kernels: Sparse and Dense Linear Algebra
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Find More}
+
+\textbf{Online Resources}:
+
+\begin{itemize}
+        \item \url{https://github.com/kokkos}:
+                \begin{itemize}
+                        \item Primary Kokkos GitHub Organization
+                \end{itemize}
+        \item \url{https://github.com/kokkos/kokkos-tutorials/wiki/Kokkos-Lecture-Series}:
+                \begin{itemize}
+			\item{Slides, recording and Q\&A for the Full Lectures}
+                \end{itemize}
+        \item \url{https://github.com/kokkos/kokkos/wiki}:
+                \begin{itemize}
+                        \item Wiki including API reference
+                \end{itemize}
+        \item \url{https://kokkosteam.slack.com}:
+                \begin{itemize}
+                        \item Slack channel for Kokkos.
+                        \item Please join: fastest way to get your questions answered.
+                        \item Can whitelist domains, or invite individual people.
+                \end{itemize}
+\end{itemize}
+
+\end{frame}
+
+\end{document}
+

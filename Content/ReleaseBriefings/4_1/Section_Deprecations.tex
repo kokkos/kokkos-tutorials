@@ -1,0 +1,92 @@
+
+%==========================================================================
+
+\begin{frame}[fragile]
+
+  {\Huge Deprecations and Behavior Changes}
+
+  \vspace{10pt}
+
+  \textbf{Content:}
+  \begin{itemize}
+    \item Legacy Atomics Removal
+    \item CUDA\_LAMBDA always on
+    \item Fencing and UVM
+    \item Other
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{Deprecations}
+\textbf{Legacy Atomics Fallback removed}
+
+DESUL atomics have been the default for a few releases, now removed option to use legacy atomics
+
+Related are a few macro removals:
+\begin{itemize}
+  \item \texttt{KOKKOS\_ENABLE\_CUDA\_ASM*} - macros only used in legacy atomic implementation
+  \item \texttt{KOKKOS\_ENABLE\_[CUDA/OPENMP/GNU/INTEL]\_ATOMICS} - used to define legacy atomics
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Deprecations - CUDA\_LAMBDA Option}
+\begin{itemize}
+  \item Removed option to enable/disable CUDA lambdas - they are always on
+  \item LAMBDA support is stable in enough in all supported compilers
+\end{itemize}
+
+Configure behavior depends on deprecation setting:
+{\small
+\begin{itemize}
+   \item \texttt{Kokkos\_ENABLE\_CUDA\_LAMBDA} not set: \textbf{recommended!}
+   \item \texttt{Kokkos\_ENABLE\_CUDA\_LAMBDA=ON}: ok now, no warning - future release unused variable warning
+   \item {
+     \texttt{Kokkos\_ENABLE\_CUDA\_LAMBDA=OFF}
+     \begin{itemize}
+        \item \texttt{Kokkos\_ENABLE\_DEPRECATED\_CODE\_4} not set: warning about setting lambda options, and that the setting is ignored
+        \item \texttt{Kokkos\_ENABLE\_DEPRECATED\_CODE\_4=ON}: warning about setting lambda options, and that the setting is ignored
+        \item \texttt{Kokkos\_ENABLE\_DEPRECATED\_CODE\_4=OFF}: configure error
+     \end{itemize}
+   }
+\end{itemize}
+}
+\end{frame}
+
+
+\begin{frame}[fragile]{Potential Breaking Changes - Fences}
+\begin{itemize}
+   \item Continue to work on removing fencing which isn't sematically required by Kokkos
+   \item Now removed fence for \texttt{CudaUVMSpace} \texttt{View} creation when providing an execution space instance
+\end{itemize}
+
+\begin{code}[keywords={View CudaUVMSpace fence Cuda}]
+   // No change in behavior - implicit fence after init
+   View<int*, CudaUVMSpace> a("A", N);
+   a[0] = 3;
+
+   // Relaxed fencing in 4.1 to implement desired async behavior
+   View<int*, CudaUVMSpace> a(view_alloc(Cuda(), "A"), N);
+   // required fence in 4.1 to prevent race condition below
+   Cuda().fence();
+   a[0] = 3;
+\end{code}
+
+\begin{alertblock}{General Rule:}
+Kokkos operations taking an execution space instance are asynchronous!
+\end{alertblock}
+\end{frame}
+
+\begin{frame}[fragile]{Other Changes / Deprecations}
+   Trilinos/TriBITS related:
+   \begin{itemize}
+      \item Removed TriBITS Kokkos subpackages - so if you get Kokkos from Trilinos, not more kokkos-core/algorithms/containers separation
+      \item Removed associated (unused) \texttt{Kokkos[Algorithms,Containers]\_config.h} files - we did not find any project including them
+   \end{itemize}
+
+   Sorting:
+   \begin{itemize}
+      \item Removed default constructors of \texttt{BinSort}, \texttt{BinOp1D}, and \texttt{BinOp3D} - the default constructed state was invalid and can lead to hard to understand failures.
+   \end{itemize}
+  
+\end{frame}
+

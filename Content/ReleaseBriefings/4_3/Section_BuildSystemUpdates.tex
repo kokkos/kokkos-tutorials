@@ -1,0 +1,24 @@
+
+%==========================================================================
+
+
+\begin{frame}[fragile]{Build System Updates}
+\begin{itemize}
+  \item Support \texttt{CMAKE\_CXX\_STANDARD} of 26
+  \item New architecture CMake flag: \texttt{KOKKOS\_ARCH\_RISCV\_MILKV}
+  \begin{itemize}
+    \item Allows building with Milk-V Pioneer
+  \end{itemize}
+  \item New CMake Flag: \texttt{KOKKOS\_ENABLE\_ATOMICS\_BYPASS}
+  \begin{itemize}
+    \item Previously when building with only \texttt{Serial} backend atomics were always bypassed
+    \item Now requires explicit opt-in, but only allowed for \texttt{Serial} backend builds
+    \item Useful for MPI-only builds, but beware of pitfalls!
+  \end{itemize}
+  \item Fix generated CMake CUDA targets when using CMake 3.28.4
+  \item Fix Makefile bugs with GNU make version 4.3
+\end{itemize}
+\end{frame}
+
+%==========================================================================
+

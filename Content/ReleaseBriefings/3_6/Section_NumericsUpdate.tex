@@ -1,0 +1,83 @@
+
+%==========================================================================
+
+\begin{frame}[fragile]
+
+  {\Huge Numerics}
+
+  \vspace{10pt}
+
+  \textbf{Content:}
+  \begin{itemize}
+    \item {Common mathematical functions}
+    \item {Mathematical constants}
+    \item {Numeric traits}
+  \end{itemize}
+
+  \vspace{-20pt}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Common math functions}
+
+\textbf{Improvement/Bug fix}
+
+Unconditionally define \texttt{long double} overloads on the host side
+
+\begin{code}
+namespace Kokkos::Experimental {
+KOKKOS_FUNCTION float       sqrt ( float x );
+KOKKOS_FUNCTION float       sqrtf( float x );
+KOKKOS_FUNCTION double      sqrt ( double x );
+                long double sqrt ( long double x ); // 3.6
+                long double sqrtl( long double x ); // 3.6
+KOKKOS_FUNCTION double      sqrt ( IntegralType x );
+}
+\end{code}
+
+\vspace{10pt}
+
+\textbf{Looking ahead}
+
+Math functions promoted to the \texttt{Kokkos::} namespace in 3.7
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Mathematical constants}
+
+\begin{itemize}
+  \item{Defined in header \texttt{<Kokkos\_MathematicalConstants.hpp>} which is included from \texttt{<Kokkos\_Core.hpp>}}
+  \item{Provides all mathematical constants from \texttt{<numbers>} (since C++20), such as \texttt{pi} and \texttt{sqrt2}}
+  \item{All constants are defined  in the \texttt{Kokkos::Experimental::} namespace since Kokkos 3.6}
+\end{itemize}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Numeric traits}
+
+\textbf{Improvement/Bug fix}
+
+\begin{itemize}
+  \item{Add missing traits \texttt{denorm\_min}, \texttt{reciprocal\_overflow\_threshold}, and \texttt{\{quiet,silent\}\_NaN}}
+  \item{Instantiate numeric traits on cv-qualified types}
+\end{itemize}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}{Section Summary}
+
+  \begin{itemize}
+    \item{Consistent and portable overload set for standard C library mathematical functions, such as \texttt{fabs}, \texttt{sqrt}, and \texttt{sin}}
+    \item{Backport of the C++20 standard library header \texttt{<numbers>} and provides several mathematical constants, such as \texttt{pi} or \texttt{sqrt2}}
+    \item{New facility that is being added to the C++23 standard library and is intended as a replacement for \texttt{std::numeric\_limits}}
+  \end{itemize}
+
+\end{frame}

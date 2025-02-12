@@ -1,0 +1,331 @@
+\begin{frame}[fragile]{Subviews}
+
+  {\Huge Subviews: Taking slices of Views}
+
+  \vspace{20pt}
+
+  \textbf{Learning objectives:}
+  \begin{itemize}
+    \item{Introduce Kokkos::subview---basic capabilities and syntax}
+    \item{Suggested usage and practices}
+    \item{View assignment rules}
+  \end{itemize}
+
+  \vspace{-20pt}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Subviews: Motivation}
+
+  Sometimes you have to call functions on a subset of data:
+
+  \vspace{5pt}
+
+  \pause
+  Example: call a frobenius norm on a matrix slice of a rank-3 tensor:
+  \begin{code}[]
+double special_norm(View<double***> tensor, int i) {
+
+  auto matrix = ???;
+  // Call a function that takes a matrix:
+  return some_library::frobenius_norm(matrix);
+}
+    \end{code}
+    \pause
+
+    In Fortran or Matlab or Python you can get such a slice:
+
+    \begin{code}
+    tensor(i,:,:)
+    \end{code}
+
+    \pause
+    Kokkos can do that too!
+    \begin{block}{Subview}
+     \texttt{Kokkos::subview} can be used to get a view to a subset of an existing \texttt{View}.
+     \end{block}
+
+\end{frame}
+
+
+%==========================================================================
+
+\begin{frame}[fragile]{Subviews (1)}
+
+  \textbf{Subview description:}
+
+  \vspace{5pt}
+
+  \begin{itemize}
+    \item{A subview is a ``slice'' of a View}
+    \pause
+    \begin{itemize}
+      \item{The function template \texttt{Kokkos::subview()} takes a \texttt{View} and a slice for each dimension and returns a \texttt{View} of the appropriate shape.}
+      \pause
+      \item{The subview and original View point to the same data---no extra memory allocation nor copying}        
+    \end{itemize}
+    \pause
+    \item{Can be constructed on host or within a kernel, since no allocation of memory occurs}
+    \pause
+    \item{Similar capability as provided by Matlab, Fortran, Python, etc., using ``colon'' notation}
+  \end{itemize}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Subviews (2)}
+
+  \textbf{Introductory Usage Demo:}
+
+  \vspace{5pt}
+
+  {Given a \texttt{View}:}
+
+  \lstset{mathescape, escapeinside={<@}{@>},
+          language=C,
+          keywords={}}
+
+  \begin{lstlisting}
+    Kokkos::View<double***> v("v", N0, N1, N2);
+  \end{lstlisting}
+  
+  \pause
+
+  {Say we want a 2-dimensional slice at an index \texttt{i0} in the first dimension---that is, in Matlab/Fortran/Python notation:}
+  \begin{lstlisting}
+    slicei0 = v(i0, :, :);
+  \end{lstlisting}
+
+  \pause
+  {This can be accomplished in Kokkos using a subview as follows:}
+  \begin{lstlisting}
+    auto sv_i0 = 
+      Kokkos::subview(v, i0, Kokkos::ALL, Kokkos::ALL);
+
+    // Just like in Python, you can do the same thing with
+    // the equivalent of v(i0, 0:N1, 0:N2)
+    auto sv_i0_other = 
+      Kokkos::subview(v, i0, Kokkos::make_pair(0, N1),
+                             Kokkos::make_pair(0, N2));
+  \end{lstlisting}
+
+\end{frame}
+
+
+%==========================================================================
+
+\begin{frame}[fragile]{Subviews (3)}
+
+\textbf{Subview can take three types of slice arguments:}
+
+\begin{itemize}
+\item \textbf{Index}
+\begin{itemize}
+  \item For every index $i$ the rank of the resulting \texttt{View} is decreased by one.
+  \item Must be between $0<=i<extent(dim)$
+\end{itemize}
+\item \textbf{Kokkos::pair}
+\begin{itemize}
+  \item References a half-open range of indices.
+  \item The begin and end must be within the extents of the original view. 
+\end{itemize}
+\item \textbf{Kokkos::ALL}
+\begin{itemize}
+  \item References the entire extent in that dimension.
+  \item Equivalent to providing \texttt{make\_pair(0,v.extent(dim))}
+\end{itemize}
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{Subviews (4)}
+
+  \textbf{Usage notes:}
+
+  %\vspace{5pt}
+
+  \begin{itemize}
+    \item{Use \texttt{auto} for the type of a subview (unless you can't)}
+      \pause
+  \begin{itemize}
+      \pause
+    \item{The return type of \texttt{Kokkos::subview()} is implementation defined for performance reasons}
+      \pause
+    \item{You can also use \texttt{decltype(subview(/*...*/))} if you really need to spell name of the type somewhere}
+  \end{itemize}
+      \pause
+    \item{Use \texttt{Kokkos::pair} for partial ranges if subview created within a kernel}
+      \pause
+    \item{Constructing subviews in inner loop code can have performance implications (for now\dots)}
+      \pause
+    \begin{itemize}
+      \item{This will likely be far less of an issue in the future.}
+      \pause
+      \item{Prioritize readability and maintainability first, then make changes only if you see a performance impact.}
+      \pause
+    \end{itemize}
+  \end{itemize}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Exercise---Subviews: Basic usage}
+
+  \textbf{Details}:
+  \begin{small}
+  \begin{itemize}
+    \item Location: \ExerciseDirectory{subview/Begin}
+    \item This begins with the \texttt{Solution} of 04
+    \item In the parallel reduce kernel, create a subview for row j of view A
+    \item Use this subview when computing A(j,:)*x(:) rather than the matrix A
+  \end{itemize}
+  \end{small}
+
+\begin{code}
+  # Compile for CPU
+  cmake -B build_openmp -DKokkos_ENABLE_OPENMP=ON
+  cmake --build build_openmp
+  # Run on CPU
+  ./build_openmp/subview_exercise -S 26
+  # Note the warnings, set appropriate environment variables
+  # Compile for GPU
+  cmake -B build_cuda -DKokkos_ENABLE_CUDA=ON
+  cmake --build build_cuda
+  # Run on GPU
+  ./build_cuda/subview_exercise -S 26
+\end{code}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Aside: View Assignment (1)}
+
+  \textbf{\texttt{View::operator=()} just does the ``Right Thing''\textsuperscript{TM}}
+
+  \vspace{5pt}
+
+  \begin{itemize}
+    \item{\texttt{View<int**> a; a = View<int*[5]>("b", 4)}}
+    \pause
+    {\color{darkgreen}{$=>$ Okay}}
+    \pause
+    \item{\texttt{View<int*[5]> a; a = View<int**>("b", 4, 5)}}\\
+    \pause
+    {\color{darkgreen}{$=>$ Okay, checked at runtime}}
+    \pause
+    \item{\texttt{View<int*[5]> a; a = View<int*[3]>("b", 4)}}\\
+    \pause
+    {\color{darkred}{$=>$ Compilation error}}
+    \pause
+    \item{\texttt{View<int*[5]> a; a = View<int**>("b", 4, 3)}}\\
+    \pause
+    {\color{darkred}{$=>$ Runtime error}}
+    \pause
+    \item{\texttt{View<int*, CudaSpace> a;}\\
+    \texttt{a = View<int*, HostSpace>("b", 4)}}\\
+    \pause
+    {\color{darkred}{$=>$ Compilation error}}
+    \item{\texttt{View<int**, LayoutLeft> a;}\\
+    \texttt{a = View<int**, LayoutRight>("b", 4, 5)}}\\
+    \pause
+    {\color{darkred}{$=>$ Compilation error}}
+  \end{itemize}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Aside: View Assignment (2)}
+
+  \textbf{\texttt{View::operator=()} just does the ``Right Thing''\textsuperscript{TM}}
+
+  \vspace{5pt}
+
+  \begin{itemize}
+    \item{\texttt{View<const int*> a; a = View<int*>("b", 4)}}\\
+    \pause
+    {\color{darkgreen}{$=>$ Okay}}
+    \pause
+    \item{\texttt{View<int*> a; a = View<const int*>("b", 4)}}\\
+    \pause
+    {\color{darkred}{$=>$ Compilation error}}
+    \pause
+    \item{\texttt{View<int*[5], LayoutStride> a;}\\ \texttt{a = View<int*[5], LayoutLeft>("b", 4)}}
+    \pause
+    {\color{darkgreen}{$=>$ Okay, converting compile-time strides into runtime strides}}
+    \pause
+    \item{\texttt{View<int*[5], LayoutLeft> a;}\\ \texttt{a = View<int*[5], LayoutStride>("b", 4)}}
+    \pause
+    {\color{yellow!50!black}{$=>$ Okay, but only if strides match layout left (checked at runtime)}}
+  \end{itemize}
+
+\end{frame}
+%==========================================================================
+
+\begin{frame}[fragile]{View Assignment: subview}
+
+  {Given a \texttt{View}:}
+  \vspace{-2pt}
+
+  \lstset{mathescape, escapeinside={<@}{@>},
+          language=C,
+          keywords={}}
+
+  \begin{lstlisting}
+    Kokkos::View<int***> v("v", n0, n1, n2);
+  \end{lstlisting}
+  \vspace{-5pt}
+  \begin{itemize}
+    \item{\texttt{View<int***> a;}\\
+    \texttt{a = Kokkos::subview(v, ALL, 42, ALL);}}\\
+    \pause
+    {\color{darkred}{$=>$ Compilation error}}
+    \pause
+    \item{\texttt{View<int*> a;}\\
+    \texttt{a = Kokkos::subview(v, ALL, 5, 42);}}\\
+    \pause
+    {\color{darkgreen}{$=>$ Okay for LayoutLeft}} but {\color{darkred}{$=>$ Compilation error for LayoutRight}}
+    \pause
+    \item{\texttt{View<int**> a;}\\
+    \texttt{a = Kokkos::subview(v, ALL, 15, ALL);}}\\
+    \pause
+    {\color{darkred}{$=>$ Runtime error (!)}}
+    \pause
+    \item{\texttt{View<int**, LayoutStride> a;}\\
+    \texttt{a = Kokkos::subview(v, ALL, 15, ALL);}}\\
+    \pause
+    {\color{darkgreen}{$=>$ Okay}}
+  \end{itemize}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Subview Summary}
+
+  \begin{itemize}
+    \item Use subviews to get a portion of a \texttt{View}. Helps with:
+	    \begin{itemize}
+           \item code reuse
+	   \item code readability
+	   \item library function compatibility
+	    \end{itemize}
+    \pause
+    \item Kokkos supports slicing Views similar to Python/Matlab/Fortran slicing syntax 
+	\begin{code}[]
+auto sv = Kokkos::subview(v, 42, ALL, std::make_pair(3, 17));
+	\end{code}
+    \pause
+    \item The return type of \texttt{subview} is complicated. Use \textbf{auto}!!
+    \item {\texttt{View::operator=()} just does the ``Right Thing''\textsuperscript{TM}}
+      \begin{itemize}
+         \item So generally don't worry about it at first! This is advanced stuff, and more for future reference.
+      \end{itemize}
+  \end{itemize}
+
+\end{frame}

@@ -1,0 +1,184 @@
+\input{KokkosTutorial_PreTitle}
+%disclaimer for Sandia. uncomment and the whole blob goes away @ b80c116300122
+\def\sandid{SAND2020-9315 TR}
+
+% \title{Performance Portability with Kokkos}
+\title{The Kokkos Lectures}
+
+%BAD misuse of author field
+\author{Module 8: Kokkos Kernels Math Library}
+
+
+\input{KokkosTutorial_PostTitle}
+
+\shortfalse
+\mediumtrue
+\fulltrue
+\notoverviewtrue
+
+\begin{document}
+
+\begin{frame}
+	\titlepage
+\end{frame}
+
+\begin{frame}[fragile]{Welcome to Kokkos}
+
+\textbf{Online Resources}:
+
+\begin{itemize}
+        \item \url{https://github.com/kokkos}:
+                \begin{itemize}
+                        \item Primary Kokkos GitHub Organization
+                \end{itemize}
+        \item \url{https://github.com/kokkos/kokkos-tutorials/wiki/Kokkos-Lecture-Series}:
+                \begin{itemize}
+			\item{Slides, recording and Q\&A for the Lectures}
+                \end{itemize}
+        \item \url{https://kokkos.github.io/kokkos-core-wiki}:
+                \begin{itemize}
+                        \item Wiki including API reference
+                \end{itemize}
+        \item \url{https://kokkosteam.slack.com}:
+                \begin{itemize}
+                        \item Slack channel for Kokkos.
+                        \item Please join: fastest way to get your questions answered.
+                        \item Can whitelist domains, or invite individual people.
+                \end{itemize}
+\end{itemize}
+
+\end{frame}
+
+
+\begin{frame}[fragile]{Lecture Series Outline}
+
+\begin{itemize}
+        \item 07/17 Module 1: Introduction, Building and Parallel Dispatch
+        \item 07/24 Module 2: Views and Spaces
+        \item 07/31 Module 3: Data Structures + MultiDimensional Loops
+        \item 08/07 Module 4: Hierarchical Parallelism
+        \item 08/14 Module 5: Tasking, Streams and SIMD
+        \item 08/21 Module 6: Internode: MPI and PGAS
+        \item 08/28 Module 7: Tools: Profiling, Tuning and Debugging
+        \item \textbf{09/04 Module 8: Kernels: Sparse and Dense Linear Algebra}
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{Module 7: Summary}
+
+\textbf{Kokkos Tools:}
+\begin{itemize}
+  \item Kokkos Tools provide an instrumentation interface \textbf{KokkosP} and \textbf{Tools} to leverage it.
+  \item The interface is \textbf{always available} - even in release builds.
+  \item Zero overhead if no tool is loaded during the run.
+  \item Dynamically load a tool via setting \texttt{KOKKOS\_TOOLS\_LIBS} environment variable.
+  \item Set callbacks in code for tools compiled into the executable. 
+\end{itemize}
+
+\textbf{Kokkos Connector Tools:}
+\begin{itemize}
+  \item Connectors inject Kokkos specific information into vendor and academic tools.
+  \item Helps readability of profiles.
+  \item Removes need to put vendor specific instrumentation in codes.
+  \item Growing list of tools support Kokkos natively.
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Module 7: Summary}
+\textbf{Kokkos Tuning Hooks enable more performance portability}
+\begin{itemize}
+  \item Avoid figuring out the right heuristic for every platform.
+  \item Input variables descripte the problem scope.
+  \item Output variables descripe the search space.
+\end{itemize}
+
+\textbf{Implementing your own tools is easy!}
+\begin{itemize}
+  \item Simply implement the needed C callback functions.
+  \item Only implement what you need.
+  \item The callback registration system allows to embed tools in applications.
+\end{itemize}
+
+\textbf{Static Analysis}
+\begin{itemize}
+  \item Have semantic checks going beyond C++ errors.
+  \item Integrates into your editors.
+\end{itemize}
+\end{frame}
+
+\input{../sections/Section_KokkosKernels_INTRO}
+
+\begin{frame}[fragile]{Module 8: Kernels Math Libraries (09/04)}
+
+	\vspace{3pt}
+	\textbf{Dense Linear Algebra (BLAS and Batched BLAS)}
+	\begin{itemize}
+        \item Motivation for BLAS/LAPACK functions
+        \item Algorithm Specialization for Applications
+        \item Calling BLAS/LAPACK functions
+	\end{itemize}
+
+	\vspace{3pt}
+	\textbf{Sparse Linear Algebra}
+	\begin{itemize}
+        \item Sparse Containers (CrsMatrix, StaticCrsGraph, Vector)
+        \item Sparse Matrix-Vector Multiplication (SpMV)
+        \item Sparse Matrix-Matrix Addition (SpADD)
+        \item Sparse Matrix-Matrix Multiplication (SpGEMM)
+	\end{itemize}
+
+  \vspace{3pt}
+  \textbf{Graph Kernels}
+  \begin{itemize}
+        \item Distance-1 Graph Coloring
+        \item Distance-2 Graph Coloring
+        \item Bipartite Graph Partial Coloring
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{Module 8: Kernels Math Libraries (09/04)}
+
+	\vspace{3pt}
+	\textbf{Sparse Solvers}
+	\begin{itemize}
+        \item Multicolor Gauss Seidel
+        \item Cluster Gauss Seidel
+        \item Two-Stage Gauss Seidel
+        \item Sparse Incomplete LU Factorization (SpILUK)
+        \item Sparse Triangular Solver (SpTRSV)
+	\end{itemize}
+
+	\vspace{3pt}
+	\textbf{Build System}
+	\begin{itemize}
+        \item Using Kokkos Kernels in Your Project
+        \item Configure, Build, and Install Kokkos Kernels
+        \item Install with Spack
+	\end{itemize}
+
+\end{frame}
+
+
+\input{../sections/Section_KokkosKernels_BLAS}
+\input{../sections/Section_KokkosKernels_BATCHED}
+\input{../sections/Section_KokkosKernels_SPARSE}
+\input{../sections/Section_KokkosKernels_GRAPH}
+\input{../sections/Section_KokkosKernels_SPARSE_SOLVERS}
+\input{../sections/Section_KokkosKernels_Build}
+
+\begin{frame}[fragile]{Module 8: Summary}
+  \textbf{Summary}
+	\begin{itemize}
+    \item Kokkos Kernels provides several performance portable dense, sparse, and graph kernels
+    \item Working actively with vendors to incorporate algorithms in optimized vendor libraries and provide interface to them
+    \item Kokkos Core, Kokkos Kernels, and Kokkos tools allows Kokkos ecosystem to be a complete solution for CSE applications
+    \item Working actively with applications to address unique use cases
+    \item Use slack/github/e-mail to reach out to us
+	\end{itemize}
+\end{frame}
+
+\input{../sections/Section_LectureConclusion}
+\end{document}
+

@@ -1,0 +1,30 @@
+
+\begin{frame}[fragile]{Miscellaneous}
+\begin{itemize}
+  \item Add \texttt{Kokkos::Profiling::ScopedRegion}
+    \begin{code}	
+     double myfunction()
+     {
+      Kokkos::Profiling::ScopedRegion region("foo");
+      if (..)
+        return bar;
+      else
+        return eval();
+     }
+    \end{code}
+  \item Add support for \texttt{View::rank[\_dynamic]()}
+  \item Detect incompatible relocatable device code mode to prevent ODR violations
+  \item Add (experimental) support for 32-bit Darwin and PPC
+  \item Add missing half and bhalf specialization of the infinity numeric trait
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Miscellaneous}
+\begin{itemize}
+  \item Add \texttt{is\_dual\_view} trait and align template parameters with regular view
+  \item Allow templated functors in \texttt{parallel\_for},
+  \texttt{parallel\_reduce}, and \texttt{parallel\_scan}
+  \item Define \texttt{KOKKOS\_COMPILER\_INTEL\_LLVM} and only define at most one
+  \texttt{KOKKOS\_COMPILER*} macro
+\end{itemize}
+\end{frame}

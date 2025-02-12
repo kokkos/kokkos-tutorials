@@ -1,0 +1,50 @@
+
+%==========================================================================
+
+
+% Makefile and CMake support for C++23
+% Update minimum compiler versions. (covered in earlier section)
+
+\begin{frame}[fragile]{Build System Updates}
+\textbf{C++ Standards Support}
+\begin{itemize}
+  \item \texttt{CMAKE\_CXX\_STANDARD=23} is supported
+  \begin{itemize}
+    \item \texttt{KOKKOS\_CXX\_STANDARD} for the Makefile
+  \end{itemize}
+  \item In CMake Kokkos will default to C++17 if no standard is specified
+\end{itemize}
+\end{frame}
+
+%==========================================================================
+
+% Let CMake determine OpenMP flags.
+% Only add -latomic in generated GNU makefiles when OpenMPTarget backend is enabled
+
+\begin{frame}[fragile]{Build System Updates}
+\textbf{OpenMP and OpenMPTarget}
+\begin{itemize}
+  \item OpenMP flags are now determined by CMake's FindOpenMP
+  \item Makefile: \texttt{libatomic} only linked in OpenMPTarget builds
+\end{itemize}
+\end{frame}
+
+%==========================================================================
+
+% Do not add -cuda to the link line with NVHPC compiler when the CUDA backend is not actually enabled
+% Kokkos_ENABLE_CUDA_LAMBDA now ON by default with NVCC
+% Fix enabling of relocatable device code when using CUDA as CMake language
+% Fix cmake configuration with CUDA 12
+
+\begin{frame}[fragile]{Build System Updates}
+\textbf{CUDA}
+\begin{itemize}
+  \item \texttt{Kokkos\_ENABLE\_CUDA\_LAMBDA} set to \texttt{ON} by default
+  \item Fixes to RDC flags when using CMake CUDA language
+  \item Fixed CUDA 12 when using \texttt{nvcc\_wrapper} with CMake
+  \item Fixes to using NVHPC as a compiler when CUDA is not enabled
+\end{itemize}
+\end{frame}
+
+%==========================================================================
+

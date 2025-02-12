@@ -1,0 +1,141 @@
+
+%==========================================================================
+
+\begin{frame}[fragile]
+
+  {\Huge More View Allocation Properties Support}
+
+  \vspace{10pt}
+
+  \textbf{Content:}
+  Support \texttt{view\_alloc} argument for
+  \begin{itemize}
+    \item \texttt{resize}
+    \item \texttt{realloc}
+    \item \texttt{create\_mirror}
+    \item \texttt{create\_mirror\_view}
+    \item \texttt{create\_mirror\_view\_and\_copy}
+  \end{itemize}
+  for \texttt{View}-like types
+
+  \vspace{10pt}
+
+  \textbf{Motivation:}
+  Avoid initialization, avoid fencing, structured syntax, ...
+
+  \vspace{-20pt}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{View Allocation Properties}
+  Relevant properties:
+  \begin{itemize}
+   \item \texttt{WithoutInitializing}
+   \item memory spaces
+   \item execution spaces(\textbf {new})
+   \item labels
+  \end{itemize}
+
+  Example:
+  \begin{code}
+   Kokkos::view_alloc(Kokkos::WithoutInitializing,
+                      Kokkos::HostSpace{},
+                      Kokkos::OpenMP{});
+  \end{code}
+
+  \end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{\texttt{Kokkos::resize}}
+\begin{code}
+template <class I, class T, class... ViewCtorArgs>
+void
+resize(const Impl::ViewCtorProp<ViewCtorArgs...>& arg_prop,
+       View<T, P...>& v,
+       size_t n0, size_t n1, size_t n2, size_t n3,
+       size_t n4, size_t n5, size_t n6, size_t n7);
+
+template <class T, class... P, class... ViewCtorArgs>
+void
+resize(const Impl::ViewCtorProp<ViewCtorArgs...>& arg_prop,
+       View<T, P...>& v,
+       const typename View<T, P...>::array_layout& layout);
+\end{code}
+\vspace{10pt}
+
+Resizes \texttt{v} to have the new dimensions while preserving the contents for the common subview of the old and new \texttt{View}. The new \texttt{View} is constructed using the View constructor properties \texttt{arg\_prop}, e.g., \texttt{WithoutInitializing}.
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{\texttt{Kokkos::realloc}}
+\begin{code}
+template <class T, class... P, class... ViewCtorArgs>
+void
+realloc(const Impl::ViewCtorProp<ViewCtorArgs...>& arg_prop,
+        View<T, P...>& v,
+        size_t n0, size_t n1, size_t n2, size_t n3,
+        size_t n4, size_t n5, size_t n6, size_t n7);
+
+template <class I, class T, class... ViewCtorArgs>
+void
+realloc(const Impl::ViewCtorProp<ViewCtorArgs...>& arg_prop,
+        View<T, P...>& v,
+        const typename View<T, P...>::array_layout& layout);
+\end{code}
+\vspace{10pt}
+
+Resizes \texttt{v} to have the new dimensions whithout preserving the contents of the old \texttt{View}. The new \texttt{View} is constructed using the View constructor properties \texttt{arg\_prop}, e.g., \texttt{WithoutInitializing}.
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{\texttt{Kokkos::create\_mirror}}
+\begin{code}
+template <class ViewType, class... ViewCtorArgs>>
+auto
+create_mirror(
+  const Impl::ViewCtorProp<ViewCtorArgs...>& arg_prop,
+  ViewType const& src);
+\end{code}
+\vspace{10pt}
+
+Creates a new \texttt{View} with the same layout and padding as \texttt{src}. The new \texttt{View} is constructed using the View constructor properties \texttt{arg\_prop}, e.g., \texttt{WithoutInitializing}.
+The memory space for the new View is host-accessible if no memory space was specfifed.
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{\texttt{Kokkos::create\_mirror\_view}}
+\begin{code}
+template <class ViewType, class... ViewCtorArgs>>
+auto
+create_mirror_view(
+  const Impl::ViewCtorProp<ViewCtorArgs...>& arg_prop,
+  ViewType const& src);
+\end{code}
+\vspace{10pt}
+
+If \texttt{src} can't access the specified memory space, it creates a new \texttt{View} in that memory space with the same layout and padding as \texttt{src} using the View constructor properties \texttt{arg\_prop}, e.g., \texttt{WithoutInitializing}.
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{\texttt{Kokkos::create\_mirror\_view}\_and\_copy}
+\begin{code}
+template <class ViewType, class... ViewCtorArgs>>
+typename ViewType::HostMirror
+create_mirror_view_and_copy(
+  const Impl::ViewCtorProp<ViewCtorArgs...>& arg_prop,
+  ViewType const& src);
+\end{code}
+\vspace{10pt}
+
+If \texttt{src} can't access the specified memory space, it creates a new \texttt{View} in that memory space with the same layout and padding as \texttt{src} using the View constructor properties \texttt{arg\_prop}, e.g., \texttt{WithoutInitializing}. The contents of \texttt{src} are copied.
+\end{frame}
+
+%==========================================================================
+

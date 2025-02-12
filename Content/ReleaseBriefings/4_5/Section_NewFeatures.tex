@@ -1,0 +1,109 @@
+%==========================================================================
+
+\begin{frame}[fragile]
+
+  {\Huge Feature highlights}
+
+  \vspace{10pt}
+
+\end{frame}
+
+%==========================================================================
+
+% Examples
+
+% note: always keep the [fragile] for your frames!
+
+%\begin{frame}[fragile]{Example list}
+%  \begin{itemize}
+%      \item Item 1
+%      \item Item 2 with some \texttt{code}
+%      \begin{itemize}
+%        \item Sub-item 2.1
+%        \item Sub-item 2.2
+%      \end{itemize}
+%  \end{itemize}
+%\end{frame}
+
+%\begin{frame}[fragile]{Example code}
+%    \begin{code}[keywords={std}]
+%        #include <iostream>
+%        
+%        int main() {
+%            std::cout << "hello world\n";
+%        }
+%    \end{code}
+%\end{frame}
+
+%\begin{frame}[fragile]{Example table}
+%    \begin{center}
+%        \begin{tabular}{l|l}
+%            a & b \\\hline
+%            c & d
+%        \end{tabular}
+%    \end{center}
+%\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Support building without RTTI}
+Kokkos can now be built with Run-Time Type Information (RTTI) disabled.
+\vspace{10pt}
+\begin{itemize}
+\item RTTI is required to deremine the type of an object during program execution.
+\item It is used by:
+  \begin{itemize}
+  \item Exception handling
+  \item \texttt{dynamic\_cast}
+  \item \texttt{typeid} operator and \texttt{std::type\_info} class
+  \end{itemize}
+\item It can be disabled at configuration via \texttt{-DCMAKE\_CXX\_FLAGS="-fno-rtti"}
+\item Typical use case is to reduce the binary size when targeting systems with limited amount of memory
+\end{itemize}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{New \texttt{KOKKOS\_RELOCATABLE\_FUNCTION} annotation macro}
+Required when using Relocatable Device Code (RDC) with SYCL
+\begin{itemize}
+%\item Also known as separable compilation mode
+\item \texttt{KOKKOS\_RELOCATABLE\_FUNCTION} function annotation macro expands to
+  \begin{itemize}
+  \item \texttt{extern \_\_host\_\_ \_\_device\_\_} with CUDA or HIP
+  \item \texttt{extern SYCL\_EXTERNAL} with SYCL
+  \end{itemize}
+\item \texttt{-DKokkos\_ENABLE\_\{CUDA,HIP,SYCL\}\_RECLOCATABLE\_DEVICE\_CODE=ON}
+\item Can have non-trivial perfomance implications
+\end{itemize}
+
+\begin{code}
+// foo.cpp
+#include <Kokkos_Core.hpp>
+KOKKOS_RELOCATABLE_FUNCTION void foo() { Kokkos::printf("foo\n"); }
+
+// bar.cpp
+#include <Kokkos_Core.hpp>
+KOKKOS_RELOCATABLE_FUNCTION void foo();
+void bar() { Kokkos::parallel_for(1, KOKKOS_LAMBDA(int) { foo(); }); }
+\end{code}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{SYCL backend has matured}
+The SYCL backend is out of the namespace \texttt{Experimental::}.
+\begin{itemize}
+\item Keep non-deprecated aliases for now but will deprecate in upcoming releases (potentially in 4.6)
+\item (Hopefully) very limited impact on user code when leveraging portable aliases (\texttt{DefaultExecutionSpace}, \texttt{SharedSpace}, \texttt{SharedHostPinnedSpace}, etc.)
+\item If you specialized something for SYCL and really have to spell the SYCL class names, you can always do
+\begin{code}
+#if KOKKOS_VERSION_GREATER_EQUAL(4, 5, 0)
+using MySyclExec = Kokkos::SYCL;
+#else
+using MySyclExec = Kokkos::Experimental::SYCL;
+#endif
+\end{code}
+\end{itemize}
+
+\end{frame}

@@ -1,0 +1,405 @@
+
+%==========================================================================
+
+\begin{frame}[fragile]
+
+  {\Huge SIMD}
+
+  \vspace{10pt}
+
+  {\large Portable vector intrinsic types.}
+
+  \vspace{20pt}
+
+  \textbf{Learning objectives:}
+  \begin{itemize}
+    \item {How to use SIMD types to improve vectorization.}
+    \item {SIMD Types as an alternative to ThreadVector loops.}
+    \item {SIMD Types to achieve outer loop vectorization.}
+  \end{itemize}
+
+  \vspace{-20pt}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Vectorization In Kokkos}
+
+   So far there were two options for achieving vectorization: 
+
+\begin{itemize}
+  \item{{\textbf{Hope For The Best}}: Kokkos semantics make loops inherently vectorizable, sometimes the compiler figures it even out.}
+  \item{{\textbf{Hierarchical Parallelism}}: {\texttt{TeamVectorRange}} and {\texttt{ThreadVectorRange}} help the compiler with hints such as {\texttt{\#pragma ivdep}} or {\texttt{\#pragma omp simd}}}.
+\end{itemize}
+
+   \vspace{3pt}
+
+  These strategies do run into limits though:
+
+\begin{itemize}
+  \item{Compilers often do not vectorize loops on their own.}
+  \item{An optimal vectorization strategy would require \emph{outer-loop vectorization}.}
+  \item{Vectorization with \texttt{TeamVectorRange} sometimes requires artifically introducing an additional loop level.}
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Outer-Loop Vectorization}
+
+   A simple scenario where for outer-loop vectorization:
+	\vspace{-3pt}
+  \begin{code}[linebackgroundcolor={},keywords={for,int}]
+  for(int i=0; i<N; i++) {
+    // expect K to be small odd 1,3,5,7 for physics reasons
+    for(int k=0; k<K; k++) b(i) += a(i,k);
+  }
+  \end{code}
+
+  Vectorization the \texttt{K}-Loop is not profitable:
+  \begin{itemize}
+	  \item{It is a short reduction.}
+	  \item{Remainders will eat up much time.}
+  \end{itemize}
+	\vspace{5pt}
+
+  Using \texttt{ThreadVectorRange} is cumbersome and requires split of \texttt{N}-Loop:
+
+  \begin{code}[linebackgroundcolor={},keywords={parallel_for,for,int,TeamPolicy,ThreadVectorRange}]
+parallel_for("VectorLoop",TeamPolicy<>(0,N/V,V),
+  KOKKOS_LAMBDA ( const team_t& team ) {
+  int i = team.league_rank() * V;
+  for(int k=0; k<K; k++) 
+    parallel_for(ThreadVectorRange(team,V), [&](int ii) {
+      b(i+ii) += a(i+ii,k);
+    });
+});
+    \end{code}
+\end{frame}
+
+\begin{frame}[fragile]{SIMD Types}
+  
+   To help with this situation and (in particular in the past) fix the lack of auto-vectorizing compilers \texttt{SIMD-Types} have been invented. They:
+	\begin{itemize}
+		\item{Are short vectors of scalars.}
+		\item{Have operators such as \texttt{+=} so one can use them like scalars.}
+		\item{Are compile time sized.}
+		\item{Usually map directly to hardware vector instructions.}
+	\end{itemize}
+	
+	\begin{block}{Important concept: SIMD Type}
+		A SIMD variable is a \textbf{short vector} which acts like a scalar.
+  \end{block}
+
+	Using such a \texttt{simd} type one can simply achieve \emph{outer-loop} vectorization by using arrays of \texttt{simd} and dividing the loop range by its \emph{size}.
+\end{frame}
+
+\begin{frame}[fragile]{Outer-Loop Vectorization}
+
+  Lets take a look back at the outer loop vectorization:
+  \begin{code}[linebackgroundcolor={},keywords={for,int}]
+  View<double*> b = ...
+  View<double**> a = ...
+  for(int i=0; i<N; i++) {
+    // expect K to be small odd 1,3,5,7 for physics reasons
+    for(int k=0; k<K; k++) b(i) += a(i,k);
+  }
+  \end{code}
+
+  \pause
+  Using SIMD types is conceptionally as simple as:
+	\begin{itemize}
+		\item Replace scalar type with SIMD type
+		\item Adjust loop iteration count by SIMD length
+	\end{itemize}
+
+  \begin{code}[linebackgroundcolor={},keywords={for,int}]
+  using simd_t = Kokkos::Experimental::simd<double, Kokkos::Experimental::simd_abi::native>;
+  View<simd_t*> b = ...
+  View<simd_t**> a = ...
+  int V = simd_t::size();
+  for(int i=0; i<N/V; i++) {
+    // expect K to be small odd 1,3,5,7 for physics reasons
+    for(int k=0; k<K; k++) b(i) += a(i,k);
+  }
+  \end{code}
+\end{frame}
+
+\begin{frame}[fragile]{C++23? SIMD}
+	The ISO C++ standard has a \emph{Technical Specification} for \texttt{simd} (in \emph{parallelism v2}):
+
+  \begin{code}[linebackgroundcolor={},keywords={template,class,public,using}]
+template< class T, class Abi >
+class simd {
+public:
+  using value_type = T;
+  using reference = /* impl defined */;
+  using abi_type = Abi;
+  static constexpr size_t size();
+  void copy_from(T const*, aligned_tag);
+  void copy_to(T*, aligned_tag) const;
+  T& operator[] (size_t);
+  //Element wise operators
+};
+
+// Element Wise non-member operators
+
+  \end{code}
+
+\end{frame}
+
+\begin{frame}[fragile]{C++23? SIMD ABI}
+One interesting innovation here is the \texttt{Abi} parameter allowing for different, hardware specific, implementations.
+
+	\vspace{8pt}
+
+The most important in the proposal are:
+\begin{itemize}
+	\item{\textbf{scalar}: single element type.}
+	\item{\textbf{native}: best fit for hardware.}
+        \item{\textbf{fixed\_size$<$N$>$}: stores N elements. NOT YET IN KOKKOS.}
+\end{itemize}
+
+\pause
+	\vspace{8pt}
+
+	But \texttt{std::simd} is not in the standard yet, and doesn't support GPUs ...
+
+	\pause
+	\vspace{8pt}
+	It also has other problems making it insufficient for our codes ...
+\end{frame}
+
+\begin{frame}[fragile]{Kokkos SIMD}
+   Just at Sandia we had at least \textbf{5} different SIMD types in use.
+
+   \vspace{8pt}
+   A unification effort was started with the goal of:
+   \begin{itemize}
+      \item{Match the proposed \texttt{std::simd} API as far as possible.}
+      \item{Support GPUs.}
+      \item{Can be used stand-alone or in conjunction with Kokkos.}
+      \item{Replaces all current implementations at Sandia for SIMD.}
+   \end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{Kokkos SIMD}
+  As with the C++23 SIMD type it takes Scalar argument and ABI
+  \begin{code}
+     template<class Scalar, class ABI>
+     simd;
+  \end{code}
+
+  Two supported ABIs are:
+  \begin{itemize}
+     \item \texttt{simd\_abi::native}: whatever is best for the scalar type on the architecture
+     \item \texttt{simd\_abi::scalar}: a single element
+  \end{itemize}
+
+  Aliasing with Scalar Views is possible (but careful with Layout and length!)
+  \begin{code}
+using simd_t = simd<double, simd::simd_abi::native>;
+View<simd_t*> a("A",N);
+View<double*> a_s(static_cast<double*>(a.data()),N*simd_t::size());
+     
+View<double*> b("B",M);
+View<simd_t*> b_v(static_cast<simd_t*>(b.data()),M/simd_t::size());
+  \end{code}
+
+\end{frame}
+
+\begin{frame}[fragile]{Exercise: Simple SIMD usage.}
+
+  \textbf{Details}:
+  \begin{small}
+  \begin{itemize}
+\item Location: \ExerciseDirectory{simd/Begin}
+\item Include the \texttt{simd.hpp} header.
+\item Change the data type of the views to use \texttt{simd$<$double, simd\_abi:native$>$}.
+\item Create an unmanaged \texttt{View$<$double*$>$} of \texttt{results} using the \texttt{data()} function for the final reduction.  
+\end{itemize}
+  \end{small}
+
+\begin{code}
+   # Compile for CPU
+   make -j KOKKOS_DEVICES=OpenMP
+   # Compile for GPU
+   make -j KOKKOS_DEVICES=Cuda
+   # Run on GPU
+   ./simd.cuda
+\end{code}
+
+	\vspace{-3pt}
+\ul{\textbf{Things to try:}}
+  \begin{small}
+  \begin{itemize}
+  \item Vary problem size (-N ...; -K ...)
+  \item Compare behavior of scalar vs vectorized on CPU and GPU
+  \end{itemize}
+  \end{small}
+
+
+
+\end{frame}
+
+\begin{comment}
+\begin{frame}[fragile]{The GPU SIMD Problem}
+  The above exercise used a \textbf{scalar} simd type on the \textbf{GPU}.
+  
+	{\textbf Why wouldn't we use a fixed\_size instead?}
+
+	\begin{itemize}
+	   \item{Using a \texttt{fixed\_size} ABI will create a scalar of size \texttt{N} in each CUDA thread!}
+	   \item{Loading a \texttt{fixed\_size} variable from memory would result in uncoalesced access.}
+           \item{If you have correct layouts you get \texttt{outer-loop} vectorization implicitly on GPUs.}
+	\end{itemize}
+
+	\pause
+	But what if you really want to use \textbf{warp}-level parallelization for SIMD types?
+
+	\pause
+	{\textbf We need \emph{two} SIMD types: a \emph{storage} type and a \emph{temporary} type!}
+\end{frame}
+
+\begin{frame}[fragile]{cuda\_warp ABI}
+  \begin{block}{Important concept: simd::storage\_type}
+    Every \texttt{simd$<$T,ABI$>$} has an associated \texttt{storage\_type} typedef.
+  \end{block}
+
+  To help with the GPU issue we split types between \textbf{storage} types used for \texttt{Views}, and \textbf{temporary} variables.
+
+  \begin{itemize}
+	  \item{Most \texttt{simd::simd} types will just have the same \texttt{storage\_type}.}
+	  \item{\texttt{simd$<$T,cuda\_warp$<$N$> >$} will use warp level parallelism.}
+	  \item{\texttt{simd$<$T,cuda\_warp$<$N$> >$::storage\_type} is different though!}
+	  \item{Used in conjunction with \texttt{TeamPolicy}.}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{cuda\_warp ABI}
+\textbf{Illustrating difference between \texttt{pack} and \texttt{cuda\_warp}}
+
+
+      \begin{code}[linebackgroundcolor={},keywords={simd,parallel_for,using}]
+using ABI = ... ;
+View<simd<double,ABI::storage_type> A(...);
+parallel_for(TeamPolicy<>(N,AUTO,V), 
+ KOKKOS_LAMBDA(const teamt_t& team) {
+  int i = team.league_rank()*team.team_size()+team.team_rank();
+  simd<double,ABI> tmp = A(i);
+});
+       \end{code}
+  \begin{columns}[]
+    \begin{column}{.5\textwidth}
+      \begin{code}[linebackgroundcolor={},keywords={pack,using}]
+using ABI = pack<8>; int V=1;
+\end{code}
+
+       \includegraphics[width=0.75\textwidth]{figures/simd-fixedsize} 
+
+    \end{column}
+    \begin{column}{.5\textwidth}
+      \begin{code}[linebackgroundcolor={},keywords={cuda_warp,using}]
+using ABI = cuda_warp<8>; int V=8;
+\end{code}
+
+       \includegraphics[width=0.75\textwidth]{figures/simd-warp} 
+
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}[fragile]{cuda\_warp ABI}
+
+Example of using \texttt{storage\_type}:
+
+\begin{code}[linebackgroundcolor={},keywords={template,class,simd,simd_storage,TeamPolicy,TeamThreadRange,public,using}]
+// Using cuda_warp abi
+using simd_t = simd::simd<T,simd::simd_abi::cuda_warp<V> >;
+// Define simd_storage type
+using simd_storage_t = simd_t::storage_type;
+// Allocate memory
+View<simd_storage_t**> data("D",N,M); // will hold N*M*V Ts
+
+// Launch Loop with vectorlength V
+parallel_for("Loop", TeamPolicy<>(N,M,V), 
+  KOKKOS_LAMBDA(const team_t& team) {
+    int i = team.league_rank();
+    parallel_for(TeamThreadRange(team,M), [&](int j) {
+      // Load storage type into internal type;
+      simd_t tmp = data(i,j);
+      // Do something with it
+      tmp *= 2.0;
+      // write values back
+      data(i,j) = tmp;
+      // or inline:
+      // data(i,j) = 2.0*simd_t(data(i,j));
+  }); 
+});
+\end{code}
+
+\end{frame}
+
+
+\begin{frame}[fragile]{Exercise: SIMD storage usage.}
+
+  \textbf{Details}:
+  \begin{small}
+  \begin{itemize}
+\item Location: \ExerciseDirectory{simd\_warp/Begin}
+\item Include the \texttt{simd.hpp} header.
+\item Change the data type of the views to use \texttt{simd::simd$<$double,simd::simd\_abi:cuda\_warp$<32>>$::storage\_type}.
+\item Create an unmanaged \texttt{View$<$double*$>$} of \texttt{results} using the \texttt{data()} function for the final reduction.  
+\item Use inside of the lambda the \texttt{simd::simd$<$double,simd::simd\_abi:cuda\_warp$<32>>$} as scalar type.
+\end{itemize}
+  \end{small}
+
+\begin{code}
+   # Compile for GPU
+   make -j KOKKOS_DEVICES=Cuda
+   # Run on GPU
+   ./simd.cuda
+\end{code}
+
+\end{frame}
+\end{comment}
+
+\begin{frame}[fragile]{Advanced SIMD Capabilities}
+
+Kokkos SIMD supports math operations:
+\begin{itemize}
+  \item{Common stuff like \texttt{abs}, \texttt{sqrt}, \texttt{exp}, ...}
+\end{itemize}
+
+\vspace{8pt}
+It also supports masking:
+
+	\begin{code}
+// Scalar code with condition:
+for(int i=0; i<N; i++) {
+  if( a(i) < 100.0 ) b(i) = a(i);
+  else b(i) = 100.0;
+}
+
+// Becomes
+using simd_t = simd<double,simd_abi::native>;
+using simd_mask_t = simd_t::mask_type;
+   
+for(int i=0; i<N/V; i++) {
+  simd_t threshold(100.0), a_i(a_v(i));
+  simd_mask_t is_smaller = threshold<a_i;
+
+  b_v(i) = condition(is_smaller,a_i,threshold);
+}
+\end{code}
+\end{frame}
+
+\begin{frame}[fragile]{SIMD Summary}
+	\begin{itemize}
+		\item{SIMD types help vectorize code.}
+		\item{In particular for \textbf{outer-loop} vectorization.}
+		\item{There are \textbf{storage} and \textbf{temporary} types.}
+		\item{Masking is supported too.}
+	\end{itemize}
+\end{frame}
+%==========================================================================

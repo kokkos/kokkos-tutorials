@@ -1,0 +1,122 @@
+
+% \begin{frame}{DOE ECP Acknowledgement}
+
+% \textit{
+% This research was supported by the Exascale Computing Project (17-SC-20-SC),
+% a joint project of the U.S. Department of Energy’s Office of Science and National Nuclear Security Administration,
+% responsible for delivering a capable exascale ecosystem, including software, applications, and hardware technology,
+% to support the nation’s exascale computing imperative. 
+% }
+
+% \end{frame}
+
+%==============================================================================
+
+\begin{frame}{Welcome to Kokkos}
+
+\textbf{Kokkos is C++ Performance Portability}
+\begin{scriptsize}
+  \begin{itemize} 
+	  \item {Write a \textit{single source} implementation using C++}
+	  \item {Use a \textit{descriptive} Programming Model}
+	  \item {Compile for GPUs and CPUs}
+  \end{itemize}
+\end{scriptsize}
+
+	\vspace{10pt}
+
+\textbf{Kokkos is Ready for Use}
+\begin{scriptsize}
+  \begin{itemize} 
+	  \item {Well established project since 2012}
+	  \item {Major buy-in by DOE National Labs}
+	  \item {Well over 100 projects with over 500 developers use Kokkos}
+	  \item {Dedicated developer staff at 5 National Labs}
+	  \item {Robust support for software stacks: GCC 8+, Clang 8+, NVCC 11+, ROCM 5.2, Intel 19+}
+  \end{itemize}
+\end{scriptsize}
+
+\end{frame}
+
+
+\begin{frame}{Welcome to Kokkos}
+
+\textbf{Online Resources}:
+
+\begin{itemize}
+	\item \url{https://github.com/kokkos}: 
+		\begin{itemize}
+			\item Primary Kokkos GitHub Organization
+		\end{itemize}
+	\item \url{https://github.com/kokkos/kokkos-tutorials/LectureSeries}: 
+		\begin{itemize}
+			\item{Find these slides}
+		\end{itemize}
+	\item \url{https://github.com/kokkos/kokkos/wiki}: 
+		\begin{itemize}
+			\item Wiki including API reference
+		\end{itemize}
+	\item \url{https://kokkosteam.slack.com}: 
+		\begin{itemize}
+			\item Slack channel for Kokkos.
+			\item Please join: fastest way to get your questions answered.
+			\item Can whitelist domains, or invite individual people. Email: crtrott@sandia.gov
+		\end{itemize}
+\end{itemize}
+
+\end{frame}
+
+
+%==============================================================================
+
+\begin{frame}{Lecture Series Outline}
+
+\begin{itemize}
+	\item 07/17 Module 1: Introduction, Building and Parallel Dispatch 
+	\item 07/24 Module 2: Views and Spaces
+	\item 07/31 Module 3: Data Structures + MultiDimensional Loops
+	\item 08/07 Module 4: Hierarchical Parallelism
+	\item 08/14 Module 5: Tasking, Streams and SIMD
+	\item 08/21 Module 6: Internode: MPI and PGAS
+	\item 08/28 Module 7: Tools: Profiling, Tuning and Debugging
+	\item 09/04 Module 8: Kernels: Sparse and Dense Linear Algebra
+        \item 09/11 Reserve Day
+\end{itemize}
+\end{frame}
+
+\begin{frame}{What to Expect}
+
+\textbf{Lectures}
+\begin{itemize}
+	\item Typically 90 minutes of lecture
+	\item Submodules have associated exercise as homework
+	\item Typically 2-3 Exercises per lecture
+	\item Exercises will be talked through at next meeting.
+\end{itemize}
+
+	\vspace{10pt}
+
+\textbf{Exercises}
+\begin{itemize}
+	\item Exercises are small codes with places to do modifications.
+	\item Access to GPUs helpful for most of them, but most can be done on pure CPU systems.
+	\item Only dependent on standard compilers (e.g. Clang, NVCC)
+	\item Office hours on Tuesdays 3-5 PM Eastern Time (potentially with AWS access).
+        \item Ongoing support at \url{https://kokkosteam.slack.com}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Module 1}
+  \begin{block}{Introduction}
+    What is Kokkos? Who is behind it? Why should you use it?
+  \end{block}
+
+  \begin{block}{Parallel Dispatch}
+    Pattern, Policy and Body: how to parallelize simple code with Kokkos.
+  \end{block}
+
+  \begin{block}{Building}
+    What do you need to build Kokkos and Apps? How to integrate into your build system?
+  \end{block}
+
+\end{frame}

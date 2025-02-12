@@ -1,0 +1,270 @@
+%==========================================================================
+
+\begin{frame}[fragile]
+
+  {\Huge Views}
+
+  \vspace{20pt}
+
+  \textbf{Learning objectives:}
+  \begin{itemize}
+    \item{Motivation behind the \texttt{View} abstraction.}
+    \item{Key \texttt{View} concepts and template parameters.}
+    \item{The \texttt{View} life cycle.}
+  \end{itemize}
+
+  \vspace{-20pt}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{View motivation}
+
+  \textbf{\ul{Example: running \texttt{daxpy} on the GPU:}}
+
+  \vspace{5pt}
+
+  \begin{code}[linebackgroundcolor={
+        \btLstHL<2->{3}{red!30}
+      },
+      frame=single
+    ]
+double * x = new double[N]; // also y
+parallel_for("DAXPY",N, [=] (const int64_t i) {
+    y[i] = a * x[i] + y[i];
+  });
+  \end{code}
+
+  \begin{code}[linebackgroundcolor={
+        \btLstHL<2->{2,4}{red!30}
+      },
+      frame=single
+    ]
+struct Functor {
+  double *_x, *_y, a;
+  void operator()(const int64_t i) const {
+    _y[i] = _a * _x[i] + _y[i];
+  }
+};
+  \end{code}
+
+  \begin{textblock*}{0.5\textwidth}(0.05\textwidth,0.225\textheight)
+    \rotatebox{90}{\textbf{Lambda}}
+  \end{textblock*}
+
+  \begin{textblock*}{0.5\textwidth}(0.05\textwidth,0.470\textheight)
+    \rotatebox{90}{\textbf{Functor}}
+  \end{textblock*}
+
+  \vspace{5pt}
+  \pause
+
+  \textbf{{\color{red}Problem}}: \texttt{x} and \texttt{y} reside in CPU memory.
+
+  \vspace{5pt}
+  \pause
+
+  \textbf{Solution:} We need a way of storing data (multidimensional arrays) which can be communicated to an accelerator (GPU).
+
+  \vspace{5pt}
+
+  \hspace{20pt}{\Large $\Rightarrow$ \textbf{Views}}
+
+  \vspace{-5pt}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Views (0)}
+
+  \ul{\textbf{View} abstraction}
+  \begin{itemize}
+  \item {A \textit{lightweight} C++ class with a pointer to array data and a little meta-data,}
+  \item {that is \textit{templated} on the data type (and other things).}
+  \end{itemize}
+
+  \vspace{5pt}
+
+  \ul{\textbf{High-level example} of Views for \texttt{daxpy} using lambda}:
+
+  \begin{code}[frame=single, keywords={}]
+@blueView<double*, ...>@blue x(...), y(...);
+@gray...populate x, y... @gray
+
+parallel_for("DAXPY",N, [=] (const int64_t i) {
+    // Views x and y are captured by value (shallow copy)
+    y(i) = a * x(i) + y(i);
+  });
+  \end{code}
+
+  \pause
+  \vspace{0pt}
+
+  \begin{block}{Important point}
+    Views are \textbf{like pointers}, so copy them in your functors.
+  \end{block}
+
+  \vspace{5pt}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Views (1)}
+
+  \ul{\textbf{View} overview:}
+
+  \begin{itemize}
+    \item{\textbf{Multi-dimensional array} of 0 or more dimensions \\
+          \hspace{20pt}scalar (0), vector (1), matrix (2), etc.}
+    \item{\textbf{Number of dimensions (rank)} is fixed at compile-time.}
+    \item{Arrays are \textbf{rectangular}, not ragged.}
+    \item{\textbf{Sizes of dimensions} set at compile-time or runtime. \\
+          \hspace{20pt}e.g., 2x20, 50x50, etc.}
+    \item{Access elements via "(...)" operator.}
+  \end{itemize}
+
+  \pause
+  \vspace{-3pt}
+
+  \textbf{Example}:
+  \vspace{-3pt}
+  \begin{code}[keywords={double,View}]
+View<double***> data("label", N0, N1, N2); //<@3 run, 0 compile@>
+View<double**[N2]> data("label", N0, N1);  //<@2 run, 1 compile@>
+View<double*[N1][N2]> data("label", N0);   //<@1 run, 2 compile@>
+View<double[N0][N1][N2]> data("label");    //<@0 run, 3 compile@>
+//Access
+data(i,j,k) = 5.3;
+  \end{code}
+
+  \vspace{-1pt}
+  Note: runtime-sized dimensions must come first.
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Views (2)}
+
+  \ul{\textbf{View} life cycle:}
+
+  \begin{itemize}
+    \item{Allocations only happen when \emph{explicitly} specified. \\
+          \hspace{20pt}i.e., there are \textbf{no hidden allocations}.}
+    \item{Copy construction and assignment are \textbf{shallow} (like pointers).\\
+          \hspace{20pt}so, you pass \texttt{Views} by value, \emph{not} by reference}
+    \item{Reference counting is used for \textbf{automatic deallocation.}}
+    \item{They behave like \texttt{std::shared\_ptr}}
+  \end{itemize}
+
+  \pause
+  \textbf{Example}:
+
+  \vspace{-3pt}
+
+  \begin{code}[keywords={}]
+View<double*[5]> @bluea@blue("a", N), @darkgreenb@darkgreen("b", K);
+@bluea@blue = @darkgreenb@darkgreen;
+View<double**> @darkredc@darkred(@darkgreenb@darkgreen);
+@bluea@blue(0,2) = 1;
+@darkgreenb@darkgreen(0,2) = 2;
+@darkredc@darkred(0,2) = 3;
+print_value( @bluea@blue(0,2) );
+  \end{code}
+
+  \begin{textblock*}{0.5\textwidth}(0.6\textwidth,0.78\textheight)
+    \onslide<2->{What gets printed?}
+  \end{textblock*}
+
+  \begin{textblock*}{0.5\textwidth}(0.65\textwidth,0.83\textheight)
+    \onslide<3->{\texttt{3.0}}
+  \end{textblock*}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Views (3)}
+
+  \ul{\textbf{View} Properties:}
+
+  \begin{itemize}
+    \item Accessing a \texttt{View}'s sizes is done via its \texttt{extent(dim)} function.
+         \begin{itemize}
+		 \item Static extents can \emph{additionally} be accessed via \texttt{static\_extent(dim)}.
+	 \end{itemize}
+    \item You can retrieve a raw pointer via its \texttt{data()} function.
+    \item The label can be accessed via \texttt{label()}.
+  \end{itemize}
+
+  \textbf{Example}:
+
+  \begin{code}[keywords={View,extent,static_extent,data,label}]
+	  View<double*[5]> a("A",N0);
+	  assert(a.extent(0) == N0);
+	  assert(a.extent(1) == 5);
+	  static_assert(a.static_extent(1) == 5);
+	  assert(a.data() != nullptr);
+	  assert(a.label() == "A");
+  \end{code}
+
+\end{frame}
+%==========================================================================
+
+\begin{frame}[fragile]{Exercise \#2: Inner Product, Flat Parallelism on the CPU, with Views}
+
+  \begin{small}
+  \begin{itemize}
+  \item Location: \ExerciseDirectory{02/Begin}
+  \item Assignment: Change data storage from arrays to Views.
+  \item Compile and run on CPU, and then on GPU with UVM
+  \end{itemize}
+  \end{small}
+
+\begin{code}
+# CPU-only using OpenMP
+cmake -B build_openmp -DKokkos_ENABLE_OPENMP=ON
+cmake --build build_openmp
+# Run exercise
+./build_openmp/02_Exercise -S 26
+# Note the warnings, set appropriate environment variables
+\end{code}
+
+  \begin{scriptsize}
+  \begin{itemize}
+  \item Vary problem size: \textbf{-S \#}
+  \item Vary number of rows: \textbf{-N \#}
+  \item Vary repeats: \textbf{-nrepeat \#}
+  \item Compare performance of CPU vs GPU
+  \end{itemize}
+  \end{scriptsize}
+
+\end{frame}
+
+%==========================================================================
+
+\iffull
+\begin{frame}[fragile]{Advanced features we haven't covered}
+
+  \begin{itemize}
+
+  \item {\textbf{Memory space} in which view's data resides;
+         \textit{covered next}.}
+
+  \item {\textbf{deep\_copy} view's data; \textit{covered later}. \\
+        Note: Kokkos \textit{never} hides a deep\_copy of data.}
+
+  \item {\textbf{Layout} of multidimensional array; \textit{covered later}.}
+
+  \item {\textbf{Memory traits}; \textit{covered later}.}
+
+  \item {\textbf{Subview}: Generating a view that is a ``slice'' of other multidimensional array view; \textit{covered later}.}
+
+  \end{itemize}
+
+\end{frame}
+\fi
+

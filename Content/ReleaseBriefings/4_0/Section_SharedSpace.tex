@@ -1,0 +1,52 @@
+%==========================================================================
+
+\begin{frame}[fragile]
+
+  {\Huge SharedSpace}
+
+  \vspace{10pt}
+
+  \textbf{Content:}
+  \begin{itemize}
+    \item {\texttt{SharedSpace}}
+    \item {\texttt{SharedPinnedHostSpace}}
+  \end{itemize}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{\texttt{SharedSpace} \& \texttt{SharedHostPinnedSpace}}
+
+Aliases for \emph{\texttt{MemorySpaces}} that are accessible by every \emph{\texttt{ExecutionSpace}}.
+
+\begin{description}
+\item[\texttt{SharedSpace}] is memory that is moved and then accessed locally.
+\item[\texttt{SharedHostPinnedSpace}] is memory that is pinned to the host and accessed via zero-copy access.
+\end{description}
+
+\begin{table}[htp]
+%\caption{default}
+\begin{center}
+\begin{tabular}{| l | l | l |}
+\hline
+Backend & \texttt{SharedSpace} & \texttt{SharedHostPinnedSpace} \\
+\hline \hline
+CUDA & \texttt{CudaUVMSpace} & \texttt{CudaHostPinnedSpace} \\
+\hline
+HIP & \texttt{HIPManagedSpace} & \texttt{HIPHostPinnedSpace} \\
+\hline
+SYCL & \texttt{SYCLSharedUSMSpace} & \texttt{SYCLHostUSMSpace} \\
+\hline
+\emph{host} & \texttt{HostSpace} & \texttt{HostSpace} \\
+\hline
+\end{tabular}
+\end{center}
+\label{default}
+\end{table}%
+
+
+
+\end{frame}
+
+%==========================================================================

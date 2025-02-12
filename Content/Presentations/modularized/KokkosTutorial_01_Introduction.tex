@@ -1,0 +1,110 @@
+\input{KokkosTutorial_PreTitle}
+
+%disclaimer for Sandia. uncomment and the whole blob goes awa @ 50e13125ad7dby
+\def\sandid{SAND2020-7263 PE}
+
+% \title{Performance Portability with Kokkos}
+\title{The Kokkos Lectures}
+\subtitle{Module 1: Introduction, Building and Parallel Executions}
+
+%BAD misuse of author field
+\author{Module 1: Introduction, Building and Parallel Dispatch}
+
+\input{KokkosTutorial_PostTitle}
+
+\shortfalse
+\mediumtrue
+\fulltrue
+\notoverviewtrue
+
+\begin{document}
+
+% \begin{frame}
+%   \titlepage
+% \end{frame}
+% \input{sections/Section_nvlabs}
+
+\begin{frame}
+	\titlepage
+\end{frame}
+
+\input{../sections/Section_LectureOverview}
+
+\input{../sections/Section_WhatIsKokkos}
+
+\input{../sections/Section_Introduction}
+
+\input{../sections/Section_Kokkos}
+
+\input{../sections/Section_DataParallelPatterns}
+
+\input{../sections/Section_Building}
+
+\begin{frame}{Module 1: Summary}
+	\textbf{Kokkos Ecosystem:}
+	\begin{itemize}
+		\item C++ Performance Portability Programming Model.
+		\item The Kokkos Ecosystem provides capabilities needed for serious code development.
+		\item Kokkos is supported by multiple National Laboratories with a sizeable dedicated team.
+	\end{itemize}
+
+	\textbf{Building Kokkos}
+	\begin{itemize}
+    \item{Kokkos' primary build system is CMAKE.}
+    \item{Kokkos options are transitively passed on, including many necessary compiler options.}
+    \item{The Spack package manager does support Kokkos.}
+    \item{For applications with few if any dependencies, building Kokkos as part of your code is an option with CMake and GNU Makefiles.}
+	\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Module 1: Summary}
+	\textbf{Data Parallelism:}
+	\begin{itemize}
+		\item Simple things stay simple!
+		\item You use \textbf{parallel patterns} and \textbf{execution policies} to execute \textbf{computational bodies}
+		\item Simple parallel loops use the \texttt{parallel\_for} pattern:
+\begin{code}[linebackgroundcolor={\btLstHL<1->{3}{bodyColor}},frame=single]
+  @patternparallel_for@pattern("Label",@policyN@policy, [=] (int64_t i) {
+   /* loop body */
+  });
+\end{code}
+\item Reductions combine contributions from loop iterations
+\begin{code}[linebackgroundcolor={\btLstHL<1->{3}{bodyColor}},frame=single]
+int result;
+@patternparallel_reduce@pattern("Label",@policyN@policy, [=] (int64_t i, int& lres) {
+   /* loop body */
+    lres += /* something */
+  },result);
+\end{code}
+\end{itemize}
+
+\end{frame}
+
+
+\begin{frame}{Module 2: Outlook (07/24)}
+
+	\vspace{10pt}
+	\textbf{Kokkos::View:}
+	\begin{itemize}
+		\item Solving the data-layout issue.
+		\item Controlling data life-time.
+	\end{itemize}
+
+	\vspace{10pt}
+	\textbf{Execution and Memory Spaces:}
+	\begin{itemize}
+		\item How to control where data lives.
+		\item How to control where code executes.
+		\item How to manage data transfers.
+	\end{itemize}
+
+	\vspace{10pt}
+    \textbf{Slack channel:} {\scriptsize \url{https://kokkosteam.slack.com/}}
+	
+	\vspace{10pt}
+	\textbf{Recordings/Slides:} {\scriptsize \url{https://kokkos.org/kokkos-core-wiki/videolectures.html}}
+
+\end{frame}
+
+\end{document}
+

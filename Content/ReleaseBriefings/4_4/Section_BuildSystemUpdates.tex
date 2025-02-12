@@ -1,0 +1,50 @@
+
+%==========================================================================
+
+\begin{frame}[fragile]
+
+  {\huge Build Systems Updates}
+  \vspace{-10pt}
+\end{frame}
+  
+\begin{frame}[fragile]{Build System Updates 1/2}
+
+\textbf{New minimum compiler version requirements for C++20 support}
+
+\begin{center}
+\begin{tabular}{l|l}
+  Clang(CPU)          & 14.0.0 \\ \hline
+  Clang(CUDA)         & 14.0.0 \\ \hline
+  Clang(OpenMPTarget) & 15.0.0 \\ \hline
+  GCC                 & 10.1.0 \\ \hline
+  Intel               & not supported \\ \hline
+  IntelLLVM(CPU)      & 2022.0.0 \\ \hline
+  IntelLLVM(SYCL)     & 2023.0.0 \\ \hline
+  NVCC                & 12.0.0 \\ \hline
+  HIPCC               & 5.2.0 \\ \hline
+  NVHPC               & 22.3 \\ \hline
+  MSVC                & 19.30
+\end{tabular}
+\vspace{-10pt}
+\end{center}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Build System Updates 2/2}
+
+\begin{itemize}
+\item Add nvidia Grace CPU architecture: \texttt{Kokkos\_ARCH\_ARMV9\_GRACE}  
+  \begin{itemize}
+    \item[] When enabled, adds \texttt{-mcpu=neoverse-v2 -msve-vector-bits=128} flags
+  \end{itemize}
+
+\item Update Intel GPU architectures in Makefile to match CMake
+\item Fix incorrect path in Makefile.kokkos when using Threads
+\item Fix compilation with CUDA toolkit for CMake 3.28.4 and higher
+\item Do not require OpenMP support for languages other than CXX
+\item Fix use of OpenMP with Cuda or HIP as compile language
+\item Remove support for NVHPC as CUDA device compiler
+\end{itemize}
+
+\end{frame}

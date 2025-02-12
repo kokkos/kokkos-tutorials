@@ -1,0 +1,203 @@
+\input{KokkosTutorial_PreTitle}
+%disclaimer for Sandia. uncomment and the whole blob goes away @ b80c116300122
+\def\sandid{SAND2020-7475 PE}
+
+% \title{Performance Portability with Kokkos}
+\title{The Kokkos Lectures}
+
+%BAD misuse of author field
+\author{The Fundamentals: A Condensed Short Tutorial}
+
+%\author{
+%  Jeff Miles \inst{1},
+%  Christian Trott \inst{1}
+%}
+%\institute[shortinst]{\tiny \inst{1} Sandia National Laboratories, \inst{2} Oak Ridge National Laboratory \and \inst{3} Los Alamos National Laboratory}
+%\institute[shortinst]{\tiny \inst{1} Sandia National Laboratories}
+
+\input{KokkosTutorial_PostTitle}
+
+\shorttrue
+\mediumfalse
+\fullfalse
+
+\begin{document}
+
+% \begin{frame}
+%   \titlepage
+% \end{frame}
+% \input{sections/Section_nvlabs}
+
+\begin{frame}
+	\titlepage
+\end{frame}
+
+\begin{frame}{The Fundamentals}
+	{\huge The Fundamentals}
+
+	\textbf{A Condensed Short Tutorial}
+
+	\vspace{10pt}
+	This lecture covers fundamental concepts of Kokkos with Hands-On Exercises as homework.
+
+	Slides: \url{https://github.com/kokkos/kokkos-tutorials/Intro-Short/KokkosTutorial_Short.pdf}
+
+	\vspace{20pt}
+	For the full lectures, with more capabilities covered, and more in-depth explanations visit:
+
+	\url{https://github.com/kokkos/kokkos-tutorials/wiki/Kokkos-Lecture-Series}
+\end{frame}
+
+\input{../sections/Section_WhatIsKokkos}
+
+\begin{frame}{Welcome to Kokkos}
+
+\textbf{Online Resources}:
+
+\begin{itemize}
+        \item \url{https://github.com/kokkos}:
+                \begin{itemize}
+                        \item Primary Kokkos GitHub Organization
+                \end{itemize}
+        \item \url{https://github.com/kokkos/kokkos-tutorials/wiki/Kokkos-Lecture-Series}:
+                \begin{itemize}
+			\item{Slides, recording and Q\&A for the Full Lectures}
+                \end{itemize}
+        \item \url{https://kokkos.org}: Follow Documentation then Core
+                \begin{itemize}
+                        \item Programming guide and API references
+                \end{itemize}
+        \item \url{https://kokkosteam.slack.com}:
+                \begin{itemize}
+                        \item Slack channel for Kokkos.
+                        \item Please join: fastest way to get your questions answered.
+                        \item Can whitelist domains, or invite individual people.
+                \end{itemize}
+\end{itemize}
+
+\end{frame}
+
+\input{../sections/Section_DataParallelPatterns}
+
+\input{../sections/Section_Views}
+
+\input{../sections/Section_Spaces}
+
+\input{../sections/Section_MemoryAccessPatterns}
+
+%\input{../sections/Section_Hierarchical}
+
+%\begin{frame}[fragile]{Exercise: CG-Solve HP}
+%
+%  \textbf{Exercise}: Find $x$ in $b = A * x$
+%
+%  Getting set up in your home directory:
+%  \begin{code}
+%    mkdir Kokkos
+%    cd Kokkos
+%    git clone https://github.com/kokkos/kokkos
+%    git clone https://github.com/kokkos/kokkos-tutorials
+%  \end{code}
+%
+%  \vspace{5pt}
+%  Find the exercise in the kokkos-tutorials/Exercises/cg-solve-hp folder.
+%
+%
+%  \vspace{5pt}
+%  The Begin subdirectory contains the code. Only cg\_solve.cpp needs modifications.
+%
+%  \vspace{5pt}
+%  Look for EXERCISE comments to find places to modify. Note: this contains the same Exercise components as the first cg-solve. So you can just start with the solution of that and add the new things! To make it clearer they are marked as EXERCISE-HP.
+%
+%\end{frame}
+%
+%\begin{frame}[fragile]{Exercise: CG Solve HP}
+%\textbf{Tasks:}
+%\begin{itemize}
+%  \item Use HostMirrors instead of Unified Memory for GPUs.
+%  \item Use a hierarchical parallelism SPMV.
+%\end{itemize}
+%
+%\vspace{10pt}
+%\textbf{Things to try:}
+%  \begin{itemize}
+%  \item Compare with previous exercise on GPU with low iteration count.
+%  \item Compare performance for small problems.
+%  \item Compare performance dependent on Layout of col\_idx and values.
+%  \end{itemize}
+%\end{frame}
+
+
+\begin{frame}[fragile]{What we didn't cover}
+	\textbf{This was a short introduction}
+	
+	Didn't cover many things:
+	\begin{itemize}
+		\item Full build system integration.
+		\item Non-Sum reductions / multiple reductions.
+		\item Multidimensional loops.
+                \item Hierarchical parallelism.
+		\item Advanced data structures.
+		\item Subviews.
+		\item Atomic operations and Scatter Contribute patterns.
+		\item Team Scratch memory (GPU shared memory).
+		\item SIMD vectorization.
+		\item MPI and PGAS integration.
+		\item Tools for Profiling, Debugging and Tuning.
+		\item Math Kernels.
+	\end{itemize}
+
+\end{frame}
+
+\begin{frame}{The Kokkos Lectures}
+        
+	\begin{block}{The Kokkos Lectures}
+		Watch the Kokkos Lectures for all of those and more in-depth explanations or do them on your own.
+	\end{block}
+
+\begin{itemize}
+	\item Module 1: Introduction, Building and Parallel Dispatch
+	\item Module 2: Views and Spaces
+	\item Module 3: Data Structures + MultiDimensional Loops
+	\item Module 4: Hierarchical Parallelism
+	\item Module 5: Tasking, Streams and SIMD
+	\item Module 6: Internode: MPI and PGAS
+	\item Module 7: Tools: Profiling, Tuning and Debugging
+	\item Module 8: Kernels: Sparse and Dense Linear Algebra
+\end{itemize}
+
+\begin{center}
+\url{https://kokkos.link/the-lectures}
+\end{center}
+
+\end{frame}
+
+\begin{frame}{Find More}
+
+\textbf{Online Resources}:
+
+\begin{itemize}
+        \item \url{https://github.com/kokkos}:
+                \begin{itemize}
+                        \item Primary Kokkos GitHub Organization
+                \end{itemize}
+        \item \url{https://kokkos.link/the-lectures}:
+                \begin{itemize}
+			\item{Slides, recording and Q\&A for the Full Lectures}
+                \end{itemize}
+        \item \url{https://kokkos.org}: Follow Documentation then Core
+                \begin{itemize}
+                        \item Programming guide and API references
+                \end{itemize}
+        \item \url{https://kokkosteam.slack.com}:
+                \begin{itemize}
+                        \item Slack channel for Kokkos.
+                        \item Please join: fastest way to get your questions answered.
+                        \item Can whitelist domains, or invite individual people.
+                \end{itemize}
+\end{itemize}
+
+\end{frame}
+
+\end{document}
+

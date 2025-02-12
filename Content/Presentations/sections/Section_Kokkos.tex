@@ -1,0 +1,261 @@
+%==========================================================================
+
+\begin{frame}[fragile]{}
+
+  {\Huge Concepts for Data Parallelism} 
+
+  \vspace{20pt}
+
+  \textbf{Learning objectives:}
+  \begin{itemize}
+    \item{Terminology of pattern, policy, and body.}
+    \item{The data layout problem.}
+  \end{itemize}
+
+  \vspace{-20pt}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Concepts: Patterns, Policies, and Bodies}
+
+  \begin{onlyenv}<1>
+  \begin{code}[linebackgroundcolor={
+      }
+    ]
+for (element = 0; element < numElements; ++element) {
+  total = 0;
+  for (qp = 0; qp < numQPs; ++qp) {
+    total += dot(left[element][qp], right[element][qp]);
+  }
+  elementValues[element] = total;
+}
+  \end{code}
+  \end{onlyenv}
+
+  \begin{onlyenv}<2->
+  \begin{code}[linebackgroundcolor={
+        \btLstHL<2>{2-6}{bodyColor}
+      }
+    ]
+@patternfor@pattern (element = @policy0; element < numElements; ++element@policy) {
+  total = 0;
+  for (qp = 0; qp < numQPs; ++qp) {
+    total += dot(left[element][qp], right[element][qp]);
+  }
+  elementValues[element] = total;
+}
+  \end{code}
+  \end{onlyenv}
+
+  \begin{textblock*}{0.5\textwidth}(0.07\textwidth,0.142\textheight)
+    \only<2->{{\footnotesize \color{orange!80} Pattern}}
+  \end{textblock*}
+
+  \begin{textblock*}{0.5\textwidth}(0.43\textwidth,0.142\textheight)
+    \only<2->{{\footnotesize \color{darkgreen!80} Policy}}
+  \end{textblock*}
+
+  \begin{textblock*}{0.5\textwidth}(0.08\textwidth,0.26\textheight)
+    \only<2->{\rotatebox{90}{\footnotesize \color{blue!80} Body}}
+  \end{textblock*}
+
+  \vspace{0pt}
+  \pause
+
+  Terminology:
+  \begin{itemize}
+    \item{\textbf{Pattern}}: structure of the computations \\
+     \hspace{20pt} for, reduction, scan, task-graph, ...
+   \item{\textbf{Execution Policy}}: how computations are executed \\
+     \hspace{20pt} static scheduling, dynamic scheduling, thread teams, ...
+   \item{\textbf{Computational Body}}: code which performs each unit of work; \textit{e.g.}, the loop body \\
+  \end{itemize}
+
+  \vspace{2pt}
+
+  \textbf{$\Rightarrow$} The \textbf{pattern} and \textbf{policy} drive the computational \textbf{body}.
+
+  \vspace{-5pt}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Threading ``Parallel for''}
+
+  What if we want to \textbf{thread} the loop?
+
+  \vspace{5pt}
+
+  \only<1>{\vspace{23pt}}
+
+  \begin{onlyenv}<2->
+  \begin{code}[linebackgroundcolor={
+      }
+    ]
+#pragma @policyomp parallel@policy @patternfor@pattern
+  \end{code}
+  \end{onlyenv}
+
+  \vspace{-12pt}
+
+  \begin{code}[linebackgroundcolor={
+        \btLstHL<1-3>{2-6}{bodyColor}
+      }
+    ]
+@patternfor@pattern (element = @policy0; element < numElements; ++element@policy) {
+  total = 0;
+  for (qp = 0; qp < numQPs; ++qp) {
+    total += dot(left[element][qp], right[element][qp]);
+  }
+  elementValues[element] = total;
+}
+  \end{code}
+
+  \vspace{2pt}
+  \pause
+
+  \hspace{10pt}(Change the \emph{execution policy} from ``serial'' to ``parallel.'')
+
+  \vspace{10pt}
+  \pause
+
+  OpenMP is simple for parallelizing loops on multi-core CPUs, \\
+  but what if we then want to do this on \textbf{other architectures}? \\
+  \vspace{5pt}
+  \hspace{10pt}
+  Intel PHI \textit{and} NVIDIA GPU \textit{and} AMD GPU \textit{and} ...
+
+  \vspace{10pt}
+
+
+\end{frame}
+
+%==========================================================================
+%==========================================================================
+
+%http://on-demand.gputechconf.com/gtc/2014/presentations/S4438-whats-new-in-openacc-2-openmp-4.pdf
+%https://doc.itc.rwth-aachen.de/download/attachments/3474945/OMP4-OpenMP_for_Accelerators.pdf
+\begin{frame}[fragile]{``Parallel for'' on a GPU via \texttt{pragmas}}
+
+  \textbf{\ul{Option 1: OpenMP 4.5}}
+
+  \begin{code}[linebackgroundcolor={
+        \btLstHL<1->{5,7-9}{bodyColor}
+      }
+    ]
+#pragma @policyomp target@policy @bodydata map(...)@body
+#pragma @policyomp teams num_teams(...) num_threads(...)@policy @bodyprivate(...)@body
+#pragma @policyomp distribute@policy
+@patternfor@pattern (element = @policy0; element < numElements; ++element@policy) {
+  total = 0
+#pragma @policyomp parallel@policy @patternfor@pattern
+  for (qp = 0; qp < numQPs; ++qp)
+    total += dot(left[element][qp], right[element][qp]);
+  elementValues[element] = total;
+}
+  \end{code}
+
+  \pause
+  \textbf{\ul{Option 2: OpenACC}}
+
+  \begin{code}[linebackgroundcolor={
+        \btLstHL<2->{4-7}{bodyColor}
+      }
+    ]
+#pragma @policyacc parallel@policy @bodycopy(...)@body @policynum_gangs(...) vector_length(...)@policy
+#pragma @policyacc loop gang vector@policy
+@patternfor@pattern (element = @policy0; element < numElements; ++element@policy) {
+  total = 0;
+  for (qp = 0; qp < numQPs; ++qp)
+    total += dot(left[element][qp], right[element][qp]);
+  elementValues[element] = total;
+}@gray
+  \end{code}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}{Portable, but not performance portable}
+
+ \Large A standard thread parallel programming model \\
+   \hspace{10pt} \textit{may} give you portable parallel execution \\
+   \hspace{10pt} \textit{if} it is supported on the target architecture.
+
+ \vspace{12pt}
+
+ {\Large But what about performance?}
+
+ \vspace{12pt}
+
+ \pause
+
+ {\Large Performance depends upon the computation's
+   \\ \textbf{memory access pattern}.}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Problem: memory access pattern}
+
+  \begin{code}[keywords={}]
+@blue#pragma something, opencl, etc.@blue
+@grayfor (element = 0; element < numElements; ++element) {
+  total = 0;
+  for (qp = 0; qp < numQPs; ++qp) {
+    for (i = 0; i < vectorSize; ++i) {
+@gray@black      total +=
+        left[@black@redelement * numQPs * vectorSize +
+             qp * vectorSize + i@red@black] *
+        right[@black@redelement * numQPs * vectorSize +
+              qp * vectorSize + i@red@gray];
+    }
+  }
+  elementValues[element] = total;
+}@gray
+  \end{code}
+
+  \pause
+  \vspace{-2pt}
+
+  \textbf{Memory access pattern problem:} CPU data layout reduces GPU performance by more than 10X.
+
+  \pause
+  \vspace{-3pt}
+
+  \begin{block}{Important Point}
+    For performance the memory access pattern
+    \\  \emph{must} depend on the architecture.
+  \end{block}
+
+  \vspace{5pt}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Kokkos overview}
+
+  How does Kokkos address performance portability?
+
+  \vspace{10pt}
+
+  \textbf{Kokkos} is a \emph{productive}, \emph{portable}, \emph{performant}, shared-memory programming model.
+
+  \begin{itemize}
+    \item{is a C++ \textbf{library}, not a new language or language extension.}
+    \item{provides \textbf{clear, concise, scalable} parallel patterns.}
+    \item{lets you write algorithms once and run on \textbf{many architectures} \\
+          \hspace{20pt}e.g. multi-core CPU, GPUs, Xeon Phi, ...}
+    \item{\textbf{minimizes} the amount of architecture-specific \textbf{implementation details} users must know.}
+    \item{\emph{solves the data layout problem} by using multi-dimensional arrays with architecture-dependent \textbf{layouts}} \\
+  \end{itemize}
+
+\end{frame}
+
+%==========================================================================
+

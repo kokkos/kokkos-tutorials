@@ -1,0 +1,220 @@
+%==========================================================================
+
+\begin{frame}[fragile]
+  
+  \vspace{-10pt}
+  {\Huge Clang Based Static Analysis}
+  \vspace{20pt}
+
+  \textbf{\ul{Goals of this section}}
+  \begin{itemize}
+    \item {Introduce The Possibility Of Kokkos Specific Warnings}
+    \item {Show The Three Classes Of Errors We Can Detect}
+    \item {Show You How To Use Them}
+    \item {List Current/Planned Warnings}
+  \end{itemize}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Kokkos Specific Warnings}
+  
+  \textbf{\ul{Can We Have Kokkos Specific Warnings}}
+  even if the current configuration compiles?
+  \begin{code}[linebackgroundcolor={\btLstHL{6}{darkred!20}},
+      keywords={}, frame=single
+    ]
+void fooOOPS(int i) { printf("%i\n", i); }
+
+int main(int argc, char **argv) {
+  // Initialize  ...
+  Kokkos::parallel_for(15, KOKKOS_LAMBDA(int i) {
+       fooOOPS(i);
+      });
+  }
+  // Finalize ...
+}
+  \end{code}
+
+\pause
+\textbf{Answer: Yes, now we can.}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]
+  
+  \begin{code}[linebackgroundcolor={\btLstHL{6}{darkred!20}},
+      keywords={}, frame=single
+    ]
+void fooOOPS(int i) { printf("%i\n", i); }
+
+int main(int argc, char **argv) {
+  // Initialize  ...
+  Kokkos::parallel_for(15, KOKKOS_LAMBDA(int i) {
+       fooOOPS(i);
+      });
+  }
+  // Finalize ...
+}
+  \end{code}
+
+  \textbf{Using clang-tidy}
+
+  \begin{code}[linebackgroundcolor={
+      },
+      keywords={}, frame=single
+    ]
+> clang-tidy -checks=-*,kokkos-* file.cpp
+    <file:line:col> @redwarning@red: Function 'fooOOPS' called in 
+                         a lambda was missing 
+                         KOKKOS_X_FUNCTION annotation.
+         fooOOPS(i);
+         ^
+<file:line:col> note: Function 'fooOOPS' was delcared here
+void fooOOPS(int i) { printf("%i\n", i); }
+  \end{code}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Types Of Errors}
+  
+\textbf{Could become compiler errors}
+\begin{code}[linebackgroundcolor={}, keywords={}, frame=single]
+void fooOOPS(int i) { printf("%i\n", i);}
+KOKKOS_FUNCTION void foo(){fooOOPS(1);}
+\end{code}
+
+\textbf{Could become runtime crashes}
+\begin{code}[linebackgroundcolor={ }, keywords={}, frame=single]
+struct bar {
+  int baz;
+  void foo(){parallel_for(15, KOKKOS_LAMBDA(int){baz;});}
+};
+\end{code}
+
+  \textbf{\color{red}Will produce incorrect results}
+\begin{code}[linebackgroundcolor={ }, keywords={}, frame=single]
+double foo(){
+  double d;
+  auto func = KOKKOS_LAMBDA(int i, @reddouble sum@red){sum += i;};
+  parallel_reduce(15, func, d);
+  return d;
+}
+\end{code}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Getting Started}
+  
+  \textbf{\ul{How to use}}
+  \begin{itemize}
+    \item \textbf{Code:} \href{https://github.com/kokkos/llvm-project}{kokkos/llvm-project}
+    \item \textbf{Build:} \href{https://llvm.org/docs/CMake.html}{llvm build instructions}
+    \item \textbf{Run:} The same way you would normally use clang-tidy, except with kokkos checks enabled. 
+  \end{itemize}
+  
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Using Kokkos Checks}
+  
+  \textbf{\ul{Usage Examples: With Cmake}}
+  \begin{code}[linebackgroundcolor={\btLstHL{6-7}{darkred!20}},
+      keywords={}, frame=single]
+#! /bin/bash
+
+cmake \
+  /path/to/kokkos/code/you/want/to/build \
+  -DKokkos_ROOT="/path/to/installed/kokkos" \
+  -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+  -DCMAKE_CXX_CLANG_TIDY="clang-tidy;-checks=kokkos-*"
+  \end{code}
+
+  The above will:
+  \begin{itemize}
+    \item make a compile\_commands.json file that clang-tidy and clangd can use
+    \item invoke clang-tidy on all of the files compiled by the CXX compiler
+  \end{itemize}
+  If the kokkos clang-tidy is not in the path you will need to put the full
+  path to it.
+  
+\end{frame}
+
+%==========================================================================
+\begin{frame}[fragile]{Using Kokkos Checks}
+  
+  \textbf{\ul{Usage Examples: Invoke clang-tidy directly}}
+  \begin{code}[linebackgroundcolor={
+      },
+      keywords={}, frame=single
+    ]
+> clang-tidy -checks=-*,kokkos-* file.cpp
+    <file:line:col> @redwarning@red: Function 'fooOOPS' called in 
+                         a lambda was missing 
+                         KOKKOS_X_FUNCTION annotation.
+         fooOOPS(i);
+         ^
+<file:line:col> note: Function 'fooOOPS' was delcared here
+void fooOOPS(int i) { printf("%i\n", i); }
+  \end{code}
+
+  Assumes that we have the compile\_commands.json file from the previous slide either in the current directory or in a parent directory. 
+\end{frame}
+
+%==========================================================================
+\begin{frame}[fragile]{Using Kokkos Checks}
+  
+  \textbf{\ul{Usage Examples: As part of clangd}}
+  \begin{code}[linebackgroundcolor={},
+      keywords={}, frame=single
+    ]
+void fooOOPS(int i) { printf("%i\n", i); }
+
+int main(int argc, char **argv) {
+  // Initialize  ...
+  Kokkos::parallel_for(15, KOKKOS_LAMBDA(int i) {
+       fooOOPS(i); @orangeFunction 'fooOOPS' called in lambda...@orange
+      });
+  }
+  // Finalize ...
+}
+  \end{code}
+
+  \href{https://clangd.llvm.org/}{clangd is a language server that can work with many editors via a plugin.}
+
+  \vspace{20pt}
+
+  \href{https://github.com/kokkos/kokkos-tutorials/blob/main/LectureSeries/KokkosTutorial_07_ClangSA.mp4}{Video Demo Of Clang Tools}
+
+\end{frame}
+
+%========================================================================== 
+\begin{frame}[fragile]{Existing and Planned Checks}
+  
+  {\huge State of The Tool}
+
+  \textbf{\ul{Current Checks}}
+  \begin{itemize}
+    \item Ensure KOKKOS\_FUNCTION (the one you saw here)
+    \item KOKKOS\_LAMBDA captures implicit this
+  \end{itemize}
+
+  \textbf{\ul{Beta and planned checks}}
+  \begin{itemize}
+    \item parallel\_reduce functor takes argument by reference
+    \item Nested reference lambda capture const behavior
+    \item Unallowed types like std::vector in Kokkos contexts
+    \item Force users to provide names for kernels
+  \end{itemize}
+
+  \textbf{\ul{Your Issue?}}
+  \begin{itemize}
+      \item \textbf{Send us your requests:} \href{https://github.com/kokkos/llvm-project}{kokkos/llvm-project}
+  \end{itemize}
+\end{frame}

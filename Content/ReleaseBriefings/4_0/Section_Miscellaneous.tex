@@ -1,0 +1,93 @@
+%==========================================================================
+
+\begin{frame}[fragile]
+
+  {\Huge Miscellaneous}
+
+  \vspace{10pt}
+
+  \textbf{Content:}
+  \begin{itemize}
+    \item {\texttt{View} value type requirements}
+    \item {\texttt{parallel\_scan} with \texttt{View} return type}
+    \item {Numerics update}
+    \item {Drop volatile support from Atomic Views}
+  \end{itemize}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{\texttt{View} Value Type Requirements}
+Prior to Kokkos 4.0, the value type for a \texttt{View} must be default-constructible.
+
+This is not required anymore if
+\begin{itemize}
+  \item {the \texttt{View} is created with \texttt{WithoutInitializing}}
+  \item {the value type is implicit-lifetime (it doesn't require a constructor for the type to be properly initialized), or}
+  \item {the user initializes the View using placement new in a subsequent kernel}
+  \item {Kokkos will not call the destructor, it will just deallocate memory}
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{\texttt{View} Value Type Requirements}
+\begin{code}
+#include <Kokkos_Core.hpp>
+
+struct MyValueType
+{
+  double value;
+  MyValueType(double d) : value(d) {}
+};
+
+int main() {
+  using namespace Kokkos;
+  ScopeGuard guard;
+
+  // View<MyValueType*> view("view", 10); // doesn't compile
+  View<MyValueType*> view(
+    view_alloc("view", WithoutInitializing), 10);
+
+  parallel_for(10, KOKKOS_LAMBDA(int i) {
+    new (&view(i)) MyValueType(1.); // placement new
+    view(i) = MyValueType(1.); // simple assignment
+    printf("%f\n", view(i).value);
+  });
+}
+\end{code}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{\texttt{parallel\_scan} with \texttt{View} return type}
+\texttt{paralle\_scan} Interface (also without \texttt{std::string}):
+\begin{code}
+template<class ExecPolicy, class FunctorType>
+parallel_scan(const std::string&, const ExecPolicy&,
+              const FunctorType&);
+
+template<class ExecPolicy, class FunctorType, class ReturnType>
+parallel_scan(const std::string&, const ExecPolicy&,
+              const FunctorType&, ReturnType&);
+\end{code}
+
+New: \texttt{ReturnType} can be a \texttt{View} \\
+~\\
+Reminder: \texttt{parallel\_scan} is (potentially) asynchronous, just like \texttt{parallel\_reduce} depending on the memory space of the return type if any.
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Numerics update}
+
+\begin{itemize}
+\item Promoted math constants to \texttt{Kokkos::numbers::} namespace
+\item Added overloads of \texttt{hypot} that take 3 arguments
+\item Added \texttt{fma} fused multiply-add math function
+\item Support finding \texttt{libquadmath} with native compiler support
+\item Dropped \texttt{reciprocal\_overflow\_threshold} numeric trait
+\item Moved \texttt{reduction\_identity} out of \texttt{<Kokkos\_NumericTraits.hpp>} into a new \texttt{<Kokkos\_ReductionIdentity.hpp>} header (guarded with \texttt{\#ifdef KOKKOS\_ENABLE\_DEPRECATED\_CODE\_4})
+\end{itemize}
+
+\end{frame}
+

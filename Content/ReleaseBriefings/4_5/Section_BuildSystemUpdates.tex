@@ -1,0 +1,40 @@
+%==========================================================================
+
+\begin{frame}[fragile]
+
+  {\Huge Build Systems Updates}
+
+  \vspace{10pt}
+
+\end{frame}
+
+%==========================================================================
+
+% Examples
+
+% note: always keep the [fragile] for your frames!
+
+\begin{frame}[fragile]{Build System Updates (1/2)}
+  Adding a RISC-V CPU with vectorization
+  \begin{itemize}
+      \item Support RISC-V CPUs (RVA22V) with the latest vectorization specification.
+      \item CMake option \texttt{Kokkos\_ARCH\_RISCV\_RVA22V}
+  \end{itemize}
+
+  Major refactoring removing `TriBITS` paths
+  \begin{itemize}
+      \item Remove full \texttt{TriBITS} build option via Trilinos.
+      \item Adding necessary options to the CMake build system.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Build System Updates (2/2)}
+  \begin{itemize}
+      \item Make CUDA related CMake options dependent options of \texttt{Kokkos\_ENABLE\_CUDA}
+      \item CMake option \texttt{IMPL\_CUDA\_MALLOC\_ASYNC} default is \texttt{OFF} if CUDA backend is not enabled.
+      It should fix issues with some MPI implementations (Cray-MPICH, Bull, \ldots) or user codes relying on shared memory between processes.
+  \end{itemize}
+\end{frame}
+
+
+%==========================================================================

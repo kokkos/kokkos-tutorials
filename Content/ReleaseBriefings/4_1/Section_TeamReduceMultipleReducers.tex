@@ -1,0 +1,74 @@
+
+%==========================================================================
+
+\begin{frame}[fragile]
+
+  {\Huge Multiple Reducers for Nested Parallel Reduce}
+
+  \vspace{10pt}
+
+  \textbf{Content: Team-level parallel reduce with multiple reducers}
+  \begin{itemize}
+    \item Extended reducer capabilities in nested \texttt{parallel\_reduce}
+    \item Allow multiple reductions in a single team \texttt{parallel\_reduce}
+    \item Supported for \texttt{TeamThreadRange}, \texttt{ThreadVectorRange} and \texttt{TeamVectorRange} policies
+    \begin{itemize}
+      \item Not available for \texttt{TeamMDRangePolicies} for now
+    \end{itemize}
+  \end{itemize}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Multiple Reducers Interface}
+
+\begin{code}[keywords={Team Parallel Reduce with Multiple Reducers}]
+template <typename TeamPolicy, typename FunctorType,
+          typename... ReducerArgument>
+Kokkos::parallel_reduce(const TeamPolicy& policy,
+                        const FunctorType& functor,
+                        const ReducerArgument&... reducer);
+\end{code}
+
+\begin{code}[keywords={Team Parallel Reduce with Multiple Reduction Results}]
+template <typename TeamPolicy, typename FunctorType,
+          typename... ReducerArgumentNonConst>
+Kokkos::parallel_reduce(const TeamPolicy& policy,
+                        const FunctorType& functor,
+                        ReducerArgumentNonConst&... reducer);
+
+\end{code}
+
+\begin{itemize}
+  \item The number of reducers and the number of functor's reducer value arguments must match. 
+\end{itemize}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Multiple Reducers Example}
+  
+  \begin{code}[keywords={TeamThreadMDRange}]
+    
+Kokkos::parallel_for(
+  policy, KOKKOS_LAMBDA(team_member_type const& team) {
+    /* ... */
+    
+    Kokkos::parallel_reduce(
+      teamPolicy,
+      [=](int& i, int& arg0, int& arg1, int& arg2, int& arg3) {
+        /* ... */
+      },
+      result0, Kokkos::Prod<int>(result1),
+      Kokkos::Max<int>(result2), result3);
+  }
+);
+
+\end{code}
+
+\end{frame}
+
+%==========================================================================
+

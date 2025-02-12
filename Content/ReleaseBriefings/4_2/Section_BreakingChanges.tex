@@ -1,0 +1,35 @@
+\begin{frame}[fragile]{Incompatibilities}
+\begin{itemize}
+\item Ensure that \texttt{Kokkos::complex} only gets instantiated for
+      cv-unqualified floating-point types.
+\begin{code}
+Kokkos::abs<int>(val);  // used to compile and probably did
+                        // not do what you think it does...
+\end{code}
+\item Removed (\texttt{DEPRECATED\_CODE\_3}) support for volatile join
+      operators in reductions.
+\item Raise an error at compile time when passing \texttt{view\_alloc} with
+      invalid arguments to \texttt{create\_mirror[\_view]} instead of silently
+      ignoring them.
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Incompatibilities}
+\begin{itemize}
+\item Purge \texttt{\#include <iostream>} from Kokkos headers
+\begin{code}
+#include <Kokkos_Core.hpp>
+// Include what you use
+
+int main(int argc, char *argv[])
+{
+  Kokkos::intialize(argc, argv);
+  // error: 'cout' is not a member of 'std'
+  std::cout << "hi world\n";
+  Kokkos::finalize();
+  return 0;
+}
+\end{code}
+\end{itemize}
+\end{frame}
+

@@ -1,0 +1,147 @@
+
+%==========================================================================
+
+\begin{frame}[fragile]{}
+
+  {\Huge CMake Build Language}
+
+  \vspace{10pt}
+
+  \textbf{Content:}
+  \begin{itemize}
+    \item {Using CMakes Language Extension Support}
+    \item {CUDA for Windows}
+  \end{itemize}
+
+  \vspace{-20pt}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{What is CMake Language Support}
+   Every source file CMake compiles has a \textit{language}
+
+   \begin{itemize}
+     \item {Default == file extension (.cpp, .c, .f90, ...)}
+     \item {But you can set it: \texttt{set\_source\_files\_properties(f.bar PROPERTIES LANGUAGE CXX)}}
+   \end{itemize}
+
+   \textbf{Why does this matter for Kokkos?}
+
+   \vspace{10pt}
+   CMake treats some language extensions that way, but not all:
+   
+   \begin{itemize}
+     \item {CUDA $->$ CMake language \texttt{CUDA}}
+     \item {HIP $->$ CMake language \texttt{HIP}}
+     \item {OpenMP $->$ \textbf{Not} a CMake language.}
+     \item {SYCL $->$ \textbf{Not} a CMake language.}
+   \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Kokkos and CMake Language}
+
+  \textbf{Pre 3.6 behavior}
+
+  \begin{itemize}
+    \item {All Kokkos containing files are C++ files (CXX)}
+    \item {Kokkos's build system adds compiler flags to make files CUDA, HIP, OpenMP, or SYCL}
+    \begin{itemize}
+      \item {We add \texttt{-fopenmp, -x cu, ...}}
+    \end{itemize}
+    \item {We use \texttt{nvcc\_wrapper} to make CMake not choke on \texttt{nvcc}}
+  \end{itemize}
+
+  \textbf{Advantages:}
+  \begin{itemize}
+    \item {Flags can be obtained via depending on target, language \texttt{NOT}}
+    \item {Support for HIP before CMake supported it}
+    \item {No need for users to set the correct language for each file - \textit{Note:} the \textit{need} propagates, the setting doesn't ...}
+  \end{itemize}
+
+  \textbf{Drawbacks:}
+  \begin{itemize}
+    \item {Not fully using CMakes native CUDA and HIP support}
+    \item {\texttt{nvcc\_wrapper} only works on Linux}
+  \end{itemize}
+
+	
+\end{frame}
+
+
+\begin{frame}[fragile]{Kokkos and CMake Language}
+
+  \textbf{3.6 behavior}
+
+  
+  \begin{itemize}
+    \item {Default: same as pre 3.6}
+    \item {Set \texttt{-DKokkos\_ENABLE\_COMPILE\_AS\_CMAKE\_LANGUAGE=ON} to use CMake Language mode.}
+    \item {Use \texttt{set\_source\_files\_properties} on each source file depending on Kokkos}
+    \begin{itemize}
+      \item{We export \texttt{Kokkos\_COMPILE\_LANGUAGE} to make that portable}
+    \end{itemize}
+  \end{itemize}
+
+  \textbf{Pifalls:}
+  \begin{itemize}
+    \item {\texttt{CMAKE\_CXX\_FLAGS} unused by Kokkos files}
+    \begin{itemize} 
+      \item{\texttt{CMAKE\_CUDA\_FLAGS} for CUDA (equiv. for HIP)}
+      \item{\texttt{CMAKE\_CXX\_FLAGS} for SYCL/OpenMP etc.}
+    \end{itemize}
+    \item{YOU need to set \texttt{CMAKE\_CUDA\_ARCHITECTURES} downstream}
+    \item{YOU need to add \texttt{Kokkos\_COMPILE\_LANGUAGE} to your project!}
+    \item{For libraries: your users need to set all this too ..}
+    \item{Interaction with MPI Wrappers iffy ...}
+  \end{itemize}
+
+
+\end{frame}
+
+\begin{frame}[fragile]{CMake Language Example}
+\textbf{Configure Kokkos:}
+\begin{lstlisting}[language=bash]
+cmake -DKokkos_ENABLE_CUDA=ON -DKokkos_ARCH_VOLTA70=ON \
+  -DKokkos_ENABLE_COMPILE_AS_CMAKE_LANGUAGE=ON ${KOKKOS_SOURCE}
+\end{lstlisting}
+
+\textbf{Project CMakeLists.txt:}
+\begin{lstlisting}[language=bash]
+#find Kokkos before project declaration
+find_package(Kokkos COMPONENTS separable_compilation)
+
+project(Example CXX Fortran ${Kokkos_COMPILE_LANGUAGE})
+
+set_source_files_properties(cmake_example.cpp PROPERTIES 
+  LANGUAGE \${Kokkos_COMPILER_LANGUAGE})
+
+add_executable(example cmake_example.cpp bar.cpp foo.f)
+
+target_link_libraries(example Kokkos::kokkos)
+\end{lstlisting}
+
+\textbf{Configure Project:}
+
+\begin{lstlisting}[language=bash]
+cmake -DCMAKE_CUDA_ARCHITECTURES=70 ${PROJECT_SOURCE}
+\end{lstlisting}
+
+\end{frame}
+
+\begin{frame}[fragile]{When Should One Use This?}
+\textbf{Why should I use this, with all the complication?}
+\begin{itemize}
+  \item{You may want to use native CMake CUDA/HIP support}
+  \item{You may hate \texttt{nvcc\_wrapper}}
+  \item{But most importantly:}
+\end{itemize}
+
+\begin{center}
+\textbf{This works in Visual Studio for MSVC + NVCC!}
+\end{center}
+
+\end{frame}
+%==========================================================================
+%

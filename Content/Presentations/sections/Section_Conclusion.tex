@@ -1,0 +1,34 @@
+\begin{frame}{Conclusion}
+
+  \textbf{Kokkos advanced capabilities NOT covered today}
+
+  \begin{itemize}
+  \item  Directed acyclic graph (DAG) of tasks pattern
+    \begin{itemize}
+    \item Dynamic graph of heterogeneous tasks (maximum flexibility)
+    \item Static graph of homogeneous task (low overhead)
+    \end{itemize}
+  \item  Portable, thread scalable memory pool
+  \item  Plugging in customized multidimensional array data layout
+    \\ \hspace{10pt} \textit{e.g.}, arbitrarily strided, hierarchical tiling
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}{Conclusion: Takeaways}
+
+  \begin{itemize}
+  \item {For \textbf{portability}: OpenMP, OpenACC, ... or Kokkos.}
+  \item {Only Kokkos obtains performant memory access patterns via \textbf{architecture-aware} arrays and work mapping.
+    \\ \hspace{10pt} \emph{i.e.}, not just portable, \emph{performance portable}.}
+  \item {With Kokkos, \textbf{simple things stay simple} (parallel-for, etc.).
+    \\ \hspace{10pt} \emph{i.e.}, it's \emph{no more difficult} than OpenMP.}
+  \item {\textbf{Advanced performance-optimizing patterns are simpler} with Kokkos than with native versions. \\
+         \hspace{10pt} \emph{i.e.}, you're \emph{not missing out} on advanced features.}
+    \begin{itemize}
+    \item {\textit{full day tutorial only}}
+    \end{itemize}
+  \end{itemize}
+
+\end{frame}
+

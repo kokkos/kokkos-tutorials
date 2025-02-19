@@ -155,22 +155,28 @@ struct GenRandom {
 //  1) cycle on the sample size and compare pi vs sample size.
 //  2) integer bit-size variation (64 vs 1024).
 
+void checkSizes(int& N, int& dart_groups);
 
 int main(int argc, char* args[]) {
 
-  if ( argc < 2 ) {
-    printf("RNG Example: Need at least one argument (number darts) to run; second optional argument for serial_iterations\n");
-    return (-1);
+  int N = -1;            // Number of darts, 2^N
+  int dart_groups = -1;  // Number of darts to draw per thread
+
+  if ( argc > 1 ) {
+    N = std::atoi(args[1]);
+    printf("User N is %d\n", N);
   }
+  if ( argc > 2 ) {
+    dart_groups = std::atoi(args[2]);
+    printf("User dart_groups is %d\n", dart_groups);
+  }
+
+  checkSizes(N, dart_groups);
 
   Kokkos::initialize(argc,args);
   {
-    const double rad = 1.0; // target radius (also box size)
-    const long N = atoi(args[1]); // exponent used to create number of darts, 2^N
-
-    const long dart_groups = argc > 2 ? atoi(args[2]) : 1 ;
-
-    const long darts = std::pow(2,N);    // number of dart throws
+    const double rad = 1.0;            // target radius (also box size)
+    const long darts = std::pow(2,N);  // number of dart throws
 
     const double pi = 3.14159265358979323846 ;
     printf( "Reference Value for pi:  %lf\n",pi);
@@ -194,3 +200,17 @@ int main(int argc, char* args[]) {
   return 0;
 }
 
+void checkSizes(int& N, int& dart_groups) 
+{
+  if ( N == -1 && dart_groups == -1 ) {
+    printf("RNG Example Options:\n");
+    printf("  <int> : Number of darts 2^N (default: 2^22)\n");
+    printf("  <int> : Number of darts to draw per thread (default: 1)\n");
+  }
+  if ( N == -1 ) {
+    N = 22;
+  }
+  if ( dart_groups == -1 ) {
+    dart_groups = 1;
+  }
+}

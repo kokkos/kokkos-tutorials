@@ -60,11 +60,17 @@ jobs:
       run: cmake --build "${GITHUB_WORKSPACE}"/build-kokkos-kernels --config RelWithDebInfo --parallel 2 --target install
 
     - name: Configure and Build Exercises
+      run: >
+        bash "${GITHUB_WORKSPACE}"/kokkos-tutorials/Scripts/ci-configure-build-test.sh
+        "${GITHUB_WORKSPACE}"/install-kokkos/lib/cmake/Kokkos
+        "${GITHUB_WORKSPACE}"/install-kokkos-kernels
+        "${GITHUB_WORKSPACE}"/kokkos-tutorials
+        "${GITHUB_WORKSPACE}"/kokkos/bin/nvcc_wrapper 
+        RelWithDebInfo 
+        CUDA
+
+    - name: Run Solutions
       run: |
-        bash "${GITHUB_WORKSPACE}"/kokkos-tutorials/Scripts/ci-configure-build-test.sh \
-        "${GITHUB_WORKSPACE}"/install-kokkos/lib/cmake/Kokkos \
-        "${GITHUB_WORKSPACE}"/install-kokkos-kernels \
+        bash "${GITHUB_WORKSPACE}"/kokkos-tutorials/Scripts/ci-run-solutions.sh \
         "${GITHUB_WORKSPACE}"/kokkos-tutorials \
-        "${GITHUB_WORKSPACE}"/kokkos/bin/nvcc_wrapper \
-        RelWithDebInfo \
         CUDA

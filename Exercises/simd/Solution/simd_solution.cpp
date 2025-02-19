@@ -4,105 +4,125 @@
 #include<Kokkos_Core.hpp>
 #include<Kokkos_SIMD.hpp>
 
-void test_simd(int N_in, int M, int R, double a) {
+#include <limits>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
   using simd_t = Kokkos::Experimental::simd<double>;
 
-  int N = N_in/simd_t::size();
+  // Create simd views.
+  Kokkos::View<simd_t*, Layout, MemSpace> x( "x", M_simd);;
+  Kokkos::View<simd_t**, Layout, MemSpace> A( "A", N, M_simd);  
 
-  Kokkos::View<simd_t**,Kokkos::LayoutLeft> data("D",N,M);
-  Kokkos::View<simd_t*> results("R",N);
+  // Unmanaged views for initialization.
+  Kokkos::View<double*, Layout, MemSpace> x_scalar((double*)x.data(), M);
+  Kokkos::View<double**, Layout, MemSpace> A_scalar((double*)A.data(), N, M);
+  Kokkos::View<double*, Layout, MemSpace> y( "y", N);
 
-  // For the final reduction we gonna need a scalar view of the data for now
-  // Relying on knowing the data layout, we will add SIMD Layouts later
-  // so that simple copy construction/assignment would work
-  Kokkos::View<double**, Kokkos::LayoutLeft> data_scalar((double*)data.data(),N_in,M);
-  Kokkos::View<double*> results_scalar((double*)results.data(),N_in);
-
-  // Lets fill the input data using scalar view
-  Kokkos::parallel_for("init",data_scalar.extent(0), KOKKOS_LAMBDA(const int i) {
-      for (int j=0; j<data_scalar.extent(1); j++)
-        data_scalar(i,j) = i%8;
-    });
-  Kokkos::deep_copy(results,simd_t(0.0));
-
-  Kokkos::Timer timer;
-  for(int r = 0; r<R; r++) {
-    Kokkos::parallel_for("Combine",data.extent(0), KOKKOS_LAMBDA(const int i) {
-      simd_t tmp = 0.0;
-      double b = a;
-      for(int j=0; j<data.extent(1); j++) {
-        tmp += b * data(i,j);
-        b+=a+1.0*(j+1);
-      }
-      results(i) = tmp;
-    });
-    Kokkos::fence();
+  // Initialize y vector.
+  for ( int i = 0; i < N; ++i ) {
+    y( i ) = 1;
+  }
+  // Initialize x vector.
+  for ( int i = 0; i < M; ++i ) {
+    x_scalar( i ) = 1;
+  }
+  // Initialize A matrix.
+  for ( int j = 0; j < N; ++j ) {
+    for ( int i = 0; i < M; ++i ) {
+      A_scalar( j, i ) = 1;
+    }
   }
 
+  // Timer products.
+  Kokkos::Timer timer;
+
+  for ( int repeat = 0; repeat < nrepeat; repeat++ ) {
+    // Application: <y,Ax> = y^T*A*x
+    double result = 0;
+
+    Kokkos::parallel_reduce( "yAx", range_policy( 0, N ), KOKKOS_LAMBDA ( int j, double &update ) {
+      simd_t temp2(0.0);
+      for ( int i = 0; i < M_simd; ++i ) {
+        temp2 += A( j, i ) * x( i );
+      }       
+      // Accumulate the result for each SIMD lane.
+      for ( std::size_t i = 0; i < simd_t::size(); ++i) {
+        update += y(j) * temp2[i];
+      }
+    }, result );
+    
+    // Output result.
+    if ( repeat == ( nrepeat - 1 ) ) {
+      printf( "  Computed result for %d x %d is %lf\n", N, M, result );
+    }
+
+    const double solution = (double) N * (double) M;
+
+    if ( result != solution ) {
+      printf( "  Error: result( %lf ) != solution( %lf )\n", result, solution );
+    }
+  }
+
+  // Calculate time.
   double time = timer.seconds();
 
-  double value = 0.0;
-  // Lets do the reduction here
-  Kokkos::parallel_reduce("Reduce",results_scalar.extent(0), KOKKOS_LAMBDA(const int i, double& lsum) {
-    lsum += results_scalar(i);
-  },value);
+  // Calculate bandwidth.
+  // Each matrix A row (each of length M) is read once.
+  // The x vector (of length M) is read N times.
+  // The y vector (of length N) is read once.
+  // double Gbytes = 1.0e-9 * double( sizeof(double) * ( 2 * M * N + N ) );
+  double Gbytes = 1.0e-9 * double( sizeof(double) * ( M + M * N + N ) );
 
-  printf("SIMD Time: %lf ms ( %e )\n",time*1000,value);
-}
+  // Print results (problem size, time and bandwidth in GB/s).
+  printf( "  N( %d ) M( %d ) nrepeat ( %d ) problem( %g MB ) time( %g s ) bandwidth( %g GB/s )\n",
+          N, M, nrepeat, Gbytes * 1000, time, Gbytes * nrepeat / time );
 
-void test_scalar(int N, int M, int R, double a) {
-
-  Kokkos::View<double**, Kokkos::LayoutLeft> data("D",N,M);
-  Kokkos::View<double*> results("R",N);
-
-  // Lets fill the input data
-  Kokkos::parallel_for("init",data.extent(0), KOKKOS_LAMBDA(const int i) {
-      for (int j=0; j<data.extent(1); j++)
-        data(i,j) = i%8;
-    });
-  Kokkos::deep_copy(results,0.0);
-
-  Kokkos::Timer timer;
-  for(int r = 0; r<R; r++) {
-    Kokkos::parallel_for("Combine",data.extent(0), KOKKOS_LAMBDA(const int i) {
-      double tmp = 0.0;
-      double b = a;
-      for(int j=0; j<data.extent(1); j++) {
-        tmp += b * data(i,j);
-        b+=a+1.0*(j+1);
-      }
-      results(i) = tmp;
-    });
-    Kokkos::fence();
   }
-
-  double time = timer.seconds();
-
-  double value = 0.0;
-  Kokkos::parallel_reduce("Reduce",N, KOKKOS_LAMBDA(const int i, double& lsum) {
-    lsum += results(i);
-  },value);
-
-  printf("Scalar Time: %lf ms ( %e )\n",time*1000,value);
-}
-
-
-int main(int argc, char* argv[]) {
-  Kokkos::initialize(argc,argv);
-
-  int N = argc>1?atoi(argv[1]):320000;
-  int M = argc>2?atoi(argv[2]):3;
-  int R = argc>3?atoi(argv[3]):10;
-  double scal = argc>4?atof(argv[4]):1.5;
-
-  if(N%32) {
-    printf("Please choose an N dividable by 32\n");
-    return 0;
-  }
-
-  test_scalar(N,M,R,scal);
-  test_simd(N,M,R,scal);
-
   Kokkos::finalize();
+
+  return 0;
+}
+
+void checkSizes( int &N, int &M, int &S, int &nrepeat ) {
+  // If S is undefined and N or M is undefined, set S to 2^22 or the bigger of N and M.
+  if ( S == -1 && ( N == -1 || M == -1 ) ) {
+    S = pow( 2, 22 );
+    if ( S < N ) S = N;
+    if ( S < M ) S = M;
+  }
+
+  // If S is undefined and both N and M are defined, set S = N * M.
+  if ( S == -1 ) S = N * M;
+
+  // If both N and M are undefined, fix row length to the smaller of S and 2^10 = 1024.
+  if ( N == -1 && M == -1 ) {
+    if ( S > 1024 ) {
+      M = 1024;
+    }
+    else {
+      M = S;
+    }
+  }
+
+  // If only M is undefined, set it.
+  if ( M == -1 ) M = S / N;
+
+  // If N is undefined, set it.
+  if ( N == -1 ) N = S / M;
+
+  printf( "  Total size S = %d N = %d M = %d\n", S, N, M );
+
+  // Check sizes.
+  if ( ( S < 0 ) || ( N < 0 ) || ( M < 0 ) || ( nrepeat < 0 ) ) {
+    printf( "  Sizes must be greater than 0.\n" );
+    exit( 1 );
+  }
+
+  if ( ( N * M ) != S ) {
+    printf( "  N * M != S\n" );
+    exit( 1 );
+  }
 }

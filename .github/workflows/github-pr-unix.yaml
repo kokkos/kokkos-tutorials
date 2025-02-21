@@ -3,7 +3,7 @@ name: Hosted Runners (unix)
 on:
   push:
   pull_request:
-    branches: [ "main" ]
+    branches: [ "ci-test" ]
   workflow_dispatch:
 
 jobs:
@@ -59,6 +59,8 @@ jobs:
         -DCMAKE_INSTALL_PREFIX="${GITHUB_WORKSPACE}"/install-kokkos
         -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
         -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+        -DKokkos_ENABLE_${{ matrix.backend }}=ON
+        -DKokkos_ENABLE_SERIAL=ON
         -DKokkos_ENABLE_COMPILER_WARNINGS=ON
 
     - name: Build & Install Kokkos

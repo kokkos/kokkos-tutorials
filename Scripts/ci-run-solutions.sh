@@ -42,7 +42,6 @@ if [ "$backend" == CUDA ]; then
 fi
 
 if [ ! "$backend" == CUDA ]; then
-  SOLUTION_EXERCISES+=(tasking)
   SOLUTION_EXERCISES+=(virtualfunction)
 fi
 

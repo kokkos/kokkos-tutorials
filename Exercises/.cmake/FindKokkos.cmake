@@ -36,7 +36,7 @@ elseif (NOT KokkosTutorials_FORCE_EXTERNAL_Kokkos)
         FetchContent_Declare(
                 Kokkos
                 GIT_REPOSITORY https://github.com/kokkos/kokkos.git
-                GIT_TAG 4.0.01
+                GIT_TAG 4.5.01
                 SOURCE_DIR ${KokkosTutorials_KOKKOS_SOURCE_DIR}
         )
         FetchContent_MakeAvailable(Kokkos)

@@ -1,4 +1,5 @@
-#include<Kokkos_Core.hpp>
+#include <Kokkos_Core.hpp>
+#include <iostream>
 
 using atomic_2d_view = Kokkos::View<int**, Kokkos::DefaultExecutionSpace, 
                                            Kokkos::MemoryTraits<Kokkos::Atomic> >;

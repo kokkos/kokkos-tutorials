@@ -1,4 +1,4 @@
-#include<classes.hpp>
+#include "classes.hpp"
 
 KOKKOS_FUNCTION
 Foo::Foo() {

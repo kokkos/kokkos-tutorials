@@ -1,0 +1,110 @@
+
+%==========================================================================
+
+\begin{frame}[fragile]
+
+  {\Huge Backend Updates}
+
+  \vspace{10pt}
+
+  \textbf{Content:}
+  \begin{itemize}
+    \item Backend Updates CUDA
+    \item Backend Updates HIP
+    \item Backend Updates SYCL
+    \item Backend Updates OpenMPTarget
+    \item Backend Updates OpenACC
+  \end{itemize}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}{Backend Updates CUDA}
+\textbf{Miscellaneous}
+\begin{itemize}
+\item Link against CUDA libraries even with KOKKOS\_ENABLE\_COMPILE\_AS\_CMAKE\_LANGUAGE
+\item Don't use the compiler launcher script if the compile language is CUDA.
+\item nvcc(wrapper): adding "long" and "short" versions for all flags
+\end{itemize}
+
+\textbf{Multi-GPU Support from single process}
+\begin{itemize}
+\item Highly Experimental! (But most things should work now)
+\item For now: via interoperability interfaces - i.e. no native interface to create execution space instances on different GPU
+\item If you have interest: try it out and provide feedback
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Backend Updates CUDA}
+\texttt{CUDA - multi-GPU support}
+\begin{code}
+  cudaStream_t[2] streams;
+  cudaSetDevice(0);
+  cudaStreamCreate(&streams[0]));
+  cudaSetDevice(1);
+  cudaStreamCreate(&streams[1]));
+  {
+    Kokkos::Cuda exec0(streams[0]), exec1[streams[1]);
+
+    Kokkos::View<int *, TEST_EXECSPACE> view(Kokkos::view_alloc("v0", exec0), n);
+    Kokkos::View<int *, TEST_EXECSPACE> view(Kokkos::view_alloc("v1", exec1), m);
+
+    // run concurrently
+    Kokkos::parallel_for(Kokkos::RangePolicy<Cuda>(exec0, 0, n), functor);
+    Kokkos::parallel_for(Kokkos::RangePolicy<Cuda>(exec1, 0, m), functor);
+  }
+  cudaStreamDestroy(streams[0]);
+  cudaStreamDestroy(streams[1]);
+\end{code}
+\end{frame}
+
+
+\begin{frame}[fragile]{Backend Updates HIP}
+\begin{itemize}
+\item Fix compilation error with amdclang++ 5.7 and newer when
+  relocatable device code is enabled. We are aware of issues with older
+  versions of amdclang++ when relocatable device code is enabled.
+\item Added support for rocThrust (used in sort). Note that some
+  installation of ROCm do not have rocThrust installed. rocThrust support
+  can be enable/disabled using kokkos\_ENABLE\_ROCTHRUST
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Backend Updates SYCL}
+\begin{itemize}
+\item Only allow ext\_oneapi\_*-type devices when targeting GPUs
+\item Avoid unnecessary zero-memset of the scratch flags in SYCL
+\item Use host-pinned memory to copy reduction/scan result
+\item Address deprecations after oneAPI 2023.2.0 
+\item Make sure to call find\_dependency for oneDPL if necessary
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Backend Updates OpenMPTarget}
+\begin{itemize}
+\item Intel GPUs - Allow printing from GPUs.
+\item NVIDIA and AMD GPUs - LLVM extensions for dynamic shared memory
+\begin{itemize}
+    \item Available since LLVM/18
+    \item Only available in upstream LLVM 
+    \item Not part of OpenMP API
+\end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Backend Updates OpenACC}
+\begin{itemize}
+\item Add support for atomic operations
+\begin{itemize}
+    \item OpenACC does not support atomic-compare-exchange operations; implemented using CUDA intrinics (atomicCAS).
+    \item Can be compiled by NVIDIA NVHPC compiler (nvc++) but not by CLACC compiler.
+    \item Support only NVIDIA GPUs.
+\end{itemize}
+\item Change the default execution policy behavior from synchronous to asynchronous executions.
+\end{itemize}
+\end{frame}
+
+
+%==========================================================================
+

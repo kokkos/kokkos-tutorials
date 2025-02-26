@@ -1,0 +1,84 @@
+
+%==========================================================================
+
+\begin{frame}[fragile]
+
+  {\Huge Team- and Thread-Level (Nested) Sorting}
+
+  \vspace{10pt}
+
+  \textbf{Content:}
+  Sorting routines that use nested parallelism
+  \begin{itemize}
+    \item Callable from within a TeamPolicy kernel
+    \item Sort a View using the calling team or thread
+    \begin{itemize}
+      \item View may be in global or scratch memory
+    \end{itemize}
+    \item \texttt{sort}, \texttt{sort\_by\_key} functions
+    \item Allow custom comparators
+    \item In-place, not stable
+  \end{itemize}
+
+  \vspace{10pt}
+
+  More sorting capabilities to come in the next releases.
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Nested Sorting}
+
+New functions:
+
+\vspace{10pt}
+
+\begin{itemize}
+  \item \texttt{\#include "Kokkos\_NestedSort.hpp"}
+  \item In namespace \texttt{Kokkos::Experimental}:
+  \begin{itemize}
+    \item \texttt{sort\_team(teamMem, view[, compare])}
+    \item \texttt{sort\_by\_key\_team(teamMem, keys, values[, compare])}
+    \item \texttt{sort\_thread(teamMem, view[, compare])}
+    \item \texttt{sort\_by\_key\_thread(teamMem, keys, values[, compare])}
+  \end{itemize}
+\end{itemize}
+
+\vspace{10pt}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Nested Sorting}
+
+Arguments to new functions:
+
+\vspace{10pt}
+
+\begin{itemize}
+  \item \texttt{teamMem}: the \texttt{TeamPolicy::member\_type} passed to your kernel
+  \item \texttt{sort} functions take a single view
+  \begin{itemize}
+    \item \texttt{view}: a \texttt{View} to sort
+  \end{itemize}
+  \item \texttt{sort\_by\_key} functions sort key/value pairs according to key:
+  \begin{itemize}
+    \item \texttt{keys}: a \texttt{View} of keys to sort
+    \item \texttt{values}: a \texttt{View} to permute along with the keys
+  \end{itemize}
+  \item \texttt{compare} (optional): a comparator object/predicate
+  \begin{itemize}
+    \item If not provided, sort ascending (\texttt{operator<})
+    \item Otherwise: \texttt{compare(a, b)} returns true iff. \texttt{a} precedes \texttt{b}
+    \begin{itemize}
+      \item Defined as: \texttt{bool operator()(a, b) const}
+    \end{itemize}
+  \end{itemize}
+\end{itemize}
+
+\vspace{10pt}
+
+\end{frame}
+

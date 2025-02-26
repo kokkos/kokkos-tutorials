@@ -1,0 +1,67 @@
+%==========================================================================
+
+\begin{frame}[fragile]
+
+  {\Huge Bug Fixes}
+
+    \vspace{10pt}
+
+\end{frame}
+
+
+%==========================================================================
+
+\begin{frame}[fragile]{Bug Fixes - Inline static members variables}
+
+\begin{itemize}
+\item Fix using shared libraries and \texttt{--fvisibility=hidden}
+  \begin{itemize}
+  \item Used in python wrappers, \texttt{PETSc}, \texttt{RTLD\_DEEPBIND}, \dots
+  \item problematic with \texttt{inline static} member variables
+  \end{itemize}
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{Bug Fixes - Thread-Safety}
+  \begin{itemize}
+    \item Submitting kernels from multiple threads to the same execution space instance allowed
+    \item They are guaranteed not to run concurrently. 
+    \item Requires locks even in synchronous execution spaces like \texttt{Serial} and \texttt{OpenMP}.
+    \item Impact on View of View misuse and kernel in kernel calls.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Bug Fixes - Thread-Safety}
+\begin{code}
+  Kokkos::View<int> view("view");
+  Kokkos::View<int> error("error");
+  auto lambda = [=]() {
+    Kokkos::parallel_for(
+      Kokkos::RangePolicy<>(exec, 0, 1), KOKKOS_LAMBDA(int) {
+          Kokkos::atomic_store(view.data(), 0);
+          for (int i = 0; i < N; ++i) Kokkos::atomic_inc(view.data());
+          if (Kokkos::atomic_load(view.data()) != N)
+            Kokkos::atomic_store(error.data(), 1);
+        });
+  };
+  std::thread t1(lambda);
+  std::thread t2(lambda);
+  t1.join();
+  t2.join();
+\end{code}
+\end{frame}
+
+\begin{frame}[fragile]{Bug Fixes - Miscelleneous}
+\begin{itemize}
+\item Return \texttt{void} for \texttt{Experimental::for\_each}, matching \texttt{std::for\_each}
+\item Support views with non-default constructible values in \texttt{realloc}
+\item Fix undefined behavior in \texttt{View} initialization or fill with zeros
+\item Fix compilation of \texttt{sort\_by\_key} when using a host execution space in the CUDA build
+\item Fix view reference counting when functor copy constructor throws in parallel dispatch
+\item Copy \texttt{print\_configuration} settings when combining two \texttt{Kokkos::InitializationSettings} objects
+\end{itemize}
+
+\end{frame}
+
+%==========================================================================

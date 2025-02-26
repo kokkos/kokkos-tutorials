@@ -1,0 +1,20 @@
+\begin{frame}[fragile]{\texttt{Kokkos::printf}}
+\begin{itemize}
+\item Defined in header \texttt{<Kokkos\_Printf.hpp>} which is included from
+      \texttt{<Kokkos\_Core.hpp>}
+\item Prints formated output to the standard output stream
+\item Calling \texttt{Kokkos::printf()} from a kernel may affect register usage
+      and affect performance.
+\end{itemize}
+\begin{code}[keywords={printf}]
+#include <Kokkos_Core.hpp>
+
+int main(int argc, char* argv[]) {
+    Kokkos::initialize(argc, argv);
+    Kokkos::parallel_for(4, KOKKOS_LAMBDA(int i) {
+        Kokkos::printf("hi from thread %d\n", i);
+    });
+    Kokkos::finalize();
+}
+\end{code}
+\end{frame}

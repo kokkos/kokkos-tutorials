@@ -1,0 +1,106 @@
+%==========================================================================
+
+\begin{frame}[fragile]
+
+  {\Huge Backend Updates}
+
+  \vspace{10pt}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Backend Updates: CUDA and SYCL (1/5)}
+   \begin{description}[CUDA]
+     \item[CUDA] Add unified memory support for Grace Hopper
+       \begin{itemize}
+           \item Make \texttt{CudaSpace} accessible on the host
+         \item Need to opt-in with \texttt{Kokkos\_ENABLE\_IMPL\_CUDA\_UNIFIED\_MEMORY}
+         \item Introduced in 4.4.1
+       \end{itemize}
+     \item[SYCL] Move SYCL out of Experimental namespace
+     \item[SYCL] Add option \texttt{Kokkos\_ENABLE\_SYCL\_RELOCATABLE\_DEVICE\_CODE}
+   \end{description}
+\end{frame}
+
+\begin{frame}[fragile]{Backend Updates: HIP (2/5)}
+  \begin{description}[HIP]
+    \item[HIP] Add support GFX1103 architecture: "Phoenix" APUs, Ryzen 8000G, Radeon
+      740M, 760M, 780M, 880M, or 890M (ROCm does not officially support this
+      architecture)
+    \item[HIP] Update maximum waves per CU used for consumer cards (GFX1YYY)
+    \item[HIP] Warn if Kokkos runs on a different architecture than the one it was
+      compiled for
+    \item[HIP] Fix global launch of a kernel graph
+  \end{description}
+\end{frame}
+
+\begin{frame}[fragile]{Backend Updates: HIP (3/5)}
+  \begin{description}[HIP]
+    \item[HIP] Add opt-in option \texttt{Kokkos\_ENABLE\_IMPL\_HIP\_MALLOC\_ASYNC} to
+      use \texttt{hipMallocAsync} instead of \texttt{hipMalloc}. This will be
+      the default in the next release.
+    \item[HIP] Rework MI300 architecture flags
+      \begin{itemize}
+        \item For MI300A use \texttt{Kokkos\_ARCH\_AMD\_GFX942\_APU}
+        \item For MI300X use \texttt{Kokkos\_ARCH\_AMD\_GFX942}
+        \item \texttt{Kokkos\_ENABLE\_IMPL\_HIP\_UNIFIED\_MEMORY} has been
+          removed, use \texttt{Kokkos\_ARCH\_AMD\_GFX942\_APU}
+      \end{itemize}
+  \end{description}
+\end{frame}
+
+\begin{frame}[fragile]{Backend Updates: Threads and OpenMP (4/5)}
+   \begin{description}[OpenMP]
+     \item[Threads] Fix compilation for \texttt{parallel\_reduce} using
+       \texttt{MDRangePolicy} with \texttt{Dynamic} scheduling
+     \item[Threads] Fix race conditions on ARM architectures (use atomic types instead of \texttt{volatile})
+     \item[OpenMP] Fix run time behavior when compiling with
+       \texttt{-fvisibility-hidden} (backported into 4.4.1)
+     \item[OpenMP] Fix linking with Cray Clang-based compiler
+   \end{description}
+\end{frame}
+
+
+\begin{frame}[fragile]{Backend Updates: Others (5/5)}
+   \begin{description}[OpenACC]
+     \item[OpenACC] Add support for the Clacc compiler
+     \item[OpenACC] Workaround NVHPC bug when using \texttt{MDRangePolicy}
+     \item[HPX] Add \texttt{Experimental::partition\_space} to create
+       independent execution spaces
+     \item[Serial] \texttt{Kokkos\_ENABLE\_ATOMICS\_BYPASS} also skips mutexes to remediate performance
+       regression 
+   \end{description}
+\end{frame}
+
+%\begin{frame}[fragile]{Example list}
+%  \begin{itemize}
+%      \item Item 1
+%      \item Item 2 with some \texttt{code}
+%      \begin{itemize}
+%        \item Sub-item 2.1
+%        \item Sub-item 2.2
+%      \end{itemize}
+%  \end{itemize}
+%\end{frame}
+
+%\begin{frame}[fragile]{Example code}
+%    \begin{code}[keywords={std}]
+%        #include <iostream>
+%        
+%        int main() {
+%            std::cout << "hello world\n";
+%        }
+%    \end{code}
+%\end{frame}
+
+%\begin{frame}[fragile]{Example table}
+%    \begin{center}
+%        \begin{tabular}{l|l}
+%            a & b \\\hline
+%            c & d
+%        \end{tabular}
+%    \end{center}
+%\end{frame}
+
+%==========================================================================

@@ -1,0 +1,58 @@
+%==========================================================================
+
+\begin{frame}[fragile]
+
+        {\Huge Deprecations and other breaking changes}
+
+  \vspace{-20pt}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{\texttt{Kokkos\_ENABLE\_DEPRECATED\_CODE\_\{3,4\}}}
+
+\begin{itemize}
+\item Do not rely on \texttt{-DKokkos\_ENABLE\_DEPRECATED\_CODE\_3=ON} to build your code
+\item We reserve the right to remove code deprecated in the 3.X series at any time without prior notice
+\item New \texttt{Kokkos\_ENABLE\_DEPRECATED\_CODE\_4} configuration that is \texttt{ON} by default (for now)
+\item Will be supported for the remaining of the 4.X series
+\item As usual, unless you explicitly turn \texttt{Kokkos\_ENABLE\_DEPRECATION\_WARNINGS} \texttt{OFF} we will warn you when something is being deprecated
+\end{itemize}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Removing \texttt{DEPRECATED\_CODE\_3}}
+
+\begin{itemize}
+\item Code that was deprecated during the 3.X release series is now being removed
+  \begin{itemize}
+  \item There are just a handful exceptions we will leave in for one or two more minor releases to give more transition time
+  \end{itemize}
+\item Refer to the changelog or the deprecation pages in the wiki
+\item Best effort to keep the promise  
+  \begin{quote}
+  if your code builds against 3.7 with C++17 and deprecated code off, it will build against 4.0
+  \end{quote}
+  Except for ...
+  \begin{itemize}
+  \item \texttt{KOKKOS\_ACTIVE\_EXECUTION\_MEMORY\_SPACE\_*} (correcting oversight in release 3.6)
+  \item \texttt{Kokkos\_ENABLE\_CUDA\_LDG\_INTRINSIC} configuration option and macro (effectively was not used for a while)
+\end{itemize}
+\end{itemize}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Freshly deprecated (\texttt{DEPRECATED\_CODE\_4})}
+
+\begin{itemize}
+\item \texttt{ExecutionSpace::concurrency()} becomes a non-static member function
+\item Some \texttt{volatile} support in \texttt{Kokkos::pair} and \texttt{Kokkos::complex}
+\item \texttt{Kokkos\_ENABLE\_CUDA\_UVM} configuration option
+\end{itemize}
+
+\end{frame}

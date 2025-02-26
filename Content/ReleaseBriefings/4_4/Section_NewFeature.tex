@@ -1,0 +1,80 @@
+%==========================================================================
+
+\begin{frame}[fragile]
+
+  {\Huge mdspan Interoperability}
+  
+    \vspace{10pt}
+
+\end{frame}
+
+\begin{frame}[fragile]{What is mdspan?}
+\begin{itemize}
+  \item \texttt{std::mdspan} is a \textbf{non-owning} multidimensional view of data
+  \item Has many similarities to \texttt{Kokkos::View}, but unlike \texttt{View}, does not own memory or reference count.
+  \item Part of the C++23 standard, and is a major component of new standard C++ features like \texttt{std::linalg}
+  \item \texttt{std::mdspan} improves interoperability between code for array-like data
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{API}
+\begin{itemize}
+  \item We added conversion functions to and from \texttt{std::mdspan}
+\end{itemize}
+
+\begin{code}
+explicit(traits::is_managed) View(const NATURAL_MDSPAN_TYPE &mds);
+
+template<class El, class Ex, class L, class A>
+explicit(/*...*/) View(const mdspan<El, Ex, L, A> &mds);
+
+template<class El, class Ex, class L, class A>
+constexpr operator mdspan<El, Ex, L, A>();
+
+template<class A = Kokkos::default_accessor<typename traits::value_type>>
+constexpr auto to_mdspan(const A &other_accessor = OtherAccessorType{});
+\end{code}
+
+\vspace{5pt}
+
+Conversion rules to and from \texttt{mdspan} follow the same principles as between different \texttt{View} or \texttt{mdspan} types respectively.
+
+\end{frame}
+
+\begin{frame}[fragile]{Natural MDSpan}
+The \textbf{natural mdspan} of a View is the mdspan that is compatible with the view. An mdspan $m$ of type $M$ that is the natural mdspan of a view $v$ of type $V$:
+\begin{itemize}
+  \item \texttt{M::value\_type} is \texttt{V::value\_type}
+  \item \texttt{M::index\_type} is \texttt{std::size\_t}
+  \item \texttt{M::extents\_type} is \texttt{std::extents<M::index\_type, Extents...>} with \texttt{Extents...} being the static extents of the view
+  \item \texttt{M::layout\_type} is
+  \begin{itemize}
+    \item \texttt{std::layout\_left\_padded<std::dynamic\_extent>} if \texttt{V::array\_layout} is \texttt{LayoutLeft}
+    \item \texttt{std::layout\_right\_padded<std::dynamic\_extent>} if \texttt{V::array\_layout} is \texttt{LayoutRight}
+    \item \texttt{std::layout\_stride} if \texttt{V::array\_layout} is \texttt{LayoutStride}
+  \end{itemize}
+  \item \texttt{M::accessor\_type} is \texttt{std::default\_accessor<V::value\_type>}
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{Application Benefits}
+There are two primary use-cases where \texttt{mdspan} can be benefitial in the long run:
+\begin{itemize}
+   \item interfaces with non-Kokkos code
+   \item fully standardized replacement for \textit{unmanaged} \texttt{View}
+   \begin{itemize}
+     \item \url{https://eel.is/c++draft/views.multidim}
+   \end{itemize}
+\end{itemize}
+
+\begin{code}
+  Kokkos::View<const double**> A = /* ... */;
+  Kokkos::View<const double*> x = /* ... */;
+  Kokkos::View<double *> y = /* ... */;
+  // interop with C++26 linalg:
+  std::linalg::matrix_vector_product(A.to_mdspan(), x.to_mdspan(), y.to_mdspan());
+\end{code}
+\end{frame}
+
+%==========================================================================

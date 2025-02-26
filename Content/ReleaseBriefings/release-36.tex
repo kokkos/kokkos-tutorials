@@ -1,0 +1,82 @@
+\input{KokkosTutorial_PreTitle}
+\usepackage{tikz}
+\graphicspath{{3_6/figures/}}
+%disclaimer for Sandia. uncomment and the whole blob goes away @ b80c116300122
+\def\sandid{SAND2020-7755 PE}
+
+% \title{Performance Portability with Kokkos}
+\title{Kokkos 3.6 Release Briefing}
+
+%BAD misuse of author field
+\author{New Capabilities}
+
+
+\input{KokkosTutorial_PostTitle}
+
+\shorttrue
+\mediumfalse
+\fullfalse
+
+\begin{document}
+
+\begin{frame}
+	\titlepage
+\end{frame}
+
+
+\begin{frame}[fragile]{Outline}
+
+\textbf{3.6 Release Higlights}
+
+\begin{itemize}
+   \item{Kokkos Core}
+   \begin{itemize}
+     \item{CMake Language Build Support}
+     \item{UniqueToken Improvements}	     
+     \item{More View Allocation Properties Support}
+     \item{C++ Standard Algorithms}
+     \item{Math Traits}
+   \end{itemize}
+   \item{KokkosKernels}
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{Find More}
+
+\textbf{Online Resources}:
+
+\begin{itemize}
+        \item \url{https://github.com/kokkos}:
+                \begin{itemize}
+                        \item Primary Kokkos GitHub Organization
+                \end{itemize}
+        \item \url{https://github.com/kokkos/kokkos-tutorials/wiki/Kokkos-Lecture-Series}:
+                \begin{itemize}
+			\item{Slides, recording and Q\&A for the Full Lectures}
+                \end{itemize}
+        \item \url{https://github.com/kokkos/kokkos/wiki}:
+                \begin{itemize}
+                        \item Wiki including API reference
+                \end{itemize}
+        \item \url{https://kokkosteam.slack.com}:
+                \begin{itemize}
+                        \item Slack channel for Kokkos.
+                        \item Please join: fastest way to get your questions answered.
+                        \item Can whitelist domains, or invite individual people.
+                \end{itemize}
+\end{itemize}
+
+\end{frame}
+
+\input{3_6/Section_CMakeLanguage}
+\input{3_6/Section_Deprecated}
+\input{3_6/Section_ThreadsUniqueToken}
+\input{3_6/Section_ViewAllocatorProperties.tex}
+\input{3_6/Section_Algorithms}
+\input{3_6/Section_NumericsUpdate}
+\input{3_6/Section_KOKKOS_IF_ON_HOST_OR_DEVICE_Macros}
+\input{3_6/Section_KokkosKernels}
+
+\end{document}
+

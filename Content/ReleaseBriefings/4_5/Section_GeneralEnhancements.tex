@@ -1,0 +1,243 @@
+%==========================================================================
+
+\begin{frame}[fragile]
+
+  {\Huge General Enhancements}
+
+  \vspace{10pt}
+
+\end{frame}
+
+%==========================================================================
+
+% Examples
+
+% note: always keep the [fragile] for your frames!
+
+%\begin{frame}[fragile]{Example list}
+%  \begin{itemize}
+%      \item Item 1
+%      \item Item 2 with some \texttt{code}
+%      \begin{itemize}
+%        \item Sub-item 2.1
+%        \item Sub-item 2.2
+%      \end{itemize}
+%  \end{itemize}
+%\end{frame}
+
+%\begin{frame}[fragile]{Example code}
+%    \begin{code}[keywords={std}]
+%        #include <iostream>
+%        
+%        int main() {
+%            std::cout << "hello world\n";
+%        }
+%    \end{code}
+%\end{frame}
+
+%\begin{frame}[fragile]{Example table}
+%    \begin{center}
+%        \begin{tabular}{l|l}
+%            a & b \\\hline
+%            c & d
+%        \end{tabular}
+%    \end{center}
+%\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{\texttt{View} initialization/destruction for trivial types (1/7)}
+  
+Improved \texttt{View} initialization/destruction for non-scalar trivial types
+\begin{itemize}
+  \item Skips fences and kernel launches to init or delete elements in a view
+  \item Was only applied to scalar types previously
+  \item Extended this to trivial types (trivially default constructible, trivially destructible)
+\end{itemize}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{\texttt{MDRangePolicy} default tile sizes (2/7)}
+
+Added getters for \texttt{MDRangePolicy} tile sizes
+  
+\vspace{5pt}
+
+\begin{code}
+  using tile_type = Kokkos::Array<array_index_type, rank>;
+  
+  tile_type tile_size_recommended() const;
+  int max_total_tile_size() const;
+\end{code}
+
+\vspace{10pt}
+
+\begin{itemize}
+\item \texttt{tile\_size\_recommended()} returns a \texttt{Kokkos::Array} containing default tile sizes
+\item \texttt{max\_total\_tile\_size()} returns the max valid tile size
+
+\vspace{10pt}
+
+\item Independent of tile sizes specified during construction of \texttt{MDRangePolicy}
+
+\end{itemize}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Improve performance of \texttt{Kokkos::sort} (3/7)}
+
+\begin{itemize}
+\item Found that \texttt{Kokkos::sort} is slower than \texttt{std::sort} on host
+\end{itemize}
+
+\vspace{5pt}
+
+\begin{code}
+  std::sort(view.data(), view.data() + view.size());
+
+  Kokkos::sort(view); // 2x slower
+\end{code}
+
+\vspace{5pt}
+
+\begin{itemize}
+  \item Caused by reference counting and view access in \texttt{RandomAccessIterator}
+  \item Replaced to use raw pointers in \texttt{RandomAccessIterator} if \texttt{View} is strided
+\end{itemize}
+
+% \vspace{5pt}
+
+% \begin{code}
+%   Before:
+%     auto first = Kokkos::Experimental::begin(view);
+%     auto last  = Kokkos::Experimental::end(view);
+%     std::sort(first, last);
+
+%   After:
+%     std::sort(view.data(), view.data() + view.size());
+% \end{code}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Range-based for loop support for \texttt{Kokkos::Array} (4/7)}
+
+Added free functions, \texttt{begin()} and \texttt{end()}, that take in a \texttt{const} or a non-\texttt{const} \texttt{Kokkos::Array}.
+They are usable in constant expressions.
+
+\vspace{5pt}
+
+\begin{code}
+  Kokkos::Array a = {1, 2, 3, 4};
+  for (auto x : a)
+    Kokkos::printf("%d ", x);
+  Kokkos::printf("\n");
+  // program output: 1 2 3 4 
+\end{code}
+
+%\begin{code}
+%  template <class T, std::size_t N>
+%  KOKKOS_FUNCTION constexpr T const* begin(Array<T, N> const& a) noexcept;
+%  
+%  template <class T, std::size_t N>
+%  KOKKOS_FUNCTION constexpr T* begin(Array<T, N>& a) noexcept;
+%  
+%  template <class T, std::size_t N>
+%  KOKKOS_FUNCTION constexpr T const* end(Array<T, N> const& a) noexcept;
+%  
+%  template <class T, std::size_t N>
+%  KOKKOS_FUNCTION constexpr T* end(Array<T, N>& a) noexcept;
+%\end{code}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Functors as reducers for team parallel reduce (5/7)}
+
+Functors can now be used as reducers for nested team \texttt{parallel\_reduce}
+  
+\vspace{5pt}
+
+\begin{code}
+  Kokkos::parallel_for(Kokkos::TeamPolicy<ExecSpace>(...),
+  KOKKOS_LAMBDA(team_member_type const& team) {
+    Kokkos::parallel_reduce(TeamThreadRange(...),
+                            functor_as_reducer{}, result);
+  });
+\end{code}
+
+\begin{itemize}
+\vspace{10pt}
+
+\item If a reducer is available, the reducer is used for reduction
+\item Without a reducer, the reduction type is deduced from an optional \texttt{join} on the functor
+\item Otherwise, the reduction type is a \texttt{sum}
+
+\end{itemize}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Add \texttt{atomic\_\{mod,xor,nand,lshift,rshift\}} (6/7)}
+
+Updates to \texttt{Kokkos::Atomics}
+
+\vspace{10pt}
+
+Added more "reduction" atomic operations, that is, operations that do not "fetch" the old value.
+\begin{itemize}
+  \item \texttt{atomic\_mod}
+  \item \texttt{atomic\_xor}
+  \item \texttt{atomic\_nand}
+  \item \texttt{atomic\_lshift}
+  \item \texttt{atomic\_rshift}
+\end{itemize}
+
+\vspace{5pt}
+
+\begin{code}
+template <class T>
+KOKKOS_FUNCTION void atomic_[op](T* ptr, std::type_identity_t<T> val);
+// Atomically executes { *ptr = op(*ptr, val); }
+\end{code}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Allow using \texttt{SequentialHostInit} with \texttt{Kokkos::DualView} (7/7)}
+
+Fixed compilation error when \texttt{SequentialHostInit} is used with \texttt{Kokkos::DualView}
+
+\vspace{5pt}
+
+\begin{code}
+  DualViewType dv(Kokkos::view_alloc("view", Kokkos::SequentialHostInit), N);
+  dv.resize(Kokkos::view_alloc(Kokkos::SequentialHostInit), M);
+\end{code}
+
+\vspace{5pt}
+
+\begin{itemize}
+  \item \texttt{SequentialHostInit} property was considered during construction of the device-side view
+\end{itemize}
+
+\vspace{5pt}
+
+Restrictions
+\begin{itemize}
+  \item Not compatible with \texttt{WithoutInitializing}
+  \item Must not have a specifed execution space in the view allocation property, i.e.:
+\end{itemize}
+\begin{code}
+    view_alloc(exec_space, Kokkos::WithoutInitializing, "ViewString");
+\end{code}
+
+\end{frame}
+
+%==========================================================================

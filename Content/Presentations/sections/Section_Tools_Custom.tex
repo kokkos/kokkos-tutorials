@@ -1,0 +1,306 @@
+\begin{frame}[fragile]
+
+  {\Huge Custom Tools}
+
+  \vspace{10pt}
+
+  {\large How to write your own tools for the KokkosP interface.}
+
+  \vspace{20pt}
+
+  \textbf{Learning objectives:}
+  \begin{itemize}
+    \item {The KokkosP hooks}
+    \item {Callback registration inside the application}
+    \item {Throwaway debugging tools}
+  \end{itemize}
+
+  \vspace{-20pt}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Motivation}
+
+KokkosTools also allow you to write your own tools!
+
+\begin{itemize}
+  \item Implement a simple C interface.
+  \item Only implement what you want to use!
+  \item Full access to the entire instrumentation.
+\end{itemize}
+
+\vspace{10pt}
+But why would I want to do that?
+
+\begin{itemize}
+  \item Profiling tools which know about your code structure and properly categorize information.
+  \item Add in situ analysis hooked into your CI system.
+  \item Write debugging tools specific for your framework.
+  \item Write throwaway debugging tools for larger apps, instead of recompiling.
+\end{itemize}
+
+\pause
+\textit{We will first walk through the hooks and then illustate with an example.}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Infrastructure and Initialization}
+\textbf{Some Helper Classes}
+\begin{code}
+// Contains a unique device identifier.
+struct KokkosPDeviceInfo { uint32_t deviceID; };
+
+// Unique name of execution and memory spaces.
+struct SpaceHandle { char name[64]; };
+\end{code}
+
+\pause
+\textbf{Initialization and Finalization hooks}
+\begin{code}[keywords={extern,void,int,uint64_t,uint32_t}]
+extern "C" void kokkosp_init_library(
+  int loadseq, uint64_t version, uint32_t num_devinfos,
+  KokkosPDeviceInfo* devinfos);
+\end{code}
+\vspace{-15pt}
+  \begin{itemize}
+    \item Called during \texttt{Kokkos::initialize}
+    \item Provides device ids used subsequently.
+    \item Use this call to setup tool infrastructure.
+  \end{itemize}
+\begin{code}[keywords={extern,void,int,uint64_t,uint32_t}]
+extern "C" void kokkosp_finalize_library();
+\end{code}
+\vspace{-15pt}
+  \begin{itemize}
+    \item Called during \texttt{Kokkos::finalize}
+    \item Usually used to output results.
+  \end{itemize}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Parallelism Hooks}
+\begin{code}[keywords={extern,void,int,uint64_t,uint32_t,const,char}]
+extern "C" {
+  void kokkosp_begin_parallel_for(const char* name,
+                                  uint32_t devid,
+                                  uint64_t* kernid);
+  void kokkosp_begin_parallel_reduce(const char* name,
+                                     uint32_t devid,
+                                     uint64_t* kernid);
+  void kokkosp_begin_parallel_scan(const char* name,
+                                   uint32_t devid,
+                                   uint64_t* kernid);
+};
+\end{code}
+\vspace{-15pt}
+\begin{itemize}
+  \item Called when a parallel dispatch is initiated.
+  \item \texttt{name} is the user provided string or a typeid.
+  \item \texttt{kernid} is set by the tool to match up with the \texttt{end} call.
+\end{itemize}
+
+\begin{code}[keywords={extern,void,int,uint64_t,uint32_t,const,char}]
+extern "C" void kokkosp_end_parallel_for(uint64_t kernid);
+extern "C" void kokkosp_end_parallel_reduce(uint64_t kernid);
+extern "C" void kokkosp_end_parallel_scan(uint64_t kernid);
+\end{code}
+\vspace{-15pt}
+\begin{itemize}
+  \item Called when a parallel dispatch is done.
+  \item \texttt{kernid} is the value the begin call set.
+\end{itemize}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Memory Hooks}
+\begin{code}[keywords={extern,void,int,uint64_t,uint32_t,const,char}]
+extern "C" void kokkosp_begin_deep_copy(
+  SpaceHandle dst_hndl, const char* dst_name, const void* dst_ptr,
+  SpaceHandle src_hndl, const char* src_name, const void* src_ptr,
+  uint64_t size);
+\end{code}
+\begin{itemize}
+  \item Called when a \texttt{deep\_copy} is started.
+  \item Provides space handles, names, ptrs and size of allocations.
+\end{itemize}
+
+\begin{code}[keywords={extern,void,int,uint64_t,uint32_t,const,char}]
+extern "C" void kokkosp_end_deep_copy();
+\end{code}
+\begin{itemize}
+  \item Called when a \texttt{deep\_copy} is done.
+\end{itemize}
+
+\begin{code}[keywords={extern,void,int,uint64_t,uint32_t,const,char}]
+extern "C" void kokkosp_allocate_data(SpaceHandle hndl,
+  const char* name, void* ptr, uint64_t size);
+extern "C" void kokkosp_deallocate_data(SpaceHandle hndl,
+  const char* name, void* ptr, uint64_t size);
+\end{code}
+\begin{itemize}
+  \item Called when allocating or deallocating data.
+\end{itemize}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Callback Registration}
+Sometimes it is useful to build a tool into an executable.
+
+\vspace{5pt}
+\begin{block}{Callback Registration}
+Kokkos Tools provide a callback setting system to set tool callbacks from within the application.
+\end{block}
+
+Takes the form of:
+\begin{code}
+void set_HOOK_callback(HOOK_FUNCTION_PTR callback);
+\end{code}
+
+Where \texttt{HOOK} is one of 
+\begin{code}
+init finalize push_region pop_region begin_parallel_for 
+end_parallel_for begin_parallel_reduce end_parallel_reduce
+begin_parallel_scan end_parallel_scan begin_fence end_fence
+allocate_data deallocate_data begin_deep_copy end_deep_copy
+\end{code}
+
+One can also store a callback set, reload it and pause tool calls
+\begin{code}
+EventSet get_callbacks();  void set_callbacks(EventSet);
+void pause_tools();        void resume_tools();
+\end{code}
+\end{frame}
+
+\begin{frame}[fragile]{Callback Registration}
+Example:
+\begin{lstlisting}[language=C++]
+#include <Kokkos_Core.hpp>
+using Kokkos::Profiling;
+using Kokkos::Tools::Experimental;
+using Kokkos;
+
+void kokkosp_allocate_data(SpaceHandle space,
+  const char* label, const void* const ptr, uint64_t size) {
+  printf("Allocate: [%s] %lu\n",label,size);
+}
+void kokkosp_deallocate_data(SpaceHandle space,
+  const char* label, const void* const ptr, uint64_t size) {
+  printf("Deallocate: [%s] %lu\n",label,size);
+}
+
+int main(int argc, char* argv[]) {
+  initialize(argc, argv);
+  set_allocate_data_callback(kokkosp_allocate_data);
+  set_deallocate_data_callback(kokkosp_deallocate_data);
+  ...
+  finalize();
+}
+\end{lstlisting}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Example: Throwaway Debugging Tool}
+Sometimes you just need to know what is in a View before and after entering a kernel for the 5th time:
+\begin{itemize}
+  \item The view is on the GPU and its on some rank of a large run.
+  \item Recompiling the app takes hours.
+\end{itemize}
+
+\pause
+\vspace{10pt}
+\textbf{Simple Kokkos tool could do it!}
+
+What we need:
+\begin{itemize}
+  \item Store the pointer and size of the view with a specific label when it gets allocated.
+  \item Print the View when entering a kernel and before exiting it. 
+  \item Make sure the view didn't get deallocated in the mean time. 
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Example: Throwaway Debugging Tool}
+Store the pointer:
+\vspace{-2pt}
+\begin{code}[keywords={int,uint64_t,extern,void,const,char,void,if}]
+int* data; uint64_t N; int count;
+extern "C" void kokkosp_allocate_data(SpaceHandle handle,
+  const char* name, void* ptr, uint64_t size) {
+  if(strcmp(name,"PuppyWeights")==0) {
+    data = (int*)ptr+32; N = size; count = 0;
+}}
+\end{code}
+
+Print the View:
+\vspace{-2pt}
+\begin{code}[keywords={int,uint64_t,extern,void,const,char,void,if,else}]
+void print_data() { 
+  std::vector<int> hcpy(N);
+  cudaMemcpy(hcpy.data(),data,N*sizeof(int));
+  for(int i=0;i<N;++i) printf("(%d %d)",i,hcpy[i]); printf("\n");
+}
+extern "C" void kokkosp_begin_parallel_for(const char* name, 
+  uint32_t, uint64_t* kernid) {
+  if(strcmp(name,"PuppyOnCouch")==0) { 
+    count++; if(count==5) print_data(); *kernid=1;
+  } else { *kernid = 0; } 
+}
+extern "C" void kokkosp_end_parallel_for(uint64_t kernid) {
+  if(kernid == 1 && count==5) print_data();
+}
+\end{code}
+
+\end{frame}
+
+\begin{frame}[fragile]{TestCode}
+\begin{code}[keywords={int,uint64_t,extern,void,const,char,void,parallel_for,for,initialize,finalize}]
+#include <Kokkos_Core.hpp>
+#include <cmath>
+
+int main(int argc, char* argv[]) {
+  Kokkos::initialize(argc, argv);
+  {
+    int N = argc > 1 ? atoi(argv[1]) : 12;
+    int R = argc > 2 ? atoi(argv[2]) : 10;
+    Kokkos::View<double*> a("PuppyWeights",N);
+
+    for(int r=0; r<R; r++) {
+      Kokkos::parallel_for("PuppyOnCouch",N,KOKKOS_LAMBDA(int i)
+                           { a(i) = i*r; });
+    }
+  }
+  Kokkos::finalize();
+}
+\end{code}
+
+Output:
+\begin{code}
+(0 0) (1 4) (2 8) (3 12)
+(0 0) (1 5) (2 10) (3 15)
+\end{code}
+\end{frame}
+
+\begin{frame}[fragile]{Hooks Summary}
+\textbf{Implementing your own tools is easy!}
+\begin{itemize}
+  \item Simply implement the needed C callback functions.
+  \item Only implement what you need.
+  \item Goal is to make it simple enough so that one-off tools are a viable debugging help.
+\end{itemize}
+
+\vspace{10pt}
+\textbf{Callback registration for applications}
+\begin{itemize}
+  \item The callback registration system allows to embed tools in applications.
+  \item Store callback sets and restore them.
+\end{itemize}
+
+\end{frame}
+

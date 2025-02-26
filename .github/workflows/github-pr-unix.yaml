@@ -1,0 +1,86 @@
+name: Hosted Runners (unix)
+
+on:
+  push:
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            cpp_compiler: g++
+            build_type: RelWithDebInfo
+            backend: OPENMP
+          - os: macos-latest
+            cpp_compiler: clang++
+            build_type: Debug
+            backend: THREADS
+
+    steps:
+    - name: Install Packages
+      run: |
+        if [ "$RUNNER_OS" == "Linux" ]; then
+          sudo apt-get update
+          sudo apt-get install -y --no-install-suggests --no-install-recommends openmpi-bin libopenmpi-dev
+        elif [ "$RUNNER_OS" == "macOS" ]; then
+          brew install open-mpi
+        fi
+      shell: bash
+
+    - name: Checkout Kokkos Tutorials
+      uses: actions/checkout@v4
+      with:
+        path: kokkos-tutorials
+
+    - name: Checkout Kokkos
+      uses: actions/checkout@v4
+      with:
+        repository: 'kokkos/kokkos'
+        ref: master
+        path: kokkos
+
+    - name: Checkout Kokkos Kernels
+      uses: actions/checkout@v4
+      with:
+        repository: 'kokkos/kokkos-kernels'
+        ref: master
+        path: kokkos-kernels
+
+    - name: Configure Kokkos
+      run: >
+        cmake -S "${GITHUB_WORKSPACE}"/kokkos -B "${GITHUB_WORKSPACE}"/build-kokkos
+        -DCMAKE_INSTALL_PREFIX="${GITHUB_WORKSPACE}"/install-kokkos
+        -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
+        -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+        -DKokkos_ENABLE_COMPILER_WARNINGS=ON
+
+    - name: Build & Install Kokkos
+      run: cmake --build "${GITHUB_WORKSPACE}"/build-kokkos --config ${{ matrix.build_type }} --parallel 2 --target install
+
+    - name: Configure Kokkos Kernels
+      run: >
+        cmake -S "${GITHUB_WORKSPACE}"/kokkos-kernels -B "${GITHUB_WORKSPACE}"/build-kokkos-kernels
+        -DCMAKE_INSTALL_PREFIX="${GITHUB_WORKSPACE}"/install-kokkos-kernels
+        -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
+        -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+        -DKokkos_ROOT="${GITHUB_WORKSPACE}"/install-kokkos
+
+    - name: Build & Install Kokkos Kernels
+      run: cmake --build "${GITHUB_WORKSPACE}"/build-kokkos-kernels --config ${{ matrix.build_type }} --parallel 2 --target install
+
+    - name: Configure and Build Exercises
+      run: |
+        bash "${GITHUB_WORKSPACE}"/kokkos-tutorials/Scripts/ci-configure-build-test.sh \
+        "${GITHUB_WORKSPACE}"/install-kokkos/lib/cmake/Kokkos \
+        "${GITHUB_WORKSPACE}"/install-kokkos-kernels \
+        "${GITHUB_WORKSPACE}"/kokkos-tutorials \
+        ${{ matrix.cpp_compiler}} \
+        ${{ matrix.build_type}} \
+        ${{ matrix.backend }}

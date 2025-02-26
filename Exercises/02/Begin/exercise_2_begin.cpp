@@ -76,8 +76,8 @@ int main( int argc, char* argv[] )
   // EXERCISE: Create views of the right size.
 
   // 1. Device Views
-  // typedef Kokkos::View<double*>   ViewVectorType;
-  // typedef Kokkos::View<double**>  ViewMatrixType;
+  // using ViewVectorType = Kokkos::View<double*>;
+  // using ViewMatrixType = Kokkos::View<double**>;
   // ViewVectorType y( "y", N );
   // ViewVectorType x( "x", M );
   // ViewMatrixType A( "A", N, M );
@@ -90,7 +90,7 @@ int main( int argc, char* argv[] )
   double * const A = new double[ N * M ];
 
   // Initialize y vector on host.
-  // EXERCISE: Convert y to 1D View's member access API: x(i)
+  // EXERCISE: Convert y to 1D View's member access API: y(i)
   for ( int i = 0; i < N; ++i ) {
     y[ i ] = 1;
   }

@@ -1,0 +1,64 @@
+%==========================================================================
+
+\begin{frame}[fragile]
+
+  {\Huge Potentially Breaking Changes}
+  
+    \vspace{10pt}
+
+\end{frame}
+
+
+%==========================================================================
+
+
+\begin{frame}[fragile]{Breaking Changes DEPRECATED\_CODE\_3}
+
+Remove  \texttt{Kokkos\_ENABLE\_DEPRECATED\_CODE\_3}, including
+
+\begin{itemize}
+\item \texttt{InitArguments}
+\item \texttt{KOKKOS\_ACTIVE\_EXECUTION\_MEMORY\_SPACE\_*} macros
+\item \texttt{Experimental::{clamp, min, max, minmax}}
+\item \texttt{using} declarations in the \texttt{Experimental::} namespace for math functions / constants
+\item \texttt{\{OpenMP,HPX\}::partition\_master}
+\item \texttt{MasterLock}
+\end{itemize}
+
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Breaking Changes II}
+
+\begin{itemize}
+\item No longer support users defining \texttt{KOKKOS\_ASSERT}
+\item \texttt{\underline{[[nodiscard]]} \underline{explicit} Kokkos::Profiling::ProfilingSection(std::string)}
+\item Remove \texttt{Kokkos::[b]half\_t volatile} overloads
+\item \texttt{Kokkos\_Tools\_OptimzationGoal} $\rightarrow$ \texttt{Kokkos\_Tools\_Optim\underline{i}zationGoal}
+\item Always call \texttt{abort} (instead of throwing when on host) for \texttt{View} bounds errors
+\item Check matching static extents in \texttt{View} constructor (more like \texttt{mdspan})
+\end{itemize}
+
+
+\end{frame}
+
+%==========================================================================
+%==========================================================================
+
+\begin{frame}[fragile]{Breaking Changes III}
+
+\begin{itemize}
+\item Remove \texttt{KOKKOS\_ENABLE\_INTEL\_MM\_ALLOC} macro
+\item Remove \texttt{Kokkos::Experimental::LogicalMemorySpace}
+\item Remove \texttt{Kokkos::Experimental::HBWSpace} and \texttt{memkind} linking support
+\item Drop \texttt{librt} and \texttt{KOKKOS\_ENABLE\_LIBRT}
+\item Drop old CPU architectures \texttt{ARCH\_BGQ}, \texttt{ARCH\_POWER7}, \texttt{ARCH\_WSM},  \texttt{ARCH\_SSE42}
+\item Drop command line / environment variable support for \texttt{num\_devices} and \texttt{skip\_device}
+\end{itemize}
+
+
+\end{frame}
+
+%==========================================================================

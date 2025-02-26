@@ -1,0 +1,28 @@
+%==========================================================================
+
+\begin{frame}[fragile]
+
+  {\Huge Misc. Algorithmic Improvements/Fixes}
+
+\end{frame}
+
+\begin{frame}[fragile]{Misc. Algorithmic Improvements/Fixes}
+\begin{itemize}
+\item Kokkos\textunderscore Unique.hpp
+\begin{itemize}
+\item Allocate temporary view with provided execution space
+\item Remove unnecessary init for temporary view during construction
+\end{itemize}
+\item Kokkos\_RemoveIf.hpp
+\begin{itemize}
+\item Allocate temporary view with provided execution space
+\item Remove unnecessary init for temporary view during construction
+\item Remove unnecessary predicate evaluation
+\begin{itemize}
+\item[] Important since predicate can be arbitrarily expensive
+\end{itemize}
+\end{itemize}
+\end{itemize}
+\end{frame}
+
+%==========================================================================

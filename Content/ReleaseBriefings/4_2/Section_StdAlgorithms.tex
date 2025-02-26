@@ -1,0 +1,28 @@
+
+\begin{frame}[fragile]{Kokkos Std Algorithms: added support for team-level}
+
+\begin{itemize}
+\item Defined in header \texttt{<Kokkos\_StdAlgorithms.hpp>}
+\item Extended API with a new overload for team-level support
+
+\begin{code}[keywords={sort}]
+template <class TeamHandleT, ...>
+KOKKOS_FUNCTION
+/*ret type*/ algo_name(const TeamHandleT& /*teamHandle*/,
+                       /*view(s) or iterators*/,
+                       /*extra*/);
+\end{code}
+
+\item \texttt{teamHandle}: given in parallel region when using TeamPolicy
+
+\item \texttt{view(s)}: rank-1, \texttt{LayoutLeft,Right,Stride}
+
+\item \texttt{iterators}: must be random access (use \texttt{Kokkos::Experimental::begin,end,cbegin,cend})
+
+\item views and iterators must be accessible from \texttt{space} or from the space associated with \texttt{teamHandle}
+
+\item \texttt{extra}: parameters that are specific to the algorithm
+
+\end{itemize}
+
+\end{frame}

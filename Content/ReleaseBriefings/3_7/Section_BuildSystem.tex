@@ -1,0 +1,57 @@
+
+%==========================================================================
+
+\begin{frame}[fragile]
+
+  {\Huge Build System Updates}
+
+  \vspace{10pt}
+
+    \vspace{20pt}
+
+  \textbf{Objectives:}
+  \begin{itemize}
+    \item New Architectures
+    \item Compiler Versions
+  \end{itemize}
+
+  \vspace{-20pt}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{New Architectures}
+
+New explicit CPU architectures
+  \begin{itemize}
+   \item Kokkos\_ARCH\_SKL: Intel Skylake Client CPUs
+   \item Kokkos\_ARCH\_ICL: Intel Ice Lake Client CPUs
+   \item Kokkos\_ARCH\_ICX: Intel Ice Lake Xeon Server CPUs
+   \item Kokkos\_ARCH\_SPR: Intel Sapphire Rapids Xeon Server CPUs
+  \end{itemize}
+~\\
+  New explict GPU architecture:
+  \begin{itemize}
+    \item Kokkos\_ARCH\_INTEL\_PVC: Intel GPU Ponte Vecchio (AOT)
+    \item Kokkos\_ARCH\_INTEL\_GEN: Intel GPUs (JIT)
+  \end{itemize}
+~\\
+  NATIVE: Optimize for local CPU architecture
+
+\end{frame}
+
+\begin{frame}[fragile]{Compiler Versions}
+
+Updated minimum compiler requirements:\\
+~\\
+ \begin{tabular}{l|r|r}
+      & 3.6.01 & 3.7.00 \\
+      \hline
+   Clang (OMPT): & 13.0.0  & 14.0.0 \\
+   IntelLLVM (SYCL):    & 2022.0.0 & 2022.1.0\\
+  \end{tabular}\\
+  ~\\
+ Minimum version for other compilers stayed the same.
+
+\end{frame}

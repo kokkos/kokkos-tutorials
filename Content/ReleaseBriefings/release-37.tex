@@ -1,0 +1,104 @@
+\input{KokkosTutorial_PreTitle}
+\usepackage{tikz}
+\graphicspath{{3_7/figures/}}
+%disclaimer for Sandia. uncomment and the whole blob goes away @ b80c116300122
+\def\sandid{UPDATEME SAND2020-7755 PE}
+
+% \title{Performance Portability with Kokkos}
+\title{Kokkos 3.7 Release Briefing}
+
+%BAD misuse of author field
+\author{New Capabilities}
+
+
+\input{KokkosTutorial_PostTitle}
+
+\shorttrue
+\mediumfalse
+\fullfalse
+
+\begin{document}
+
+\begin{frame}
+	\titlepage
+\end{frame}
+
+
+\begin{frame}[fragile]{Outline}
+
+\textbf{3.7 Release Higlights}
+
+    \begin{itemize}
+      \item{Documentation}
+      \item{SIMD}
+      \item{HIPManagedSpace}
+      \item{More View Allocation Properties Support}
+      \item{Initialization}
+      \item{Deprecations}
+      \item{Kokkos 4.0 preview}
+    \end{itemize}
+
+\end{frame}
+
+\begin{frame}{Find More}
+
+\textbf{Online Resources}:
+
+\begin{itemize}
+        \item \url{https://github.com/kokkos}:
+                \begin{itemize}
+                        \item Primary Kokkos GitHub Organization
+                \end{itemize}
+        \item \url{https://github.com/kokkos/kokkos-tutorials/wiki/Kokkos-Lecture-Series}:
+                \begin{itemize}
+			\item{Slides, recording and Q\&A for the Full Lectures}
+                \end{itemize}
+        \item \url{https://kokkos.github.io/kokkos-core-wiki}:
+                \begin{itemize}
+                        \item Wiki including API reference
+                \end{itemize}
+        \item \url{https://kokkosteam.slack.com}:
+                \begin{itemize}
+                        \item Slack channel for Kokkos.
+                        \item Please join: fastest way to get your questions answered.
+                        \item Can whitelist domains, or invite individual people.
+                \end{itemize}
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{Kokkos Usage}
+  \textbf{Would like to strengthen community bonds and discoverability}
+
+\vspace{10pt}
+\textit{List of Applications and Libraries}
+\begin{itemize}
+\item Add your app to \url{https://github.com/kokkos/kokkos/issues/1950}
+\item We are planning to add that to a Kokkos website.
+\item Helps people discover each other when working on similar things.
+\end{itemize}
+
+\vspace{10pt}
+\textit{GitHub Topics}
+\begin{itemize}
+\item Use \textit{kokkos} tag on your repos.
+\item If you click on the topic you get a list of all projects on github with that topic.
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{Kokkos Topic}
+  \includegraphics[width=0.9\textwidth]{3_7/kokkos-topic.png}
+\end{frame}
+
+\input{3_7/Section_Documentation.tex}
+\input{3_7/Section_SIMD.tex}
+\input{3_7/Section_HIPManaged.tex}
+\input{3_7/Section_ViewAlloc.tex}
+\input{3_7/Section_BuildSystem.tex}
+\input{3_7/Section_Initialize.tex}
+\input{3_7/Section_Deprecations.tex}
+\input{3_7/Section_Kokkos4_Compilers.tex}
+
+\end{document}
+

@@ -1,0 +1,69 @@
+
+%==========================================================================
+
+\begin{frame}[fragile]
+
+  {\Huge UnorderedMap Insertion Operation Types}
+
+  \vspace{10pt}
+
+  \textbf{Content: Extended UnorderedMap insertion behavior}
+  \begin{itemize}
+    \item Default behavior is to insert a key, value pair exactly once
+    \item Maintain default behavior via operation type \texttt{NoOp}
+    \item Allow existing key, value pairs to be accumulated into via operation type \texttt{AtomicAdd}
+  \end{itemize}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{UnorderedMap Insertion Interface}
+
+\begin{code}[keywords={UnorderedMap Insertion Operation Types}]
+template <class ValueTypeView, class ValuesIdxType>
+struct UnorderedMapInsertOpTypes {
+  using value_type = typename ValueTypeView::non_const_value_type;
+  struct NoOp {
+    void op(ValueTypeView, ValuesIdxType, const value_type);
+  };
+  struct AtomicAdd {
+    void op(ValueTypeView values, ValuesIdxType values_idx,
+            const value_type v);
+  };
+};
+\end{code}
+
+\begin{code}[keywords={UnorderedMap Insertion Interface}]
+template <typename InsertOpType = default_op_type>
+insert_result insert(key_type const &key,
+                     impl_value_type const &value,
+                     InsertOpType arg_insert_op = InsertOpType());
+\end{code}
+
+\begin{itemize}
+  \item For other use-cases, more operation types can be added to \texttt{UnorderedMapInsertOpTypes}
+\end{itemize}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{UnorderedMap AtomicAdd Operation Type Example}
+  
+  \begin{code}[keywords={UnorderedMap Insertion Example}]
+
+using map_op_type    
+  = Kokkos::UnorderedMapInsertOpTypes<value_view_type, size_type>;
+using atomic_add_type = typename map_op_type::AtomicAdd;
+atomic_add_type atomic_add;
+parallel_for(N, KOKKOS_LAMBDA (uint32_t i) {
+  map.insert(i, values(i), atomic_add);
+});
+
+\end{code}
+
+\end{frame}
+
+%==========================================================================
+

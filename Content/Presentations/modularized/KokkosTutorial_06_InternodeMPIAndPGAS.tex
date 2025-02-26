@@ -1,0 +1,202 @@
+\input{KokkosTutorial_PreTitle}
+%disclaimer for Sandia. uncomment and the whole blob goes away @ b80c116300122
+\def\sandid{SAND2020-8766 PE}
+\usepackage{pgfplotstable}
+
+% \title{Performance Portability with Kokkos}
+\title{The Kokkos Lectures}
+
+%BAD misuse of author field
+\author{Module 6: Fortran/Python interoperability, MPI and PGAS}
+
+%\author{
+%  Jeff Miles \inst{1},
+%  Christian Trott \inst{1}
+%  Jan Ciesko \inst{1}
+%}
+%\institute[shortinst]{\tiny \inst{1} Sandia National Laboratories, \inst{2} Oak Ridge National Laboratory \and \inst{3} Los Alamos National Laboratory}
+%\institute[shortinst]{\tiny \inst{1} Sandia National Laboratories}
+
+\input{KokkosTutorial_PostTitle}
+
+\shortfalse
+\mediumtrue
+\fulltrue
+\notoverviewtrue
+
+\begin{document}
+
+% \begin{frame}
+%   \titlepage
+% \end{frame}
+% \input{sections/Section_nvlabs}
+
+\begin{frame}
+	\titlepage
+\end{frame}
+
+\begin{frame}[fragile]{Welcome to Kokkos}
+
+\textbf{Online Resources}:
+
+\begin{itemize}
+        \item \url{https://github.com/kokkos}:
+                \begin{itemize}
+                        \item Primary Kokkos GitHub Organization
+                \end{itemize}
+        \item \url{https://github.com/kokkos/kokkos-tutorials/wiki/Kokkos-Lecture-Series}:
+                \begin{itemize}
+        \item{Slides, recording and Q\&A for the Lectures}
+                \end{itemize}
+        \item \url{https://kokkos.github.io/kokkos-core-wiki}:
+                \begin{itemize}
+                        \item Wiki including API reference
+                \end{itemize}
+        \item \url{https://kokkosteam.slack.com}:
+                \begin{itemize}
+                        \item Slack channel for Kokkos.
+                        \item Please join: fastest way to get your questions answered.
+                        \item Can whitelist domains, or invite individual people.
+                \end{itemize}
+\end{itemize}
+
+\end{frame}
+
+
+
+\begin{frame}{Lecture Series Outline}
+
+\begin{itemize}
+        \item 07/17 Module 1: Introduction, Building and Parallel Dispatch
+        \item 07/24 Module 2: Views and Spaces
+        \item 07/31 Module 3: Data Structures + MultiDimensional Loops
+        \item 08/07 Module 4: Hierarchical Parallelism
+        \item 08/14 Module 5: Tasking, Streams and SIMD
+        \item 08/21 \textbf{Module 6: Internode: MPI and PGAS}
+        \item 08/28 Module 7: Tools: Profiling, Tuning and Debugging
+        \item 09/04 Module 8: Kernels: Sparse and Dense Linear Algebra
+        \item 09/11 Reserve Day
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Module 5 Summary}
+\textbf{SIMD Types}
+	\begin{itemize}
+		\item{SIMD types help vectorize code.}
+		\item{In particular for \textbf{outer-loop} vectorization.}
+		\item{There are \textbf{storage} and \textbf{temporary} types.}
+		\item{Currently considered experimental at \url{https://github.com/kokkos/simd-math}: please try it out and provide feedback.}
+	\end{itemize}
+
+\textbf{Blocking Behavior and Streams}
+  \begin{itemize}
+    \item{Execution Space Instances execute work in order of dispatch.}
+    \item{Operations in distinct Execution Space Instances can overlap.}
+    \item{Each Execution Space type has a default instance.}
+    \item{Use \texttt{Kokkos::fence()} to wait for completion of ALL outstanding work or \texttt{exec\_space\_instance.fence()} to wait on work in a specific execution space instance.}
+  \end{itemize}
+
+\end{frame}
+
+
+\begin{frame}{Module 6: Learning objectives}
+  \begin{block}{Language Interoperability}
+    \begin{itemize}
+    \item Writing hybrid Fortran applications
+    \item And, writing hybrid Python applications with Kokkos
+  \end{itemize}
+  \end{block}
+
+  \begin{block}{Interoperability with MPI}
+  \begin{itemize}
+    \item Learning how to develop hybrid MPI+Kokkos applications
+    \item And, how to implement overlapping communication with computation
+    \item Handling buffers and sparse indexing
+  \end{itemize}
+  \end{block}
+
+  \begin{block}{Interoperability with PGAS}
+  \begin{itemize}
+    \item How to create globally accessible Views
+    \item Insight into a use-case (SPMV)
+  \end{itemize}
+  \end{block}
+\end{frame}
+
+\input{../sections/Section_FortranInterOp}
+\input{../sections/Section_PythonInterOp}
+\input{../sections/Section_MPI}
+\input{../sections/Section_PGAS}
+
+\begin{frame}{Module 6 Summary}
+\textbf{Simple MPI and Kokkos Interaction is easy!}
+\begin{itemize}
+  \item Simply pass \texttt{data()} of a View to MPI functions plus its size.
+  \begin{itemize}
+    \item But it better be a contiguous View!
+  \end{itemize}
+  \item Initialize Kokkos after MPI, and finalize it before MPI
+\end{itemize}
+
+\vspace{10pt}
+\textbf{Overlapping communication and computation possible}
+\begin{itemize}
+  \item Use Execution Space instances to overlap packing/unpacking with other computation.
+  \item Order operations to maximize overlapping potential. 
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Module 6 Summary}
+\textbf{Fortran Language Compatibility Layer}
+\begin{itemize}
+  \item Initialize Kokkos from Fortran via \texttt{kokkos\_initialize} and \texttt{kokkos\_finalize}
+  \item \texttt{nd\_array\_t} is a representation of a \texttt{Kokkos::View}
+  \item Create \texttt{nd\_array\_t} from a Fortran array via \texttt{to\_nd\_array}
+  \item Allocate \texttt{Kokkos::DualView} in Fortran with \texttt{kokkos\_allocate\_dualview}
+\end{itemize}
+
+
+  \vspace{10pt}
+  \textbf{The Python Interop}
+  \begin{itemize}
+    \item Initialize and Finalize Kokkos from Python
+    \item Create Views from Python
+    \item Alias Kokkos Views with NumPy arrays
+    \item \textbf{This is in pre-release: ask us for access.}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Module 7: Outlook (08/28)}
+    \vspace{-3pt}
+	\textbf{Clang-Tidy Static Analysis}
+	\begin{itemize}
+        \item {Getting Kokkos specific warnings in your IDE}
+	\end{itemize}
+	
+	\vspace{5pt}
+	\textbf{Kokkos Tools}
+	\begin{itemize}
+		\item {Debugging}
+		\item {Profiling}
+                \item {Tuning}
+	\end{itemize}
+
+	\vspace{5pt}
+	\textbf{Custom and 3rd party tools}
+	\begin{itemize}
+		\item {How to write distributed code using a global arrays like interface}
+	\end{itemize}
+
+	\vspace{5pt}
+	\textbf{Don't Forget:} Join our Slack Channel and drop into our office hours on Tuesday.
+	
+	\vspace{5pt}
+	\textbf{Updates at:} \href{https://kokkos.link/the-lectures-updates}{kokkos.link/the-lectures-updates}
+	
+	\vspace{5pt}
+	\textbf{Recordings/Slides:} \href{https://kokkos.link/the-lectures}{kokkos.link/the-lectures}
+
+\end{frame}
+
+\end{document}
+

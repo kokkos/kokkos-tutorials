@@ -1,0 +1,262 @@
+%==========================================================================
+
+\begin{frame}[fragile]{}
+
+  {\Huge{Unique Token}}
+
+  \vspace{20pt}
+
+  \textbf{Learning objectives:}
+  \begin{itemize}
+    \item {Understand concept of unique tokens and thread-safe resource access. }
+    \item {Learn how to acquire per-team unique ids.}
+    \item {Understand the difference between \textbf{Global} and \textbf{Instance} scope.}
+  \end{itemize}
+
+  \vspace{-20pt}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Unique Tokens - Motivation}
+\textbf{Why do we need a unique token concept?}
+\begin{itemize}
+\item{Within Functor operator / Lambda there is no portable way to identify the active execution resource (thread id)}
+\item{Some algorithms make efficient use of shared resources by dividing based on execution resource (thread id)}
+\item{Thread Id is not consistent or portable across all execution environments}
+\item{Unique Token provides consistent identifier for resource allocations and work division}
+\end{itemize}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Unique Tokens - Motivation}
+\textbf{Original Example: Random Number Generator Pool}
+
+\begin{code}
+int N = 10000000
+int K = ...;
+RandomGenPool pool(K,seed);
+parallel_for("Loop", N, KOKKOS_LAMBDA(int i) {
+  int gen_id = ...
+  auto gen = pool[gen_id];
+});
+\end{code}
+
+\vspace{5pt}
+\textbf{How many generators do we need (\texttt{K})?}
+
+\pause
+\vspace{5pt}
+\textbf{How to get a unique one in the loop (\texttt{gen\_id})?}
+
+\pause
+\vspace{5pt}
+In OpenMP we could use the \textbf{thread-id} but what in CUDA?
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Unique Tokens - Motivation}
+\vspace{-10pt}
+\textbf{Motivating Example}
+
+\vspace{5pt}
+\textbf{OpenMP}
+    \begin{code}[frame=single, keywords={}]
+int K = omp_get_max_threads();
+Kokkos::parallel_for("L", N, KOKKOS_LAMBDA(int i) {
+  int tid = omp_get_thread_num();
+});
+    \end{code}
+
+\vspace{5pt}
+\textbf{CUDA}
+    \begin{code}[frame=single, keywords={}]
+int K = N; // ??
+Kokkos::parallel_for("L", N, KOKKOS_LAMBDA(int i) {
+  int tid = threadIdx.x + blockDim.x * blockIdx.x; //i??
+});
+    \end{code}
+
+\pause
+  \textbf{{\color{red}Problem}}: In \textbf{CUDA} there is no way to get \textbf{hardware thread-id}.
+
+  \vspace{5pt}
+  \pause
+
+  \textbf{Solution:} We need a thread-safe and portable way to obtain unique identifier that is per-thread specific.
+
+  \vspace{5pt}
+
+  \hspace{20pt}{\Large $\Rightarrow$ \textbf{UniqueToken}}
+
+  \vspace{-5pt}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Unique Token}
+
+\textbf{UniqueToken is a pool of IDs}
+
+\begin{itemize}
+\item User acquires an ID and releases it again.
+\end{itemize}
+
+   \begin{code}[frame=single, keywords={UniqueToken,size,acquire,release}]
+    UniqueToken<ExecutionSpace> token;
+    int number_of_uniqe_ids = token.size();
+    RandomGenPool pool(number_of_unique_ids,seed);
+    parallel_for("L", N, KOKKOS_LAMBDA(int i) {
+      int id = token.acquire();
+      RandomGen gen = pool(id);
+      ...
+      token.release(id);
+    });
+   \end{code}
+
+\pause
+\begin{itemize}
+\item Do not acquire more than one token in an iteration.
+\item You must release the token again.
+\item By default the range of ids is 0 to \texttt{ExecSpace().concurrency()}.
+\end{itemize}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Unique Token - Global vs. Instance Scope}
+
+\textbf{Sometimes you need a Global UniqueToken}
+\begin{itemize}
+\item Submitting concurrent kernels to CUDA streams (Module 5)
+\item Shared resource in a multi-threaded environment like Legion
+\end{itemize}
+
+\vspace{-5pt}
+\pause
+\begin{block}{UniqueToken is Scoped}
+UniqueToken has a Scope template parameter which by default is 'Instance' but can be 'Global'.
+\end{block}
+
+\pause
+   \begin{code}[frame=single, keywords={UniqueTokenScope,Global,stream1,stream2}]
+void foo() {
+  UniqueToken<ExecSpace,UniqueTokenScope::Global> token_foo;
+  parallel_for("L", RangePolicy<ExecSpace>(stream1,0,N)
+    , functor_a(token_foo));
+}
+void bar() {
+  UniqueToken<ExecSpace,UniqueTokenScope::Global> token_bar;
+  parallel_for("L", RangePolicy<ExecSpace>(stream2,0,N)
+    , functor_b(token_bar));
+}
+   \end{code}
+
+\pause
+\texttt{token\_foo} and \texttt{token\_bar} will provide non-conflicting ids.
+\end{frame}
+%==========================================================================
+
+\begin{frame}[fragile]{Unique Token - Per Team}
+
+  \textbf{UniqueToken can also be used for Per-Team resources}
+
+\vspace{5pt}
+  There are less teams active than threads. How to get an ID?
+
+\vspace{5pt}
+\pause
+\begin{block}{Sized UniqueToken}
+{UniqueToken supports custom ranges of ids via constructing sized tokens.}
+\end{block}
+
+\pause
+\textbf{Acquiring a per-team unique id requires three steps:}
+\begin{itemize}
+  \item Compute the range via \texttt{concurrency} and \texttt{team\_size}.
+  \item Create a sized \texttt{UniqueToken}.
+  \begin{itemize}
+    \item For performance reason make it a bit larger than necessary.
+  \end{itemize}
+  \item Acquire and broadcast a token in a \texttt{single} pattern.
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Unique Token - Per Team}
+
+   \begin{code}[frame=single, keywords={team_size,concurrency,token,single,PerTeam}]
+// Figure out the team size
+int team_size = ...;
+// How many teams are actually in-flight
+int num_active_teams = ExecSpace().concurrency()/team_size;
+// Create the token
+UniqueToken<ExecSpace> token(num_active_teams * 1.2);
+
+parallel_for("L", TeamPolicy<ExecSpace>(N,team_size),
+  KOKKOS_LAMBDA(const team_t& team) {
+    int id;
+    // Acquire an id and broadcast it with a single thread
+    single(PerTeam(team),[&](int &lid) {
+      lid = token.acquire();
+    },id);
+    ...
+    // Release the id again (likely you want a barrier first!)
+    single(PerTeam(team),[&]() {
+      token.release(id);
+    });
+   \end{code}
+
+
+\end{frame}
+
+%==========================================================================
+
+
+\begin{frame}[fragile]{Exercise UniqueToken}
+
+  \begin{small}
+  \begin{itemize}
+  \item Location: \ExerciseDirectory{unique\_token/Begin}
+  \item Assignment: Convert scatter\_add\_loop to use \texttt{UniqueToken}, removing \#ifdef's
+  \item Compile and run on both CPU and GPU
+  \end{itemize}
+  \end{small}
+
+\begin{code}
+make -j KOKKOS_DEVICES=OpenMP  # CPU-only using OpenMP
+make -j KOKKOS_DEVICES=Cuda    # GPU - note UVM in Makefile 
+# Run exercise
+./uniquetoken.host
+./uniquetoken.cuda
+# Note the warnings, set appropriate environment variables
+\end{code}
+
+  \begin{scriptsize}
+  \begin{itemize}
+  \item Compare performance on CPU of the three variants
+  \item Compare performance on GPU of the two variants
+  \item Vary problem size: first and second optional argument
+  \end{itemize}
+  \end{scriptsize}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}{Section Summary}
+
+  \begin{itemize}
+    \item{\textbf{UniqueToken} provides a thread safe portable way to divide thread or team specific resources}
+    \item{\textbf{UniqueToken} can be sized, such that it returns only ids within a specific range.}
+    \item{A \textbf{Global} scope UniqueToken can be acquired, allowing safe ids accross disjoint concurrent code sections.}
+  \end{itemize}
+
+\end{frame}
+

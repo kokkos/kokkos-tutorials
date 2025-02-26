@@ -1,0 +1,23 @@
+%==========================================================================
+
+\begin{frame}[fragile]
+
+  {\Huge Random Number Generator}
+
+\end{frame}
+
+
+\begin{frame}[fragile]{Random Number Generator}
+\texttt{Normal distribution improvements}
+\begin{itemize}
+\item Replace Marsaglia polar method with Box-Muller method 
+\item Box-Muller contains no branching/looping, single code path, ideal for GPU
+\item Kokkos performance on GPU, Nvidia: 
+\begin{itemize}
+\item ~20\% faster for 64 bit version
+\item ~60\% faster for 1024 bit version
+\end{itemize}
+\end{itemize}
+\end{frame}
+
+%==========================================================================

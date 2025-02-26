@@ -1,0 +1,388 @@
+\begin{frame}[fragile]{MDRangePolicy}
+
+  {\Huge Tightly Nested Loops with MDRangePolicy}
+
+  \vspace{20pt}
+
+  \textbf{Learning objectives:}
+  \begin{itemize}
+    \item{Demonstrate usage of the MDRangePolicy with tightly nested loops.}
+    \item{Syntax - Required and optional settings}
+    \item{Code demo and example}
+  \end{itemize}
+
+  \vspace{-20pt}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{MDRangePolicy (0)}
+
+  \textbf{Motivating example}: Consider the nested for loops:
+
+%  \vspace{5pt}
+
+  \lstset{mathescape, escapeinside={<@}{@>},
+          language=C,
+          keywords={}}
+
+  \begin{lstlisting}%[linebackgroundcolor={
+    %    \btLstHL{1-3}{darkred!20}
+    %  }
+    %]
+
+  for ( int i = 0; i < N0; ++i )
+  for ( int j = 0; j < N1; ++j )
+  for ( int k = 0; k < N2; ++k )
+    some_init_fcn(i, j, k);
+
+  \end{lstlisting}
+
+%  \vspace{-11pt}
+
+%  \begin{itemize}
+%    \item{Based on Kokkos lessons thus far, you might parallelize this as follows:}
+%  \end{itemize}
+
+  {Based on Kokkos lessons thus far, you might parallelize this as}
+
+
+  \begin{lstlisting}%[linebackgroundcolor={
+    %    \btLstHL{3-4}{bodyColor}
+    %  }
+    %]
+
+  Kokkos::parallel_for("Label", N0,
+                       KOKKOS_LAMBDA (const i) {
+                         for ( int j = 0; j < N1; ++j )
+                         for ( int k = 0; k < N2; ++k )
+                          some_init_fcn(i, j, k);
+                       }
+                       );
+  \end{lstlisting}
+
+%  \begin{textblock*}{0.5\textwidth}(0.08\textwidth,0.235\textheight)
+%    \rotatebox{90}{{\footnotesize {\color{darkred!80} section 1}}}
+%  \end{textblock*}
+
+%  \begin{textblock*}{0.5\textwidth}(0.08\textwidth,0.40\textheight)
+%    \rotatebox{90}{{\footnotesize {\color{blue!80} section 2}}}
+%  \end{textblock*}
+
+%  \pause
+
+  \vspace{-5pt}
+
+  \begin{itemize}
+    \item{\small{This only parallelizes along one dimension, leaving potential parallelism unexploited.}}
+    \item{\small{What if Ni is too small to amortize the cost of constructing a parallel region, but Ni*Nj*Nk makes it worthwhile?}}
+  \end{itemize}
+
+%  \begin{itemize}
+%    \item{Where will {\color{darkred!80}section 1} be run?  CPU?  GPU?}
+%    \item{Where will {\color{blue!80}section 2} be run?  CPU?  GPU?}
+%    \item{How do I \textbf{control} where code is executed?}
+%  \end{itemize}
+
+%  \pause
+%  \vspace{5pt}
+
+%  \hspace{20pt}{\Large $\Rightarrow$ \textbf{Execution spaces}}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{MDRangePolicy (1)}
+   \textbf{OpenMP has a solution: the collapse clause}
+
+  \begin{code}[linebackgroundcolor={
+        \btLstHL<1->{5}{bodyColor}
+      },
+      frame=single
+    ]
+#pragma @policyomp parallel@policy @patternfor@pattern @policycollapse(3)@policy
+@patternfor@pattern (int64_t i = @policy0; i < N0@policy; ++i) {
+  @patternfor@pattern (int64_t j = @policy0; j < N1@policy; ++j) {
+    @patternfor@pattern (int64_t k = @policy0; k < N2@policy; ++k) {
+      /* loop body */
+    }
+  }
+}
+  \end{code}
+
+  \pause
+
+Note this changed the policy by adding a `collapse` clause.
+
+\pause
+
+	\vspace{0.5cm}
+
+	\textbf{With Kokkos you also change the policy:}
+
+  \begin{code}[linebackgroundcolor={
+        \btLstHL<1->{3}{bodyColor}
+      },
+      frame=single
+    ]
+@patternparallel_for@pattern("L", @policyMDRangePolicy<Rank<3>>({0,0,0},{N0,N1,N2})@policy, 
+   KOKKOS_LAMBDA(int64_t i, int64_t j, int64_t k) {
+     /* loop body */
+});
+  \end{code}
+
+\end{frame}
+
+\begin{frame}[fragile]{MDRangePolicy (2)}
+
+\begin{block}{MDRangePolicy}
+   MDRangePolicy can parallelize tightly nested loops of 2 to 6 dimensions.
+\end{block}
+
+	\vspace{0.5cm}
+
+  \begin{code}[linebackgroundcolor={
+        \btLstHL<1->{3}{bodyColor}
+      },
+      frame=single
+    ]
+@patternparallel_for@pattern("L", @policyMDRangePolicy<Rank<3>>({0,0,0},{N0,N1,N2})@policy, 
+   KOKKOS_LAMBDA(int64_t i, int64_t j, int64_t k) {
+     /* loop body */
+});
+  \end{code}
+
+\begin{itemize}
+   \item<2-> Specify the dimensionality of the loop with $Rank<DIM>$.
+   \item<3-> As with Kokkos Views: only rectangular iteration spaces.
+   \item<4-> Provide initializer lists for begin and end values.
+   \item<5-> The functor/lambda takes matching number of indicies. 
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{MDRangePolicy (3)}
+   \textbf{You can also do Reductions:}
+
+  \begin{code}[linebackgroundcolor={
+        \btLstHL<1->{5-6}{bodyColor}
+      },
+      frame=single
+    ]
+double result;
+@patternparallel_reduce@pattern("Label", 
+  @policyMDRangePolicy<Rank<3>>({0,0,0},{N0,N1,N2})@policy, 
+  KOKKOS_LAMBDA(int i, int j, int k, double& lsum) {
+     /* loop body */
+  lsum += something;
+}, result);
+  \end{code}
+
+\begin{itemize}
+   \item<2-> The Policy doesn't change the rules for `parallel\_reduce`.
+   \item<3-> Additional Thread Local Argument.
+   \item<4-> Can do other reductions with reducers.
+   \item<5-> Can use `View`s as reduction argument.
+   \item<6-> Multiple reducers not yet implemented though.
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{MDRangePolicy (4)}
+   In structured grid applications a \textbf{tiling} strategy is often used to help with caching.
+
+	\begin{block}{Tiling}
+		MDRangePolicy uses a tiling strategy for the iteration space.
+	\end{block}
+
+	\begin{itemize}
+		\item Specified as a third initializer list.
+		\item For GPUs a tile is handled by a single thread block.
+			\begin{itemize}
+				\item If you provide too large a tile size this will fail!
+			\end{itemize}
+		\item In Kokkos 3.3 we will add auto tuning for tile sizes. 
+	\end{itemize}
+
+\begin{code}[keywords={}]
+double result;
+parallel_reduce("Label", 
+  MDRangePolicy<Rank<3>>({0,0,0},{N0,N1,N2},@policy{T0,T1,T2}@policy), 
+  KOKKOS_LAMBDA(int i, int j, int k, double& lsum) {
+     /* loop body */
+  lsum += something;
+}, result);
+  \end{code}
+
+\end{frame}
+
+
+\begin{frame}[fragile]{MDRangePolicy (5)}
+
+  Initializing a Matrix:
+  
+\begin{code}[keywords={LayoutLeft}]
+View<double**,LayoutLeft> A("A",N0,N1);
+parallel_for("Label", 
+  MDRangePolicy<Rank<2>>({0,0},{N0,N1}), 
+  KOKKOS_LAMBDA(int i, int j) {
+    A(i,j) = 1000.0 * i + 1.0*j;
+});
+\end{code}
+
+\begin{code}[keywords={LayoutRight}]
+View<double**,LayoutRight> B("B",N0,N1);
+parallel_for("Label", 
+  MDRangePolicy<Rank<2>>({0,0},{N0,N1}), 
+  KOKKOS_LAMBDA(int i, int j) {
+    B(i,j) = 1000.0 * i + 1.0*j;
+});
+\end{code} 
+
+\pause
+
+	\textbf{How do I make sure that I get the right access pattern?}
+
+\end{frame}
+
+
+\begin{frame}[fragile]{MDRangePolicy (6)}
+\begin{block}{Iteration Pattern}
+MDRangePolicy provides compile time control over iteration patterns.
+\end{block}
+
+  \begin{lstlisting}[basicstyle=\large,gobble=4]
+    Kokkos::Rank< N, IterateOuter, IterateInner >
+  \end{lstlisting}
+
+  \begin{itemize}
+    \item{\small{\textbf{N: (Required)} the rank of the index space (limited from 2 to 6)}}
+    \item{\small{\textbf{IterateOuter (Optional)} iteration pattern between tiles}}
+    \begin{itemize}
+      \item{\small{\textbf{Options:} Iterate::Left, Iterate::Right, Iterate::Default}}
+    \end{itemize}
+    \item{\small{\textbf{IterateInner (Optional)} iteration pattern within tiles}}
+    \begin{itemize}
+      \item{\small{\textbf{Options:} Iterate::Left, Iterate::Right, Iterate::Default}}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{MDRangePolicy (7)}
+
+  Initializing a Matrix fast:
+  
+\begin{code}[keywords={LayoutLeft,Iterate,Left,Right}]
+View<double**,LayoutLeft> A("A",N0,N1);
+parallel_for("Label", 
+  MDRangePolicy<Rank<2,Iterate::Left,Iterate::Left>>(
+	{0,0},{N0,N1}), 
+  KOKKOS_LAMBDA(int i, int j) {
+    A(i,j) = 1000.0 * i + 1.0*j;
+});
+\end{code}
+
+\begin{code}[keywords={LayoutRight}]
+View<double**,LayoutRight> B("B",N0,N1);
+parallel_for("Label", 
+  MDRangePolicy<Rank<2,Iterate::Right,Iterate::Right>>(
+	{0,0},{N0,N1}), 
+  KOKKOS_LAMBDA(int i, int j) {
+    B(i,j) = 1000.0 * i + 1.0*j;
+});
+\end{code} 
+
+\pause
+
+	\begin{block}{Default Patterns Match}
+Default iteration patterns match the default memory layouts!
+	\end{block}
+\end{frame}
+
+
+
+%==========================================================================
+
+\begin{frame}[fragile]{Exercise - mdrange: Initialize multi-dim views with MDRangePolicy}
+
+  \textbf{Details}:
+  \begin{small}
+  \begin{itemize}
+    \item Location: \ExerciseDirectory{mdrange/Begin}
+    \item This begins with the \texttt{Solution} of 02
+    \item Initialize the device Views x and y directly on the device using a parallel for and RangePolicy
+    \item Initialize the device View matrix A directly on the device using a parallel for and MDRangePolicy
+  \end{itemize}
+  \end{small}
+
+\begin{code}
+  # Compile for CPU
+  cmake -B build_openmp -DKokkos_ENABLE_OPENMP=ON
+  cmake --build build_openmp
+  # Run on CPU
+  ./build_openmp/mdrange_exercise -S 26
+  # Note the warnings, set appropriate environment variables
+  # Compile for GPU
+  cmake -B build_cuda -DKokkos_ENABLE_CUDA=ON
+  cmake --build build_cuda
+  # Run on GPU
+  ./build_cuda/mdrange_exercise -S 26
+\end{code}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Common Policy Arguments}
+
+  \textbf{Template Parameters common to ALL policies.}
+
+  \begin{itemize}
+     \item \texttt{ExecutionSpace}: control where code executes
+     \begin{itemize}
+       \item{\small{\textbf{Options:} Serial, OpenMP, Threads, Cuda, HIP, ...}}
+     \end{itemize}
+     \item \texttt{Schedule$<$Options$>$}: set scheduling policy.
+     \begin{itemize}
+        \item{\small{\textbf{Options:} Static, Dynamic}}
+     \end{itemize}
+
+     \item \texttt{IndexType$<$Options$>$}: control internal indexing type
+     \begin{itemize}
+       \item{\small{\textbf{Options:} int, long, etc}}
+     \end{itemize}
+
+     \item \texttt{WorkTag}: enables multiple operators in one functor
+	     \begin{code}[keywords={struct,Tag1,Tag2,void,int}]
+struct Foo {
+  struct Tag1{}; struct Tag2{};
+  KOKKOS_FUNCTION void operator(Tag1, int i) const {...}
+  KOKKOS_FUNCTION void operator(Tag2, int i) const {...}
+  void run_both(int N) { 
+    parallel_for(RangePolicy<Tag1>(0,N),*this);
+    parallel_for(RangePolicy<Tag2>(0,N),*this);
+  }
+});
+  \end{code}
+  \end{itemize}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{MDRangePolicy Section Summary}
+
+  \textbf{MDRangePolicy}
+  \begin{itemize}
+    \item{allows for tightly nested loops similar to OpenMP's collapse clause.}
+    \item{requires functors/lambdas with as many parameters as its rank is.}
+    \item{works with \texttt{parallel\_for} and \texttt{parallel\_reduce}.}
+    \item{uses a tiling strategy for the iteration space.}
+    \item{provides compile time control over iteration patterns.}
+  \end{itemize}
+
+\end{frame}
+
+%==========================================================================

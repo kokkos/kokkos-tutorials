@@ -1,0 +1,195 @@
+\begin{frame}[fragile]{Unmanaged Views}
+
+  {\Huge Unmanaged Views: Dealing with external memory}
+
+  \vspace{20pt}
+
+  \textbf{Learning objectives:}
+  \begin{itemize}
+    \item{Why do you need unmanaged views}
+    \item{Introduce unmanaged Views - basic capabilities and syntax}
+    \item{Suggested usage and practices}
+  \end{itemize}
+
+  \vspace{-20pt}
+
+\end{frame}
+
+\begin{frame}[fragile]{Interoperating with non-Kokkos Code}
+   \textbf{Sometimes your Kokkos code can't control all allocations!}
+
+   \begin{itemize}
+	   \item Obviously best to avoid that unpleasant situation ...
+   \end{itemize}
+
+   But say you use some external function like IO classes:
+
+\begin{code}[keywords={int,vector,string,double}]
+struct MatrixReader {
+  int N, M;
+  std::vector<double> values;
+  void read_file(std::string name) {...}
+};
+\end{code}
+
+\pause
+	\textbf{How can you get this to the GPU without extra allocation?}
+
+	\pause
+	\begin{block}{Unmanaged Views}
+	  Views can wrap existing allocations as Unmanaged Views.
+	\end{block}
+
+\end{frame}
+%==========================================================================
+
+\begin{frame}[fragile]{Unmanaged Views (0)}
+
+  \textbf{Unmanaged View description:}
+
+  \vspace{5pt}
+  \begin{itemize}
+    \item{Normally, Views allocate memory and manage.}
+    \item{Instead, Views can use externally controlled memory}
+    \pause
+    \item{Caveats}
+    \begin{itemize}
+      \item{No reference counting}
+      \item{No deallocation in the constructor}
+      \item{No check for the correct memory space}
+    \end{itemize}
+    \item{Usages}
+    \begin{itemize}
+      \item{Layout-punning: e.g., treat multidimensional View as one-dimensional views without copying}
+      \item{Use \texttt{std::vector} or memory from CUDA library, e.g. \texttt{cuSPARSE}}
+    \end{itemize}
+  \end{itemize}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Unmanaged Views (1)}
+
+  \textbf{Back to our IO example:}
+  \begin{code}[keywords={int,vector,string,double}]
+struct MatrixReader {
+  int N, M;
+  std::vector<double> values;
+  void read_file(std::string name) {...}
+};
+  \end{code}
+  
+  To create an unmanaged View:
+  \begin{itemize}
+   \item Provide a pointer as the first constructor argument.
+   \item Give all the runtime dimensions.
+   \item Make sure Layout and MemorySpace match!
+   \item Unmanaged Views do NOT get a label!
+  \end{itemize}
+
+  \pause
+  \begin{code}[keywords={View,double,LayoutRight,HostSpace,MemoryTraits,Unmanaged}]
+MatrixReader reader; reader.read_file("MM");
+View<double**,LayoutRight,HostSpace>
+  h_a(reader.values.data(),reader.N,reader.M);
+  \end{code}
+
+  \pause
+  \textbf{How do we get this to the device?}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Unmanaged Views (2)}
+
+  \textbf{In Module 2 we learned the Mirror Pattern}
+  \begin{itemize}
+    \item But the mirror pattern started with a device view!
+  \end{itemize}
+
+  \pause
+
+  \begin{block}{Mirror in any Space}
+  Kokkos::create\_mirror\_view can take a space argument for location of mirror.
+  \end{block}
+
+  \pause
+  \begin{code}[keywords={}]
+// Create mirror into default memory space
+using space_t = DefaultExecutionSpace::memory_space;
+auto a = create_mirror_view(space_t(), h_a);
+// Copy values from the host to the device
+deep_copy(a, h_a);
+  \end{code}
+
+  \pause
+\vspace{0.5cm}
+  Since the ``create mirror and then copy'' pattern is common we have a shortcut:
+
+  \begin{code}[keywords={}]
+auto a = create_mirror_view_and_copy(space_t(), h_a);
+  \end{code}
+
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Scratch Allocations}
+  Using pre-allocated scratch memory for temporary data structures is common to:
+  \begin{itemize}
+     \item Eliminate costly allocation/deallocation operations
+     \item Reduce total memory footprint.
+  \end{itemize}
+\pause
+  \begin{block}{Unmanaged Views of Scratch Allocations}
+	  Unmanaged Views can be used to get arrays of different shapes backed by the same memory.
+  \end{block}
+   
+  \begin{code}[keywords={void,View,double}]
+void* scratch = kokkos_malloc<>("Scratch", scratch_size);
+View<double**> a_scr(scratch, N,M);
+View<int*> b_scr(scratch,K);
+  \end{code}
+
+\pause
+	How much memory do you need for a \texttt{View}?
+
+  \begin{code}[keywords={int,View,double}]
+int scratch_size = View<double**>::required_allocation_size(N,M);
+  \end{code}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Unmanaged Views Summary}
+
+\vspace{-10pt}
+
+  \begin{itemize}
+    \item{Unmanaged Views wrap existing allocations} 
+    \begin{itemize}
+       \item{No ref-counting}
+       \item{No deallocation after losing scope}
+       \item{No memory space checks}
+    \end{itemize}
+    \pause
+    \item{Unmanaged view is created with pointer and runtime dimensions }  
+    \pause
+  \begin{code}[keywords={}]
+void* ptr = kokkos_malloc<>("Alloc", alloc_size);
+View<double**> h_a((double*)ptr,N,M);
+  \end{code}
+  \pause
+    \item {Unmanaged view uses}
+    \begin{itemize}
+    \item {Access externally controlled memory }
+    \item {Access temporary scratch memory}
+    \item {Layout pruning - view underlying data using different layout}
+    \end{itemize} 
+  \end{itemize}
+
+\end{frame}

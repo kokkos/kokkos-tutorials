@@ -1,0 +1,250 @@
+
+% Motivation
+%  - data interop with numpy
+%  - have arrays in numpy alias Kokkos::Views allocation
+% 1) Application in Python, performance critical stuff in C++
+%  - how to create views/arrays and alias them
+
+
+\begin{frame}[fragile]
+
+  {\Huge Python InterOp}
+
+  \vspace{10pt}
+
+  {\large How to write hybrid Python - Kokkos code.}
+
+  \vspace{20pt}
+
+  \textbf{Learning objectives:}
+  \begin{itemize}
+    \item {Allocating data in Python and viewing it as Kokkos Views in C++.}
+    \item {Allocating data in C++ and viewing it as Numpy Arrays in Python.}
+  \end{itemize}
+
+  \vspace{-20pt}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Why do we need this?}
+
+\textbf{Work-flows orchestrated by Python with the heavy lifting in C++ is increasing in popularity}
+
+\begin{itemize}
+  \item Python is excellent for data pre-processing, post-processing, and visualization
+  \begin{itemize}
+    \item Easy to manipulate data into other forms
+    \item Easy to import packages which handle various I/O formats (JSON, YAML, etc.)
+    \item Standard library has rich set of packages for operating system services, 
+    file/directory access, networking, statistics, etc.
+  \end{itemize}
+  \item Python is inefficient at computationally-intensive tasks
+  \begin{itemize}
+    \item Dynamic type system requires a lot of type-checking, even in simple \lstinline|c = a * b|
+    \item Python statements are not optimized for execution on specific architecture
+  \end{itemize}
+\end{itemize}
+
+\pause
+\textbf{How do we make Kokkos and Python talk with each other?}
+\end{frame}
+
+\begin{frame}[fragile]{PyBind11}
+\textbf{PyBind11 is a C++ template library for mapping C++ types and functions to Python}
+
+\begin{itemize}
+  \item Despite the syntax of Python having more similarities to C++ than C (e.g. classes), 
+  the most popular implementation of the Python interpreter is written in C (CPython)
+  \begin{itemize}
+    \item C++ code needs to be translated into implementations of the CPython API
+    \item PyBind11 provides this translation through template meta-programming
+  \end{itemize}
+  \item NumPy is the \textit{de facto} standard for arrays in Python
+  \begin{itemize}
+     \item NumPy \lstinline|ndarray| is quite similar to \lstinline|Kokkos::DynamicView| in many respects
+     \item Goal is to provide Kokkos Views which can be treated as NumPy arrays: \lstinline|array = numpy.array(view, copy=False)|
+  \end{itemize}
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{Kokkos Finalize in Python}
+\textbf{Similar to Fortran, Kokkos initialize and finalize will be available in Python}
+
+\begin{itemize}
+  \item The primary caveat will be how to invoke \lstinline|kokkos.finalize()|
+  \begin{itemize}
+  \item Invoking \lstinline|Kokkos::finalize()| in C++ requires all Kokkos data structures to no longer have reference counts
+  \item Python scoping rules are quite different than C++ scoping rules
+  \item \lstinline|kokkos.finalize()| will run the garbage collector but the invocation must be in a different function
+  outside of any variables holding a reference to a Kokkos View.
+  \end{itemize}
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{Sample Python Kokkos}
+\begin{lstlisting}[language=python,showstringspaces=false]
+import numpy
+import kokkos
+
+def main():
+    # 2D double-precision view in host memory space
+    view = kokkos.array([10, 2], 
+        dtype=kokkos.double,
+        space=kokkos.HostSpace)
+    arr = numpy.array(view, copy=False)
+    print("Kokkos View : {} (shape={})".format(
+        type(view).__name__, view.shape))
+    print("Numpy Array : {} (shape={})".format(
+        type(arr).__name__, arr.shape))
+
+if __name__ == "__main__":
+    kokkos.initialize()
+    main()
+    # gc.collect() <-- implicitly run in finalize()
+    kokkos.finalize()
+\end{lstlisting}
+
+\end{frame}
+
+\begin{frame}[fragile]{Sample User Bindings - CMake}
+\begin{lstlisting}[language=bash]
+cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
+
+project(Kokkos-Python-Example LANGUAGES C CXX)
+
+find_package(Kokkos REQUIRED)
+find_package(pybind11 REQUIRED)
+
+# user library using Kokkos
+add_library(user SHARED user.cpp user.hpp)
+target_link_libraries(user PUBLIC Kokkos::kokkos)
+
+# python bindings to user library
+pybind11_add_module(example
+    ${PROJECT_SOURCE_DIR}/example.cpp)
+target_link_libraries(example PRIVATE user)
+
+# copy example script to build directory
+configure_file(${PROJECT_SOURCE_DIR}/example.py
+    ${PROJECT_BINARY_DIR}/example.py COPYONLY)
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]{Sample User Bindings - user.hpp}
+\begin{lstlisting}
+#include "Kokkos_Core.hpp"
+
+// views returning to python must explicitly
+// specify memory space
+//
+using view_type = Kokkos::View<double**, Kokkos::HostSpace>;
+
+// This is meant to emulate some function that exists 
+// in a user library which returns a Kokkos::View and will 
+// have a python binding created in example.cpp
+//
+view_type generate_view(size_t n, size_t m);
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]{Sample User Bindings - user.cpp}
+\begin{lstlisting}
+#include "user.hpp"
+
+view_type 
+generate_view(size_t n, size_t m) 
+{
+  view_type _v("random_view", n, m);
+  // populate some data
+  // ...
+  // v(1, 0) = 0
+  // v(1, 1) = 1
+  // v(2, 0) = 2
+  // v(2, 1) = 0
+  // v(3, 0) = 0
+  // v(3, 1) = 3
+  // v(4, 0) = 4
+  // ...
+  for (size_t i = 0; i < n; ++i) 
+  {
+    _v(i, i % m) = i;
+  }
+  return _v;
+}
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]{Sample User Bindings - example.cpp}
+\begin{lstlisting}[language=C++,showstringspaces=false]
+#include "user.hpp"
+#include <pybind11/pybind11.h>
+
+namespace py = pybind11;
+
+PYBIND11_MODULE(example, ex) {
+  ///
+  /// This is a python binding to the user-defined
+  /// 'generate_view' function declared in user.hpp
+  /// which returns a Kokkos::View. Default arguments
+  /// are specified via py::arg(...) and are optional.
+  ///
+  ex.def(
+    "generate_view",          // python function
+    &generate_view,           // C++ function
+    "Generate a random view", // doc string
+    py::arg("n") = 10,        // default arg
+    py::arg("m") = 2          // default arg
+  );
+}
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]{Sample User Bindings - example.py}
+\begin{lstlisting}[language=python]
+import argparse
+import numpy
+import kokkos
+
+# pybind11 will generate dynamic python module:
+#   example.cpython-37m-darwin.so
+# and just import normally
+import example
+
+def main(args):
+    view = example.generate_view(args.n, args.m)
+    arr = numpy.array(view, copy=False)
+    # should see printout of data set in C++ code
+    print(arr)
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-n", default=10, type=int)
+    parser.add_argument("-m", default=2, type=int)
+
+    kokkos.initialize()
+    main(parser.parse_args())
+    kokkos.finalize()
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]{Summary Python}
+  \textbf{This is in pre-release: ask us for access.}
+
+  \vspace{10pt}
+  The Python Interop provides:
+  \begin{itemize}
+    \item Initialize and Finalize Kokkos from Python
+    \item Create Views from Python
+    \item Alias Kokkos Views with NumPy arrays
+  \end{itemize}
+
+  \vspace{10pt}
+  \begin{itemize}
+    \item For now relies on pybind11.
+    \item We are looking for feedback on functionality and usability!
+  \end{itemize}
+\end{frame}

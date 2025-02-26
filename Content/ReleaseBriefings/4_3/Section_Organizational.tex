@@ -1,0 +1,134 @@
+
+%==========================================================================
+
+\begin{frame}[fragile]
+
+  {\Huge Organizational}
+
+  \vspace{10pt}
+
+  \textbf{Content:}
+  \begin{itemize}
+    \item Linux Foundation
+    \item{\texttt{master} Branch}
+    \item Kokkos Tea Time
+  \end{itemize}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Linux Foundation}
+\begin{center}
+\textbf{Kokkos is now a project of the Linux Foundation!}
+\end{center}
+
+At ISC HPC in Hamburg (May 2024) we will also join the \textit{High Performance Software Foundation}!
+
+
+\textit{Why did you do that?} To grow developer base!
+\begin{itemize}
+\item{LF provides neutral ground}
+\item{Well defined governance}
+\item{Not a "DOE" or even worse "Sandia" project}
+\end{itemize}
+
+\textit{What changes for users?} Mostly nothing!
+\begin{itemize}
+\item{Hopefully even better Kokkos in the long run!}
+\item{Will leverage LF to organize community events.}
+\item{Only caveat: Trademark rules}
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Linux Foundation - Trademark}
+\textit{Trademark???} Yes: Kokkos\texttrademark ...
+\begin{itemize}
+\item Don't call your project "KokkosFoo" unless inside the Kokkos organization
+\item You can say "Foo based on Kokkos" "Foo for Kokkos" and disclaim "Kokkos is a LF project"
+\item You can organize classes, presentations and what not on Kokkos, and refer to it as much as you like in presentations.
+\item The goal is to avoid confusion of what is part of the official Kokkos LF project vs efforts which are just leveraging the project.
+\end{itemize}
+
+If you have questions: asks us!
+
+And look at the Linux Foundation Trademark rules: \url{https://www.linuxfoundation.org/legal/trademark-usage}
+\end{frame}
+
+\begin{frame}[fragile]{\texttt{master} Branch}
+\textbf{We are getting rid of the master branch for Kokkos}
+
+\begin{itemize}
+\item{\texttt{master} branch has been the "latest release"}
+\item{Not generally a common practice on github e.g. normally \texttt{main} is what we call \texttt{develop}}
+\item{Often lead to PRs based on wrong thing}
+\end{itemize}
+
+\textit{What will change?}
+
+\begin{itemize}
+\item{\texttt{develop} branch now the default branch}
+\item{\texttt{master} will still exist for a little while}
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{Kokkos Tea Time}
+\emph{Kokkos tea-time} is a monthly time online to meet the community and discuss anything related to \textbf{Kokkos}, its \textbf{ecosystem}, or even \textbf{GPU-programming} at large.
+\medskip
+\begin{itemize}
+  \item 3rd Wednesday of the month
+  \begin{itemize}
+   \item {\small7AM PT, 8AM MT, 10AM ET, 2PM UTC, 4PM CEST}
+  \end{itemize}
+  \item a 45min time slot for either
+  \begin{itemize}
+    \item a 30min presentation followed by questions,
+    \item or a more informal discussion on a select topic.
+  \end{itemize}
+  \item by zoom, by visio, by phone, or in your nearest\\ kokkos shop
+  \begin{itemize}
+   \item Get you link \url{https://cexa-project.org/news/}
+  \end{itemize}
+\end{itemize}
+\vfill
+Discover Kokkos Resilience with Nic Morales\\
+on the 16$^{\text{th}}$ of May.
+
+\begin{textblock}{4.5}(10.25,5.75)
+\centering
+\includegraphics[width=.45\textwidth]{4_3/tea-time_we_want_you}
+
+We want you to tell us about your Kokkos use, development, ideas, ...\\
+{\small\url{contact@cexa-project.org}}
+\end{textblock}
+\begin{textblock}{1.5}(13.75,4.25)
+\includegraphics[width=\textwidth]{4_3/tea-time-QR}
+\end{textblock}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{New Kokkos Efforts}
+\textit{Two new Kokkos subprojects:}
+
+\begin{itemize}
+\item Very Experimental: expect changes of interface etc.
+\item Brave early experimenters welcome to help give feedback or get involved.
+\end{itemize}
+
+\textbf{KokkosFFT}
+\begin{itemize}
+\item Goal: wrapping existing MPI libraries such as fftw, cufft, mkl and rocfft.
+\item \url{https://github.com/kokkos/kokkos-fft}
+\item POC: Yuuichi Asahi (CEA)
+\end{itemize}
+
+\textbf{KokkosComm}
+\begin{itemize}
+\item Goal: provide communication facilities: for now MPI-like interfaces taking \texttt{View}s.
+\item \url{https://github.com/kokkos/kokkos-comm}
+\item Join the \texttt{mpi-interop} channel on the Kokkos Slack
+\end{itemize}
+
+\end{frame}

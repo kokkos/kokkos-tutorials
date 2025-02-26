@@ -1,0 +1,60 @@
+
+%==========================================================================
+
+\begin{frame}[fragile]
+
+  {\Huge Backend Updates}
+
+  \vspace{10pt}
+
+  \textbf{Content:}
+  \begin{itemize}
+    \item Backend Updates I
+    \item Backend Updates II
+  \end{itemize}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Backend Updates I}
+\texttt{CUDA}
+\begin{itemize}
+    \item Allow \texttt{NVCC} 12 to compile using C++20 flag 
+    \item Remove ability to disable CMake option \texttt{Kokkos\_ENABLE\_CUDA\_LAMBDA} and unconditionally enable \texttt{CUDA} extended lambda support.
+    \item Drop unnecessary fences around the memory allocation when using \texttt{CudaUVMSpace} in views
+    \begin{itemize}
+      \item Issues when relying on View initialization to fence when a execution space instance was passed.
+    \end{itemize}
+\end{itemize}
+\vfill
+\texttt{HIP}
+\begin{itemize}
+    \item Improve performance for \texttt{parallel\_reduce}. Use different parameters for \texttt{LightWeight} kernels.
+\end{itemize}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Backend Updates II}
+\texttt{SYCL}
+\begin{itemize}
+   \item Improve and simplify \texttt{parallel\_scan} implementation
+\end{itemize}
+\vfill
+\texttt{OpenMPTarget}
+\begin{itemize}
+   \item Improve hierarchical parallelism for Intel architectures
+   \item Enable Cray compiler for the \texttt{OpenMPTarget} backend.
+\end{itemize}
+\vfill
+\texttt{HPX}
+\begin{itemize}
+    \item Update HPX backend to use HPX's sender/receiver functionality
+    \item Increase minimum required HPX version to 1.8.0
+    \item Implement HPX::in\_parallel
+\end{itemize}
+\end{frame}
+
+%==========================================================================
+

@@ -1,0 +1,281 @@
+
+%==========================================================================
+
+\begin{frame}[fragile]
+
+  {\Huge Task parallelism}
+
+  \vspace{10pt}
+
+  {\large Fine-grained dependent execution.}
+
+  \vspace{20pt}
+
+  \textbf{Learning objectives:}
+  \begin{itemize}
+    \item {Basic interface for fine-grained tasking in Kokkos}
+    \item {How to express dynamic dependency structures in Kokkos tasking}
+    \item {When to use Kokkos tasking}
+  \end{itemize}
+
+  \vspace{-20pt}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Task Parallelism Looks Like Data Parallelism}
+
+    Recall that {\textbf{data parallel}} code is composed of a {\color{patternColor!80!black} pattern}, a {\color{policyColor!80!black} policy}, and a {\color{bodyColor!80!black} functor}
+
+    \vspace{3pt}
+
+    \begin{code}[linebackgroundcolor={},keywords={}]
+@patternKokkos::parallel_for@pattern(
+  @policyKokkos::RangePolicy<>(exec_space, 0, N)@policy,
+  @bodySomeFunctor()@body
+);
+  \end{code}
+    \vspace{8pt}
+
+    \textbf{Task parallel} code similarly has a {\color{patternColor!80!black} pattern}, a {\color{policyColor!80!black} policy}, and a {\color{bodyColor!80!black} functor}
+
+    \vspace{3pt}
+
+    \begin{code}[linebackgroundcolor={},keywords={}]
+@patternKokkos::task_spawn@pattern(
+  @policyKokkos::TaskSingle(scheduler, TaskPriority::High)@policy,
+  @bodySomeFunctor()@body
+);
+    \end{code}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{What does a task functor look like?}
+
+  \begin{code}[linebackgroundcolor={},keywords={}]
+struct MyTask {
+  using @bluevalue_type@blue = @reddouble@red;
+  template <class @darkgreenTeamMember@darkgreen>
+  KOKKOS_INLINE_FUNCTION
+  void operator()(@darkgreenTeamMember@darkgreen& member, @reddouble@red& result);
+};
+  \end{code}
+  
+  \begin{itemize}
+    \item Tell Kokkos what the {\color{blue}value type} of your task's output is.
+    \item Take a {\color{darkgreen}team member} argument, analogous to the team member passed in by \texttt{Kokkos::TeamPolicy} in hierarchical parallelism
+    \item The {\color{red} output} is expressed by assigning to a parameter, similar to with \texttt{Kokkos::parallel\_reduce}
+  \end{itemize}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{What policies does Kokkos tasking provide?}
+
+  \begin{itemize}
+    \item \texttt{Kokkos::TaskSingle()}
+      \begin{itemize}
+        \item Run the task with a single worker thread
+      \end{itemize}
+    \item \texttt{Kokkos::TaskTeam()}
+      \begin{itemize}
+        \item Run the task with all of the threads in a team
+        \item Think of it like being inside of a \texttt{parallel\_for} with a \texttt{TeamPolicy}
+      \end{itemize}
+    \item Both policies take a scheduler, an optional predecessor, and an optional priority (more on schedulers and predecessors later)
+  \end{itemize}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{What patterns does Kokkos tasking provide?}
+
+  \begin{itemize}
+    \item \texttt{Kokkos::task\_spawn()}
+    \begin{itemize}
+      \item \texttt{Kokkos::host\_spawn()} (same thing, but from host code)
+    \end{itemize}
+  \item \texttt{Kokkos::respawn()}
+    \begin{itemize}
+      \item {\color{red}Argument order is backwards; policy comes second!}
+      \item {\color{red}First argument is `this` always (not `*this`)}
+    \end{itemize}
+  \item \texttt{task\_spawn()} and \texttt{host\_spawn()} return a \texttt{Kokkos::Future} representing the completion of the task (see next slide), which can be used as a predecessor to another operation.
+  \end{itemize}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{How do futures and dependencies work?}
+
+  \begin{code}[linebackgroundcolor={},keywords={}]
+@graystruct MyTask {
+  using value_type = double;@gray
+  Kokkos::Future<double, Kokkos::DefaultExecutionSpace> @bluedep@blue;
+  int @darkgreendepth@darkgreen;
+  @grayKOKKOS_INLINE_FUNCTION MyTask(int d) : depth(d) { } 
+  template <class TeamMember>
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TeamMember& member, double& result)@gray {
+    if(@darkgreendepth@darkgreen == 1) result = 3.14;
+    else if(@bluedep@blue.is_null()) {
+      @bluedep@blue =
+        @darkredKokkos::task_spawn(
+          Kokkos::TaskSingle(member.scheduler()),
+          MyTask(@darkred@darkgreendepth@darkgreen@darkred-1)
+        );@darkred
+      Kokkos::respawn(this, @bluedep@blue);
+    }
+    else {
+      result = @darkgreendepth@darkgreen * @bluedep@blue.get();
+    }
+  }
+};
+  \end{code}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{The Scheduler Abstraction}
+  \begin{code}[keywords={}]
+template <class @blueScheduler@blue>
+@graystruct MyTask {
+  using value_type = double;@gray
+  Kokkos::BasicFuture<double, @blueScheduler@blue> @graydep;
+  int depth;
+  KOKKOS_INLINE_FUNCTION MyTask(int d) : depth(d) { } 
+  template <class TeamMember>
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TeamMember& member, double& result);
+};@gray
+  \end{code}
+
+    \vspace{1em}
+
+  {\em{Available Schedulers:}}
+  \begin{itemize}
+    \item \texttt{TaskScheduler<ExecSpace>}
+    \item \texttt{TaskSchedulerMultiple<ExecSpace>}
+    \item \texttt{ChaseLevTaskScheduler<ExecSpace>}
+  \end{itemize}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Spawning from the host}
+  \begin{code}[keywords={}]
+using execution_space = Kokkos::DefaultExecutionSpace;
+using scheduler_type = Kokkos::TaskScheduler<execution_space>;
+using memory_space = scheduler_type::memory_space;
+using memory_pool_type = scheduler_type::memory_pool;
+size_t memory_pool_size = 1 << 22;
+
+auto @bluescheduler@blue = 
+  scheduler_type(memory_pool_type(memory_pool_size));
+
+Kokkos::BasicFuture<double, scheduler_type> @darkgreenresult@darkgreen =
+  @darkredKokkos::host_spawn(
+    Kokkos::TaskSingle(@bluescheduler@blue),
+    MyTask<scheduler_type>(10)
+  );@darkred
+Kokkos::wait(@bluescheduler@blue);
+printf("Result is %f", @darkgreenresult@darkgreen.get());
+  \end{code}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Things to Keep in Mind}
+  \begin{itemize}
+    \item Tasks always run to completion
+    \item There is no way to wait or block inside of a task
+      \begin{itemize}
+        \item {\color{red} \texttt{future.get()} does not block!}
+      \end{itemize}
+    \item Tasks that do not \texttt{respawn} themselves are complete
+      \begin{itemize}
+        \item The value in the \texttt{result} parameter is made available through \texttt{future.get()} to any dependent tasks.
+      \end{itemize}
+    \item The second argument to \texttt{respawn} can only be either a predecessor (future) or a scheduler, not a proper execution policy
+      \begin{itemize}
+        \item We are fixing this to provide a more consistent overload in the next release.
+      \end{itemize}
+    \item Tasks can only have one predecessor (at a time)
+      \begin{itemize}
+        \item Use \texttt{scheduler.when\_all()} to aggregate predecessors (see next slide)
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Aggregate Predecessors}
+  \begin{code}[keywords={}]
+    using @purplevoid_future@purple =
+      Kokkos::BasicFuture<void, scheduler_type>;
+    auto @darkredf1@darkred =
+      Kokkos::task_spawn(Kokkos::TaskSingle(scheduler), X{});
+    auto @darkgreenf2@darkgreen =
+      Kokkos::task_spawn(Kokkos::TaskSingle(scheduler), Y{});
+    @purplevoid_future@purple @orangef_array@orange[] = { @darkredf1@darkred, @darkgreenf2@darkgreen };
+    @purplevoid_future@purple @redf_12@red = scheduler.@bluewhen_all@blue(@orangef_array@orange, 2);
+    auto f3 =
+      Kokkos::task_spawn(
+        Kokkos::TaskSingle(scheduler, @redf_12@red), FuncXY{}
+      );
+  \end{code}
+  \begin{itemize}
+    \item To create an aggregate \texttt{Future}, use \texttt{scheduler.when\_all()}
+    \item \texttt{scheduler.when\_all()} always returns a \texttt{void} future.
+    \item (Also, any future is implicitly convertible to a \texttt{void} future of the same \texttt{Scheduler} type)
+  \end{itemize}
+\end{frame}
+
+
+%==========================================================================
+
+\begin{frame}[fragile]{Exercise: Fibonacci}
+    {\ul{\textbf{Naïve Recursive Fibonacci}}}
+
+  \begin{columns}[t,onlytextwidth]
+    \column{.45\textwidth}
+      \begin{center}
+          \vspace{-2em}
+          {\ul{\textit{Formula}}}
+\begin{align*}
+    F_N &= F_{N-1} + F_{N-2} \\
+    F_0 &= 0 \\
+    F_1 &= 1
+\end{align*}
+      \end{center}
+    \column{.55\textwidth}
+      {\ul{\textit{Serial algorithm}}}
+\begin{code}[keywords={}]
+int @darkgreenfib@darkgreen(int @darkredn@darkred) {
+  if(@darkredn@darkred < 2) return @darkredn@darkred;
+  else {
+    return @darkgreenfib@darkgreen(@darkredn@darkred-1) + @darkgreenfib@darkgreen(@darkredn@darkred-2);
+  }
+}
+\end{code}
+  \end{columns}
+
+    {\textbf{Details:}}
+    \begin{itemize}
+        \item Location: \texttt{Exercises/tasking}
+        \item Implement the \texttt{FibonacciTask} task functor recursively
+        \item Spawn the root task from the host and wait for the scheduler to make it ready
+    \end{itemize}
+    {\textbf{Hints:}}
+    \begin{itemize}
+        \item Do the $F_{N-1}$ and $F_{N-2}$ subproblems in separate tasks
+        \item Use a \texttt{scheduler.when\_all()} to wait on the subproblems
+    \end{itemize}
+\end{frame}
+
+%==========================================================================

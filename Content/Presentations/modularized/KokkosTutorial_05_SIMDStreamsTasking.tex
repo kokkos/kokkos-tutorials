@@ -1,0 +1,183 @@
+\input{KokkosTutorial_PreTitle}
+%disclaimer for Sandia. uncomment and the whole blob goes away @ b80c116300122
+\def\sandid{SAND2020-8508 PE}
+
+% \title{Performance Portability with Kokkos}
+\title{The Kokkos Lectures}
+
+%BAD misuse of author field
+\author{Module 5: SIMD, Streams and Tasking}
+
+%\author{
+%  Jeff Miles \inst{1},
+%  Christian Trott \inst{1}
+%}
+%\institute[shortinst]{\tiny \inst{1} Sandia National Laboratories, \inst{2} Oak Ridge National Laboratory \and \inst{3} Los Alamos National Laboratory}
+%\institute[shortinst]{\tiny \inst{1} Sandia National Laboratories}
+
+\input{KokkosTutorial_PostTitle}
+
+\shortfalse
+\mediumtrue
+\fulltrue
+\notoverviewtrue
+
+\begin{document}
+
+% \begin{frame}
+%   \titlepage
+% \end{frame}
+% \input{sections/Section_nvlabs}
+
+\begin{frame}
+	\titlepage
+\end{frame}
+
+\begin{frame}{Welcome to Kokkos}
+
+\textbf{Online Resources}:
+
+\begin{itemize}
+        \item \url{https://github.com/kokkos}:
+                \begin{itemize}
+                        \item Primary Kokkos GitHub Organization
+                \end{itemize}
+        \item \url{https://kokkos.org/kokkos-core-wiki/videolectures.html}
+                \begin{itemize}
+			\item{Slides, recording and Q\&A for the lectures}
+                \end{itemize}
+        \item \url{https://kokkos.org/kokkos-core-wiki}:
+                \begin{itemize}
+                        \item Programming guide and API reference documentation
+                \end{itemize}
+        \item \url{https://kokkosteam.slack.com}:
+                \begin{itemize}
+                        \item Slack channel for Kokkos.
+                        \item Please join: fastest way to get your questions answered.
+                        \item Can whitelist domains, or invite individual people.
+                \end{itemize}
+\end{itemize}
+
+\end{frame}
+
+
+\begin{frame}[fragile]{Lecture Series Outline}
+
+\begin{itemize}
+        \item 07/17 Module 1: Introduction, Building and Parallel Dispatch
+        \item 07/24 Module 2: Views and Spaces
+        \item 07/31 Module 3: Data Structures + MultiDimensional Loops
+        \item 08/07 Module 4: Hierarchical Parallelism
+        \item \textbf{08/14 Module 5: SIMD, Streams and Tasking}
+        \item 08/21 Module 6: Internode: MPI and PGAS
+        \item 08/28 Module 7: Tools: Profiling, Tuning and Debugging
+        \item 09/04 Module 8: Kernels: Sparse and Dense Linear Algebra
+        \item 09/11 Reserve Day
+\end{itemize}
+
+\end{frame}
+
+
+
+\begin{frame}[fragile]{Module 4: Summary}
+	\textbf{Hierarchal Parallelism}
+  \begin{itemize}
+    \item{\textbf{Hierarchical work} can be parallelized via hierarchical parallelism.}
+    \item{Hierarchical parallelism is leveraged using \textbf{thread teams} launched with a \texttt{TeamPolicy}.}
+    \item{Team ``worksets'' are processed by a team in nested \texttt{parallel\_for} (or \texttt{reduce} or \texttt{scan}) calls with a \texttt{TeamThreadRange} and \texttt{ThreadVectorRange} policy.}
+    \item{Execution can be restricted to a subset of the team with the \texttt{single} pattern using either a \texttt{PerTeam} or \texttt{PerThread} policy.}
+    \item{Teams can be used to \textbf{reduce contention} for global resources even in ``flat'' algorithms.}
+  \end{itemize}
+
+
+  
+\end{frame}
+
+\begin{frame}[fragile]{Module 4: Summary}
+   \textbf{Scratch Space}
+\begin{itemize}
+    \item{\textbf{Scratch Memory} can be use with the \texttt{TeamPolicy} to provide thread or team \textbf{private} memory.}
+    \item{Usecase: per work-item temporary storage or manual caching.}
+    \item{Scratch memory exposes on-chip user managed caches (e.g. on NVIDIA GPUs)}
+    \item{The size must be determined before launching a kernel.}
+    \item{Two levels are available: large/slow and small/fast.}
+  \end{itemize}
+  \textbf{Unique Token}
+  \begin{itemize}
+    \item{\textbf{UniqueToken} give a thread safe portable way to divide thread specific resources}
+    \item{\textbf{UniqueToken} can be sized to restrict ids to a range.}
+    \item{A \textbf{Global} UniqueToken is available.}
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}{Module 5}
+  \begin{block}{SIMD}
+    How to vectorize code with explicit vector types.
+  \end{block}
+
+  \begin{block}{Blocking behavior and Execution Space Instances}
+    What is Kokkos's blocking behavior and Execution Space Instances
+  \end{block}
+
+  \begin{block}{Tasking}
+    Writing dynamic task graphs.
+  \end{block}
+\end{frame}
+
+\input{../sections/Section_SIMD}
+\input{../sections/Section_Streams}
+\input{../sections/Section_Tasking}
+
+\begin{frame}[fragile]{Module 5 Summary}
+\textbf{SIMD Types}
+	\begin{itemize}
+		\item{SIMD types help vectorize code.}
+		\item{In particular for \textbf{outer-loop} vectorization.}
+		\item{There are \textbf{storage} and \textbf{temporary} types.}
+		\item{Currently considered experimental at \url{https://github.com/Kokkos/simd-math}: please try it out and provide feedback.}
+	\end{itemize}
+
+\textbf{Blocking Behavior and Streams}
+  \begin{itemize}
+    \item{Execution Space Instances execute work in order of dispatch.}
+    \item{Operations in distinct Execution Space Instances can overlap.}
+    \item{Each Execution Space type has a default instance.}
+    \item{Use \texttt{Kokkos::fence()} to wait for completion of ALL outstanding work or \texttt{exec\_space\_instance.fence()} to wait on work in a specific execution space instance.}
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}{Module 6: Outlook (08/21)}
+    \vspace{-3pt}
+	\textbf{Python and Fortran Data Interoperability}
+	\begin{itemize}
+        \item {How to pass data back and forth between C++ Kokkos and Python/Fortran}
+	\end{itemize}
+	
+	\vspace{5pt}
+	\textbf{Kokkos + MPI: how to make it work}
+	\begin{itemize}
+		\item {Basic usage}
+		\item {Performance considerations}
+	\end{itemize}
+
+	\vspace{5pt}
+	\textbf{PGAS: Global Arrays via Kokkos}
+	\begin{itemize}
+		\item {How to write distributed code using a global arrays like interface}
+	\end{itemize}
+
+	\vspace{5pt}
+	\textbf{Don't Forget:} Join our Slack Channel and drop into our office hours on Tuesday.
+	
+	\vspace{5pt}
+	\textbf{Updates at:} \href{https://kokkos.link/the-lectures-updates}{kokkos.link/the-lectures-updates}
+	
+	\vspace{5pt}
+	\textbf{Recordings/Slides:} \href{https://kokkos.link/the-lectures}{kokkos.link/the-lectures}
+
+\end{frame}
+
+\end{document}
+

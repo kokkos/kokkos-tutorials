@@ -66,13 +66,13 @@ int main( int argc, char* argv[] )
   {
 
   // Allocate y, x vectors and Matrix A on device.
-  typedef Kokkos::View<double*>   ViewVectorType;
-  typedef Kokkos::View<double**>  ViewMatrixType;
+  using ViewVectorType = Kokkos::View<double*>;
+  using ViewMatrixType = Kokkos::View<double**>;
   ViewVectorType y( "y", N );
   ViewVectorType x( "x", M );
   ViewMatrixType A( "A", N, M );
 
-  typedef Kokkos::RangePolicy<>  range_policy;
+  using range_policy = Kokkos::RangePolicy<>;
 
   // Initialize y vector on device
   Kokkos::parallel_for( "init_y", range_policy(0,N), KOKKOS_LAMBDA ( const int i ) {
@@ -87,7 +87,7 @@ int main( int argc, char* argv[] )
   );
 
   // Initialize A matrix on device
-  typedef Kokkos::MDRangePolicy< Kokkos::Rank<2> > mdrange_policy;
+  using mdrange_policy = Kokkos::MDRangePolicy< Kokkos::Rank<2> >;
   Kokkos::parallel_for( "init_A", mdrange_policy({0,0}, {N,M}), KOKKOS_LAMBDA ( const int j , const int i ) {
       A(j,i) = 1;
     }

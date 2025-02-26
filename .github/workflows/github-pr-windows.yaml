@@ -1,0 +1,54 @@
+name: Hosted Runners (windows)
+
+on:
+  push:
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            cpp_compiler: cl
+            build_type: Release
+            backend: SERIAL
+
+    steps:
+    - name: Checkout Kokkos Tutorials
+      uses: actions/checkout@v4
+      with:
+        path: kokkos-tutorials
+
+    - name: Checkout Kokkos
+      uses: actions/checkout@v4
+      with:
+        repository: 'kokkos/kokkos'
+        ref: master
+        path: kokkos
+
+    - name: Configure Kokkos
+      run: >
+        cmake -S ${{ github.workspace}}\kokkos -B ${{ github.workspace}}\build-kokkos
+        -DCMAKE_INSTALL_PREFIX=${{ github.workspace}}\install-kokkos
+        -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
+        -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+
+    - name: Build & Install Kokkos
+      run: cmake --build ${{ github.workspace}}\build-kokkos --config ${{ matrix.build_type }} --parallel 2 --target install
+
+    - name: Configure and Build Exercises
+      run: |
+        ${{ github.workspace}}\kokkos-tutorials\Scripts\ci-configure-build-test.bat ^
+        ${{ github.workspace}}\install-kokkos\lib\cmake\Kokkos ^
+        ${{ github.workspace}}\kokkos-tutorials ^
+        ${{ matrix.cpp_compiler}} ^
+        ${{ matrix.build_type}} ^
+        ${{ matrix.backend }}
+      shell: cmd
+        

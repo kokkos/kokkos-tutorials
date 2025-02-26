@@ -1,0 +1,29 @@
+
+%==========================================================================
+
+\begin{frame}[fragile]{sort\_by\_key}
+
+\textbf{Introduced sort\_by\_key to dispatch to optimized vendor libraries}
+
+\vspace{10pt}
+
+\begin{code}
+  ExecutionSpace exec_space;
+  Kokkos::View<int*> keys("keys", n);
+  Kokkos::View<float*> values("values", n);
+  Kokkos::Experimental::sort_by_key(exec_space, keys, values);
+\end{code}
+
+\vspace{10pt}
+
+\begin{itemize}
+  \item 1D views only
+  \item Sizes of \texttt{keys} and \texttt{values} must match
+  \item Both \texttt{keys} and \texttt{values} are modified
+  \item Dispatches to vendor libraries (Thrust, rocThrust, oneDPL) when available
+\end{itemize}
+
+\end{frame}
+
+%==========================================================================
+

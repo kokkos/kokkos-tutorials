@@ -1,7 +1,7 @@
 # Convenience macro to warn the user if a GPU backend is enabled
 macro(KokkosTutorials_WarnGPU)
     if (Kokkos_ENABLE_CUDA OR Kokkos_ENABLE_HIP OR Kokkos_ENABLE_SYCL OR Kokkos_ENABLE_OPENMPTARGET OR Kokkos_ENABLE_HPX)
-        message(WARNING "${CMAKE_CURRENT_SOURCE_DIR}"
+        message(WARNING "cmake"
                 "a Kokkos accelerator backend is enabled, it might cause issue with the current program"
                 "Please recompile with only a host backend enabled (e.g. -DKokkos_ENABLE_OPENMP=ON)")
     endif ()
@@ -26,7 +26,7 @@ endif ()
 # the default directory is inside the source tree.
 # This might break if the default in source directory is called from multiple cmake instances at the same time.
 
-set(KokkosTutorials_KOKKOS_SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}/../dep/kokkos" CACHE PATH "Description for KokkosTutorials_KOKKOS_SOURCE_DIR")
+set(KokkosTutorials_KOKKOS_SOURCE_DIR "dep/kokkos" CACHE PATH "Description for KokkosTutorials_KOKKOS_SOURCE_DIR")
 
 find_package(Kokkos CONFIG)
 

@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.16)
 project(KokkosTutorialTools)
 
 # Add a custom module path for find_package(Kokkos)
-include(../cmake/SetUpKokkos.cmake)
+include(../SetUpKokkos.cmake)
 
 option(ENABLE_MPI OFF "Whether to enable the Message Passing Interface (MPI)")
 

@@ -27,13 +27,11 @@ endif ()
 
 set(KokkosTutorials_KOKKOS_SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}/../dep/kokkos" CACHE PATH "Description for KokkosTutorials_KOKKOS_SOURCE_DIR")
 
-if (NOT KokkosTutorials_FORCE_INTERNAL_Kokkos)
-    find_package(Kokkos CONFIG)
-endif ()
+find_package(Kokkos CONFIG)
 
 if (Kokkos_FOUND)
     message(STATUS "Found Kokkos: ${Kokkos_DIR} (version \"${Kokkos_VERSION}\")")
-elseif (NOT KokkosTutorials_FORCE_EXTERNAL_Kokkos)
+else ()
     if (EXISTS ${KokkosTutorials_KOKKOS_SOURCE_DIR})
         add_subdirectory(${KokkosTutorials_KOKKOS_SOURCE_DIR} Kokkos)
     else ()

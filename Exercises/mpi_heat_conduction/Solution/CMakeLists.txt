@@ -1,7 +1,9 @@
 cmake_minimum_required(VERSION 3.16)
 project(heat3d)
 
-find_package(Kokkos REQUIRED)
+# Add a custom module path for find_package(Kokkos)
+include(../../cmake/SetUpKokkos.cmake)
+
 find_package(MPI REQUIRED)
 
 add_executable(heat3d mpi_heat_conduction_solution.cpp)

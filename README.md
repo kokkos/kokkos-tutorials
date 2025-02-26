@@ -80,15 +80,15 @@ CMake can build against an installed Kokkos library or download one automaticall
 To pass an already installed Kokkos library, you can use classical CMake variables,
 such as `Kokkos_ROOT`, or `CMAKE_PREFIX_PATH`.
 
-A specific CMake option, `KokkosTutorials_FORCE_INTERNAL_Kokkos`, can be used to force the use of the internal Kokkos
+A specific CMake option, `CMAKE_DISABLE_FIND_PACKAGE_Kokkos`, can be used to force the use of the internal Kokkos
 library, discarding any already installed Kokkos.
 
-An opposite option, `KokkosTutorials_FORCE_EXTERNAL_Kokkos` can prevent Kokkos from being downloaded and is useful to
+An opposite option, `CMAKE_REQUIRE_FIND_PACKAGE_Kokkos` can prevent Kokkos from being downloaded and is useful to
 test against an already installed Kokkos.
 
 ```shell
 # Download and build Kokkos and the tutorials, forcing the use of the internal Kokkos
-cmake -B build_dir -DKokkosTutorials_FORCE_INTERNAL_Kokkos=ON # -DKokkos_* options
+cmake -B build_dir -DCMAKE_DISABLE_FIND_PACKAGE_Kokkos=ON # -DKokkos_* options
 cmake --build build_dir
 ```
 

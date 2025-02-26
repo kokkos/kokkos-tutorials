@@ -1,3 +1,4 @@
+# Convenience macro to warn the user if a GPU backend is enabled
 macro(KokkosTutorials_WarnGPU)
     if (Kokkos_ENABLE_CUDA OR Kokkos_ENABLE_HIP OR Kokkos_ENABLE_SYCL OR Kokkos_ENABLE_OPENMPTARGET OR Kokkos_ENABLE_HPX)
         message(WARNING "${CMAKE_CURRENT_SOURCE_DIR}"
@@ -44,6 +45,5 @@ else ()
                 SOURCE_DIR ${KokkosTutorials_KOKKOS_SOURCE_DIR}
         )
         FetchContent_MakeAvailable(Kokkos)
-        set(Kokkos_FOUND True)
     endif ()
 endif ()

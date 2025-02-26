@@ -18,21 +18,7 @@
 #include <iostream>
 
 template <typename ValueType> struct Factorial {
-  using value_type = ValueType;
-  
-  Factorial(Kokkos::View<value_type *> view) : m_view(view) {}
-  
-  // EXERCISE: Implement the init method
-  // void init(...) {...}
-  
-  // EXERCISE: Implement the join method
-  // void join(...) {...}
-
-  // EXERCISE: Implement the operator() method
-  // void operator()(...) const {...}
-
-private:
-  Kokkos::View<value_type *> m_view;
+  /* EXERCISE */
 };
 
 int main(int argc, char *argv[]) {

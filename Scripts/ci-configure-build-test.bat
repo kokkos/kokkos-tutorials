@@ -19,7 +19,6 @@ set EXERCISES=%EXERCISES% kokkoskernels/GaussSeidel
 set EXERCISES=%EXERCISES% kokkoskernels/GraphColoring
 set EXERCISES=%EXERCISES% kokkoskernels/InnerProduct
 set EXERCISES=%EXERCISES% mdrange
-set EXERCISES=%EXERCISES% mpi_pack_unpack
 set EXERCISES=%EXERCISES% parallel_scan
 set EXERCISES=%EXERCISES% random_number
 set EXERCISES=%EXERCISES% scatter_view

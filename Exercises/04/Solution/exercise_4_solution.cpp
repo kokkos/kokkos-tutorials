@@ -66,8 +66,8 @@ int main( int argc, char* argv[] )
   Kokkos::initialize( argc, argv );
   {
 
-  using MemSpace = Kokkos::DefaultExecutionSpace::memory_space;
-  using ExecSpace = MemSpace::execution_space;
+  using ExecSpace = Kokkos::DefaultExecutionSpace;
+  using MemSpace = ExecSpace::memory_space;
   using range_policy = Kokkos::RangePolicy<ExecSpace>;
 
   // Allocate y, x vectors and Matrix A on device.

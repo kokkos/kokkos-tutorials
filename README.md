@@ -70,8 +70,7 @@ cmake -B build_hip -DKokkos_ENABLE_HIP=ON
 cmake --build build_hip
 ```
 
-Kokkos setup is covered by the [quickstart guide](https://kokkos.org/kokkos-core-wiki/get-started/quick-start.html) and an exhaustive
-Kokkos options are described in [CMake options](https://kokkos.org/kokkos-core-wiki/get-started/configuration-guide.html).
+Kokkos setup is covered by the [quickstart guide](https://kokkos.org/kokkos-core-wiki/get-started/quick-start.html) and an exhaustive list of Kokkos options is detailed in the [CMake keywords documentation](https://kokkos.org/kokkos-core-wiki/get-started/configuration-guide.html).
 
 ## Advanced CMake Usage
 

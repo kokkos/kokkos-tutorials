@@ -144,8 +144,6 @@ int main( int argc, char* argv[] )
     }
   }
 
- 
-
   // Calculate time.
   double time = timer.seconds();
 

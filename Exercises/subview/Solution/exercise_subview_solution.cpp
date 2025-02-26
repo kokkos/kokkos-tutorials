@@ -53,8 +53,8 @@ int main( int argc, char* argv[] )
   Kokkos::initialize( argc, argv );
   {
 
-  using MemSpace = Kokkos::DefaultExecutionSpace::memory_space;
-  using ExecSpace = MemSpace::execution_space;
+  using ExecSpace = Kokkos::DefaultExecutionSpace;
+  using MemSpace = ExecSpace::memory_space;
 
   // using Layout = Kokkos::LayoutLeft;
   using Layout = Kokkos::LayoutRight;
@@ -125,7 +125,6 @@ int main( int argc, char* argv[] )
       printf( "  Error: result( %lf ) != solution( %lf )\n", result, solution );
     }
   }
-
 
   // Calculate time.
   double time = timer.seconds();

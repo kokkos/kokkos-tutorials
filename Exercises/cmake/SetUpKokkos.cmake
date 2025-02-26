@@ -35,11 +35,12 @@ else ()
     if (EXISTS ${KokkosTutorials_KOKKOS_SOURCE_DIR})
         add_subdirectory(${KokkosTutorials_KOKKOS_SOURCE_DIR} Kokkos)
     else ()
+        cmake_policy(CMP0135 NEW)  # Use extract timestamp for fetch content
         include(FetchContent)
         FetchContent_Declare(
                 Kokkos
-                GIT_REPOSITORY https://github.com/kokkos/kokkos.git
-                GIT_TAG 4.5.01
+                URL      https://github.com/kokkos/kokkos/releases/download/4.5.01/kokkos-4.5.01.tar.gz
+                URL_HASH SHA256=52d003ffbbe05f30c89966e4009c017efb1662b02b2b73190670d3418719564c
                 SOURCE_DIR ${KokkosTutorials_KOKKOS_SOURCE_DIR}
         )
         FetchContent_MakeAvailable(Kokkos)

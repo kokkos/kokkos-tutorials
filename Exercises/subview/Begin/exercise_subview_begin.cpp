@@ -71,15 +71,19 @@ int main( int argc, char* argv[] )
   Kokkos::initialize( argc, argv );
   {
 
+  using ExecSpace = Kokkos::DefaultExecutionSpace;
   // using ExecSpace = Kokkos::Serial;
   // using ExecSpace = Kokkos::Threads;
   // using ExecSpace = Kokkos::OpenMP;
-  using ExecSpace = Kokkos::Cuda;
+  // using ExecSpace = Kokkos::Cuda;
+  // using ExecSpace = Kokkos::HIP;
 
+  using MemSpace = Kokkos::DefaultExecutionSpace::memory_space;
   // using MemSpace = Kokkos::HostSpace;
   // using MemSpace = Kokkos::OpenMP;
-  using MemSpace = Kokkos::CudaSpace;
+  // using MemSpace = Kokkos::CudaSpace;
   // using MemSpace = Kokkos::CudaUVMSpace;
+  // using MemSpace = Kokkos::HIPSpace;
 
   using Layout = Kokkos::LayoutLeft;
   // using Layout = Kokkos::LayoutRight;

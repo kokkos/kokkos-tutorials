@@ -30,10 +30,10 @@ add_subdirectory(Exercises/scatter_view)
 add_subdirectory(Exercises/team_policy)
 add_subdirectory(Exercises/team_vector_loop)
 add_subdirectory(Exercises/team_scratch_memory)
-add_subdirectory(Exercises/tasking)
 add_subdirectory(Exercises/simd)
 # FIXME update the code
 # add_subdirectory(Exercises/simd_warp)
+# add_subdirectory(Exercises/tasking)
 
 add_subdirectory(Exercises/advanced_reductions)
 add_subdirectory(Exercises/fortran-kokkosinterface)  # TODO, Add a check for fortran

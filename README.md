@@ -74,7 +74,7 @@ Kokkos setup is covered by the [quickstart guide](https://kokkos.org/kokkos-core
 
 ## Advanced CMake Usage
 
-CMake can build against an installed Kokkos library or download one automatically using `FetchContent`.
+CMake can build against an existing Kokkos installation or download the source files automatically using `FetchContent`.
 
 To pass an already installed Kokkos library, you can use classical CMake variables,
 such as `Kokkos_ROOT`, or `CMAKE_PREFIX_PATH`.

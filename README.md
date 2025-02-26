@@ -27,35 +27,20 @@ Tutorials in the **Intro-Full** directory cover
 
 # Building the Tutorials
 
-All the tutorial folders can be built using CMake.
+All the tutorials are built using CMake.
 
-## CMake
+## CMake Quickstart
 
-CMake can build against an installed Kokkos library or download one automatically using `FetchContent`.
-
-You can use the global `CMakeLists.txt` at the top level directory to build all the exercises simultaneously. Else, you
-can run the very same command in each exercise directory to build them only one by one.
+From the top level directory or from any exercise directory, you can build the tutorials using CMake:
 
 ```shell
 cmake -B build_dir
 cmake --build build_dir
 ```
 
-A specific CMake option, `KokkosTutorials_FORCE_INTERNAL_Kokkos`, can be used to force the use of the internal Kokkos
-library and only use an already installed one that can be too old or not configured as wished. An opposite
-option, `KokkosTutorials_FORCE_EXTERNAL_Kokkos` can prevent Kokkos from being downloaded.
+Additional options can be passed to CMake to configure the build, such as the backend to use, the architecture to target, etc.
 
-```shell
-# Download and build Kokkos and the tutorials
-cmake -B build_dir -DKokkosTutorials_FORCE_INTERNAL_Kokkos=ON # -DKokkos_* options
-cmake --build build_dir
-```
-
-Kokkos setup is covered by the [quickstart guide](https://kokkos.org/kokkos-core-wiki/quick_start.html) and an exhaustive
-Kokkos options are described in [CMake options](https://kokkos.org/kokkos-core-wiki/keywords.html).
-
-For specific use-cases, like when an internet connection is not available, the `KokkosTutorials_KOKKOS_SOURCE_DIR` can
-be used to point to a local Kokkos source directory.
+## Examples
 
 Here are some examples of building the exercises with CMake:
 
@@ -78,6 +63,34 @@ cmake -B build_cuda -DKokkos_ENABLE_CUDA=ON
 cmake --build build_cuda
 ```
 
+For a AMD gpu, using gpu arch autodetection:
+
+```shell
+cmake -B build_hip -DKokkos_ENABLE_HIP=ON
+cmake --build build_hip
+```
+
+Kokkos setup is covered by the [quickstart guide](https://kokkos.org/kokkos-core-wiki/get-started/quick-start.html) and an exhaustive
+Kokkos options are described in [CMake options](https://kokkos.org/kokkos-core-wiki/get-started/configuration-guide.html).
+
+## Advanced CMake Usage
+
+CMake can build against an installed Kokkos library or download one automatically using `FetchContent`.
+
 To pass an already installed Kokkos library, you can use classical CMake variables,
 such as `Kokkos_ROOT`, or `CMAKE_PREFIX_PATH`.
 
+A specific CMake option, `KokkosTutorials_FORCE_INTERNAL_Kokkos`, can be used to force the use of the internal Kokkos
+library, discarding any already installed Kokkos.
+
+An opposite option, `KokkosTutorials_FORCE_EXTERNAL_Kokkos` can prevent Kokkos from being downloaded and is useful to
+test against an already installed Kokkos.
+
+```shell
+# Download and build Kokkos and the tutorials, forcing the use of the internal Kokkos
+cmake -B build_dir -DKokkosTutorials_FORCE_INTERNAL_Kokkos=ON # -DKokkos_* options
+cmake --build build_dir
+```
+
+For specific use-cases, like when an internet connection is not available, the `KokkosTutorials_KOKKOS_SOURCE_DIR` can
+be used to point to a local Kokkos source directory.

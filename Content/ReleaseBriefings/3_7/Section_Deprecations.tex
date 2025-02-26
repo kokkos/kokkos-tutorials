@@ -1,0 +1,261 @@
+
+%==========================================================================
+
+\begin{frame}[fragile]
+
+        {\Huge Further Deprecations in Release 3.7}
+
+  \vspace{-20pt}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Removing \texttt{finalize\_all}}
+
+\begin{itemize}
+\item Deprecated \texttt{Kokkos::finalize\_all()}
+\item Use \texttt{Kokkos::finalize()} instead
+\end{itemize}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{\texttt{volatile} overload of \texttt{Reducer::join}}
+\textbf{Non-\texttt{volatile} member function called}
+\begin{code}[keywords={volatile}]
+struct DeprecatedReducer {  // just happened to work
+  KOKKOS_FUNCTION
+  void join(value_type volatile& dst,
+            value_type const volatile& src) const;
+};
+
+struct Release37AndBeyondReducer {
+  KOKKOS_FUNCTION
+  void join(value_type& dst,
+            value_type const& src) const;
+};
+
+struct BackwardCompatibleReducer {
+  KOKKOS_FUNCTION
+  void join(value_type& dst,
+            value_type const& src) const;
+  KOKKOS_FUNCTION
+  void join(value_type volatile& dst,
+            value_type const volatile& src) const;
+};
+\end{code}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Public/private headers}
+\textbf{Compilation error when including private Kokkos headers}
+
+{\tiny
+\begin{verbatim}
+<kokkos>/core/src/Kokkos_View.hpp:47:1: error: static_assert failed
+  "Including non-public Kokkos header files is not allowed."
+static_assert(false,
+^             ~~~~~
+1 error generated.
+\end{verbatim}
+}
+
+\begin{itemize}
+\item See \href{https://github.com/kokkos/kokkos/issues/4856}{GitHub Issue \#4856}
+\item Why can't I just include \texttt{<Kokkos\_View.hpp>} or \texttt{<Kokkos\_Parallel.hpp>}
+\end{itemize}
+
+
+\tiny
+\begin{tabular}{ll}
+Symbol & header \texttt{\#include} \\
+\texttt{Kokkos::View}          & \texttt{<Kokkos\_Core.hpp>} \\
+\texttt{Kokkos::parallel\_for} & \texttt{<Kokkos\_Core.hpp>} \\
+\texttt{Kokkos::fence}         & \texttt{<Kokkos\_Core.hpp>} \\
+\texttt{KOKKOS\_FUNCTION}      & \texttt{<Kokkos\_Core.hpp>} or \texttt{<Kokkos\_Macros.hpp>} \\
+\texttt{Kokkos::Cuda}          & \texttt{<Kokkos\_Core.hpp>} \\
+\texttt{Kokkos::atomic\_fetch\_add} & \texttt{<Kokkos\_Core.hpp>} or \texttt{<Kokkos\_Atomic.hpp>} \\
+\texttt{Kokkos::pi}            & \texttt{<Kokkos\_Core.hpp>} or \texttt{<Kokkos\_MathematicalConstants.hpp>} \\
+\texttt{Kokkos::cos}           & \texttt{<Kokkos\_Core.hpp>} or \texttt{<Kokkos\_MathematicalFunctions.hpp>} \\
+\texttt{Kokkos::sort}          & \texttt{<Kokkos\_Sort.hpp>} \\
+\end{tabular}
+
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Public/private headers}
+\textbf{Kokkos headers you may \texttt{\#include}}
+
+\hspace{1em}
+\begin{columns}
+\tiny
+\column{0.45\textwidth}
+\textbf{Core}
+\begin{itemize}
+\item \texttt{<Kokkos\_Core.hpp>}
+\item \texttt{<Kokkos\_Macros.hpp>}
+\item \texttt{<Kokkos\_Atomic.hpp>}
+\item \texttt{<Kokkos\_DetectionIdiom.hpp>}
+\item \texttt{<Kokkos\_MathematicalConstants.hpp>}
+\item \texttt{<Kokkos\_MathematicalFunctions.hpp>}
+\item \texttt{<Kokkos\_NumericTraits.hpp>}
+\item \texttt{<Kokkos\_Array.hpp>}
+\item \texttt{<Kokkos\_Complex.hpp>}
+\item \texttt{<Kokkos\_Pair.hpp>}
+\item \texttt{<Kokkos\_Half.hpp>}
+\item \texttt{<Kokkos\_Timer.hpp>}
+\end{itemize}
+\textbf{Algorithms}
+\begin{itemize}
+\item \texttt{<Kokkos\_StdAlgorithms.hpp>}
+\item \texttt{<Kokkos\_Random.hpp>}
+\item \texttt{<Kokkos\_Sort.hpp>}
+\end{itemize}
+\column{0.45\textwidth}
+\textbf{Containers}
+\begin{itemize}
+\item \texttt{<Kokkos\_Bit.hpp>}
+\item \texttt{<Kokkos\_DualView.hpp>}
+\item \texttt{<Kokkos\_DynRankView.hpp>}
+\item \texttt{<Kokkos\_DynamicView.hpp>}
+\item \texttt{<Kokkos\_ErrorReporter.hpp>}
+\item \texttt{<Kokkos\_Functional.hpp>}
+\item \texttt{<Kokkos\_OffsetView.hpp>}
+\item \texttt{<Kokkos\_ScatterView.hpp>}
+\item \texttt{<Kokkos\_StaticCrsGraph.hpp>}
+\item \texttt{<Kokkos\_UnorderedMap.hpp>}
+\item \texttt{<Kokkos\_Vector.hpp>}
+\end{itemize}
+\end{columns}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{\texttt{WorkTag} argument on execution policies}
+\textbf{Example usage of \texttt{WorkTag} argument}
+\begin{code}[keywords={Small,Big}]
+struct DoTheThing {
+  template <class ExecSpace>
+  DoTheThing(ExecSpace const& exec, int n) {
+    if (n < 100) {
+      Kokkos::parallel_for("FooSmall",
+          Kokkos::RangePolicy<Small, ExecSpace>(exec, 0, n),
+          *this);
+    } else {
+      Kokkos::parallel_for("FooBig",
+          Kokkos::RangePolicy<Big, ExecSpace>(exec, 0, n),
+          *this);
+    }
+  }
+  KOKKOS_FUNCTION void operator()(Small, int i) const { /*...*/ }
+  KOKKOS_FUNCTION void operator()(Big, int i) const { /*...*/ }
+};
+\end{code}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{\texttt{WorkTag} argument on execution policies}
+\textbf{\texttt{WorkTag} must be an empty type}
+\begin{code}[keywords={Small,Big}]
+struct Small {
+  float pi = 3.14f;  // <- not an empty class!
+};
+struct Big {};
+\end{code}
+
+yields
+{\tiny
+\begin{verbatim}
+<kokkos>/core/src/impl/Kokkos_AnalyzePolicy.hpp:172:7: error: implicit instantiation of
+  undefined template 'Kokkos::Impl::show_name_of_invalid_execution_policy_trait<Small>'
+      show_name_of_invalid_execution_policy_trait<Trait>{};
+      ^
+<kokkos>/core/src/impl/Kokkos_AnalyzePolicy.hpp:159:7: note: in instantiation of template class
+  'Kokkos::Impl::AnalyzeExecPolicyUseMatcher<void, Kokkos::Impl::type_list<>, Small, Kokkos::Serial>'
+  requested here
+    : AnalyzeExecPolicyUseMatcher<void, type_list<TraitSpecs...>, Trait,
+      ^
+<snip>
+\end{verbatim}
+}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{\texttt{WorkTag} argument on execution policies}
+\textbf{Motivating example}
+\begin{code}[keywords={HostSpace}]
+Kokkos::parallel_for(
+    Kokkos::RangePolicy<Kokkos::HostSpace>(0, 1), // <- Uuups
+    KOKKOS_LAMBDA(int i){ /*...*/ });
+\end{code}
+
+\begin{itemize}
+\item \href{https://github.com/kokkos/kokkos/pull/5230}{GitHub PR \#5230} warning if \texttt{std::is\_empty<WorkTag>::value} is \texttt{false}
+\item Warning becomes an error in Kokkos 4.0
+\item Static data member and member types are fine
+\end{itemize}
+
+
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Trailing label argument in \texttt{parallel\_\{for,scan\}}}
+\textbf{Pass label as the first argument instead!}
+
+\begin{code}
+// DEPRECATED
+Kokkos::parallel_for(N, func, "MyLabel");
+Kokkos::parallel_for(policy, func, "MyLabel");
+Kokkos::parallel_scan(N, func, "MyLabel");
+Kokkos::parallel_scan(policy, func, "MyLabel");
+Kokkos::parallel_scan(N, func, val, "MyLabel");
+Kokkos::parallel_scan(policy, func, val, "MyLabel");
+\end{code}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Trailing boolean argument in \texttt{Kokkos::sort}}
+\textbf{Removed (no replacement)}
+\begin{itemize}
+\item Trailing boolean whether to force using \texttt{Kokkos::BinSort}
+\item Was defaulted to \texttt{false}
+\item Looking forward: support for non-arithmetic types and custom comparison
+\end{itemize}
+
+\begin{code}
+// DEPRECATED
+Kokkos::sort(v, true); 
+Kokkos::sort(exec, v, true); 
+\end{code}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}{Section Summary}
+
+  \begin{itemize}
+    \item Disable deprecated code (configure with \texttt{-DKokkos\_ENABLE\_DREPRECATED\_CODE\_3=OFF})
+    \item Reducer \texttt{join} member function taking \texttt{volatile}-qualified argumens are deprecated
+    \item Do not include private Kokkos headers
+    \item \texttt{WorkTag} must be an empty type
+    \item Name your kernels by passing a string as \textbf{argument} argument
+    \item \texttt{Kokkos::sort} does not accept trailing boolean argument any more
+    \item \texttt{InitArguments} replaced by \texttt{InitializationSettings}
+    \item \texttt{ScopeGuard} behavior change with respect to prior initialization
+  \end{itemize}
+
+\end{frame}

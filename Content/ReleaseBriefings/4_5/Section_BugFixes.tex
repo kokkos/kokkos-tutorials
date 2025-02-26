@@ -1,0 +1,52 @@
+%==========================================================================
+
+\begin{frame}[fragile]
+
+  {\Huge Bug Fixes}
+
+  \vspace{10pt}
+
+\end{frame}
+
+%==========================================================================
+
+% note: always keep the [fragile] for your frames!
+
+\begin{frame}[fragile]{Bug Fixes (1/3)}
+  \begin{itemize}
+    \item Fix storage lifetime of driver for global launch of graph nodes for CUDA and HIP
+    \begin{itemize} 
+      \item Previously, graph nodes were not stored by the graph itself
+      \item Undefined behavior for all future graph submit when a node goes out of scope
+    \end{itemize}
+    \item Fix \texttt{TeamPolicy} array reduction for CUDA and HIP
+    \begin{itemize} 
+      \item[] Previously, array reductions did not compile
+    \end{itemize}
+    \item Fix potential out of bounds view access in \texttt{Kokkos::BinSort} with \texttt{Serial} host backend
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Bug Fixes (2/3)}
+  \begin{itemize}
+    \item Fix for \texttt{deep\_copy(exec, ...)} in case where multiple host backends are enabled
+    \begin{itemize} \item[] Previously, passing \texttt{Serial} execution space was ignored in favor of a default host parallel backend  \end{itemize}
+    \item Using CUDA limits to set extents for blocks, grids in \texttt{MDRangePolicy}
+    \begin{itemize} \item[] Previous, Kokkos internal tuning was potentially overextend in the \texttt{block.z} dimension \end{itemize}
+    \item In \texttt{RangePolicy} construction, no longer require round-trip convertability between user provided \texttt{IndexType} and the internal \texttt{member\_type}
+    \item Allow extracting host and device views from DualView with const value type
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Bug Fixes (3/3)}
+  \begin{itemize}
+      \item Set an initial value index during reductions with \texttt{MinLoc}, \texttt{MaxLoc}, or \texttt{MinMaxLoc}
+      \begin{itemize} \item[] Previously, invalid index could be given for location if view contain uniform values \end{itemize}
+      \item Make \texttt{value\_type} for \texttt{RandomAccessIterator} non-\texttt{const} to match C++ standard
+      \item Fix compilation error when using SYCL without architecture flags
+      \begin{itemize} \item[] \texttt{KOKKOS\_ARCH\_INTEL\_GPU} was being assumed \end{itemize}
+      \item Allow copy assign between \texttt{simd\_mask} with \texttt{KOKKOS\_ARCH\_AVX2=ON}
+  \end{itemize}
+\end{frame}
+
+%==========================================================================

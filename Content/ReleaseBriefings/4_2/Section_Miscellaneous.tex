@@ -1,0 +1,21 @@
+\begin{frame}[fragile]{Miscellaneous}
+\begin{itemize}
+  \item New headers
+    \begin{itemize}
+    \item \texttt{<Kokkos\_Abort.hpp>} providing \texttt{Kokkos::abort} that
+          causes abnormal program termination and is callabled from withing a
+          kernel.
+    \item \texttt{<Kokkos\_Assert.hpp>} providing the \texttt{KOKKOS\_ASSERT}
+          macro that aborts the program if the user-specified condition is not
+          \texttt{true} and may be disabled for release builds.
+    \end{itemize}
+  \item Add missing \texttt{is\_*\_view} traits and \texttt{is\_*\_view\_v}
+        helper variable templates for \texttt{DynRankView},
+        \texttt{DynamicView}, \texttt{OffsetView}, \texttt{ScatterView}
+        containers.
+\begin{code}
+static_assert(Kokkos::Experimental::is_scatter_view_v<SV>);
+\end{code}
+\end{itemize}
+\end{frame}
+

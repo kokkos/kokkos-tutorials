@@ -1,0 +1,64 @@
+
+%==========================================================================
+
+\begin{frame}[fragile]
+
+  {\Huge Kokkos SIMD}
+
+  \vspace{10pt}
+
+  \textbf{Content:}
+	\begin{itemize}
+		\item \texttt{simd\_flags}
+		\item \texttt{vector\_aligned\_tag}
+	\end{itemize}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{simd\_flags}
+
+\textbf{Introduced \texttt{simd\_flags} to match latest ISO C++ proposal on \texttt{std::simd}}
+
+\vspace{10pt}
+
+\texttt{template <typename... Flags> struct simd\_flags}
+
+\vspace{10pt}
+
+\begin{itemize}
+	\item \texttt{element\_aligned\_tag <-> simd\_flag\_default}
+	\item \texttt{vector\_aligned\_tag <-> simd\_flag\_aligned}
+\end{itemize}
+
+\vspace{10pt}
+\texttt{simd\_flags} are used in:
+\begin{itemize}
+  \item \texttt{template <class U, class Flags> void copy\_from(const U* mem, Flags flags)}
+  \item \texttt{template <class U, class Flags> void copy\_to(U* mem, Flags flags)}
+\end{itemize}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{simd\_flags}
+
+\begin{code}[keywords={simd_flags}]
+void init_var() {
+  constexpr size_t alignment =
+    Kokkos::Experimental::native_simd::size() * sizeof(DataType);
+
+  alignas(alignment) DataType const src[N] = { ... };
+
+  simd_type var;
+  var.copy_from(src, Kokkos::Experimental::simd_flag_aligned);
+
+  ...
+}
+\end{code}
+
+\end{frame}
+
+%==========================================================================

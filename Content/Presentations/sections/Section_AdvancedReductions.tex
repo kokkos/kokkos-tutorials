@@ -1,0 +1,162 @@
+
+\begin{frame}[fragile]{}
+
+  {\Huge Advanced Reductions}
+
+  \vspace{20pt}
+
+  \textbf{Learning objectives:}
+  \begin{itemize}
+    \item{How to use Reducers to perform different reductions.}
+    \item{How to do multiple reductions in one kernel.}
+    \item{Using \texttt{Kokkos::View}'s as result for asynchronicity.}
+    \item{Custom reductions}
+  \end{itemize}
+
+  \vspace{-20pt}
+
+\end{frame}
+
+\begin{frame}[fragile]{Reducers}
+
+\textbf{So far only "sum" reduction. What about other things?}
+
+\textbf{Using a Reducer:}
+\begin{code}[linebackgroundcolor={
+          \btLstHL<2>{5}{red!20}
+        }, keywords={parallel_reduce,double,Max}]
+double max_value = 0;
+parallel_reduce("Label", numberOfIntervals,
+  KOKKOS_LAMBDA(const int64_t i, double & valueToUpdate) {
+    double my_value = function(...);
+    if(my_value > valueToUpdate) valueToUpdate = my_value;
+}, Kokkos::Max<double>(max_value));
+\end{code}
+
+\begin{itemize}
+\item<2-> Note how the operation in the body matches the reducer op!
+\item<3-> The scalar type is used as a template argument.
+\item<4-> Many reducers available: \texttt{Sum, Prod, Min, Max, MinLoc,} see:  {\tiny \url{https://kokkos.github.io/kokkos-core-wiki/API/core/builtin_reducers.html}}
+\item<5-> Some reducers (like \texttt{MinLoc}) use special scalar types!
+\item<6-> Custom value types supported via specialization of \texttt{reduction\_identity}.
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Simultaneous Reductions}
+
+\textbf{Sometimes multiple reductions are needed}
+
+	\begin{itemize}
+		\item Provide multiple reducers/result arguments
+		\item Functor/Lambda operator takes matching thread-local variables
+		\item Mixing scalar types is fine.
+	\end{itemize}
+
+\begin{code}[keywords={parallel_reduce,double,float,Max}]
+float max_value = 0;
+double sum = 0;
+parallel_reduce("Label", numberOfIntervals,
+    KOKKOS_LAMBDA(const int64_t i,float& tl_max,double& tl_sum){
+  float a_i = a[i];
+  if(a_i > tl_max) tl_max = a_i;
+  tl_sum += a_i;
+}, Kokkos::Max<float>(max_value),sum);
+\end{code}
+
+\end{frame}
+
+\begin{frame}[fragile]{Views as Result arguments}
+
+\textbf{Reducing into a Scalar is blocking!}
+
+	\begin{itemize}
+		\item Providing a reference to scalar means no lifetime expectation.
+			\begin{itemize}
+				\item Call to \texttt{parallel\_reduce} returns after writing the result.
+			\end{itemize}
+		\item \texttt{Kokkos::View} can be used as a result, allowing for potentially non-blocking execution.
+		\item Can provide \texttt{View} to host memory, or to memory accessible by the \texttt{ExecutionSpace} for the reduction.
+		\item Works with Reducers too!
+	\end{itemize}
+
+	\begin{code}[keywords={parallel_reduce,double,View,RangePolicy,CudaSpace,HostSpace}]
+View<double,HostSpace> h_sum("sum_h");
+View<double,CudaSpace> d_sum("sum_d");
+using policy_t = RangePolicy<Cuda>;
+
+parallel_reduce("Label", policy_t(0,N), SomeFunctor, 
+  h_sum);
+
+parallel_reduce("Label", policy_t(0,N), SomeFunctor, 
+  Kokkos::Sum<double,CudaSpace>(d_sum));
+\end{code}
+\end{frame}
+
+\begin{frame}[fragile]{Custom Reductions}
+\textbf{Pseudocode for Kokkos implementation}
+\begin{code}[keywords={parallel_reduce,custom}]
+per_thread:
+  value& tmp=init(local_tmp);
+  for (i in local range)
+    functor(i, tmp)
+call join for merging values between threads
+  in the same thread group
+let one (the last) thread group merge all results
+  from all thread groups
+call final(result) on one thread 
+\end{code}
+
+Three ingredients
+\begin{itemize}
+\item init (optional), default: default constructor
+\item join (required)
+\item final (optional), default: no-op
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{Custom Reductions}
+Rules for choosing reduction behavior
+\begin{enumerate}
+\item If a reducer is specified (return type is a functor with \texttt{reducer} alias to itself), use that.
+\item If functor implements \texttt{join}, use functor as reducer.
+\item Otherwise, assume \texttt{join} behaves like \texttt{operator+}.
+\end{enumerate}
+
+Note that the functor's \texttt{init}, \texttt{join}, \texttt{final} members must be tagged if the call operator is tagged. The reducers member functions must never be tagged.
+\end{frame}
+
+\begin{frame}[fragile]{Reducer Concept}
+\scriptsize
+\begin{code}[basicstyle=\tiny]
+class Reducer {
+  public:
+    using reducer    = Reducer;
+    using value_type = ... ;
+    using result_view_type = Kokkos::View<value_type, ... >;
+
+    KOKKOS_FUNCTION
+    void join(value_type& dest, const value_type& src) const;
+
+    //optional
+    KOKKOS_INLINE_FUNCTION
+    void init(value_type& val) const;
+   
+    //optional
+    KOKKOS_INLINE_FUNCTION
+    void final(value_type& val) const;
+
+    KOKKOS_INLINE_FUNCTION
+    value_type& reference() const;
+
+    KOKKOS_INLINE_FUNCTION
+    result_view_type view() const;
+
+    KOKKOS_INLINE_FUNCTION
+    Reducer(value_type& value_);
+
+    KOKKOS_INLINE_FUNCTION
+    Reducer(const result_view_type& value_);
+};
+\end{code}
+\end{frame}

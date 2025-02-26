@@ -1,0 +1,29 @@
+
+%==========================================================================
+
+\begin{frame}[fragile]
+
+  {\Huge Bug Fixes}
+  
+    \vspace{10pt}
+
+\end{frame}
+
+%==========================================================================
+
+
+\begin{frame}[fragile]{Bug Fixes}
+\begin{itemize}
+\item Fix reductions with types smaller than ints (for Cuda and HIP)
+\item Fix TeamThreadMDRange, ThreadVectorMDRange, TeamVectorMDRange parallel\_reduce to combine results across threads 
+\item Fixed missing broadcast in TeamThreadRange parallel\_scan for Threads backend
+\item Enable \texttt{\{transform\_\}exclusive\_scan} in place (to match \texttt{std::\{transform\_\}exclusive\_scan})
+\item Fence \texttt{fill\_random} without execution space
+\item \texttt{cuda\_func\_set\_attributes\_wrapper} $\rightarrow$ \texttt{cuda\_func\_set\_attribute\_wrapper}
+\item \texttt{cudaFuncSetAttributes} $\rightarrow$ \texttt{cudaFuncSetAttribute}
+\end{itemize}
+
+\end{frame}
+
+%==========================================================================
+

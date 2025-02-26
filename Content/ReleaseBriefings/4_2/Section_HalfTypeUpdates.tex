@@ -1,0 +1,31 @@
+\begin{frame}[fragile]{Half-precision floating-point types updates}
+
+\texttt{half\_t} (since 3.3) and \texttt{bhalf\_t} (since 3.6) defined in
+namespace \texttt{Kokkos::Experimental::}
+
+\begin{itemize}
+\item Specialized numeric traits for \texttt{half\_t} and \texttt{bhalf\_t}
+  \begin{itemize}
+  \item Half-precision types still cannot appear in constant
+  expressions
+  \item Distinguished values are of an implementation-defined type
+  convertible to half-precision
+  \end{itemize}
+\begin{code}
+static_assert(
+  !std::is_same_v<decltype(infinity_v<half_t>), half_t> &&
+  std::is_convertible_v<decltype(infinity_v<half_t>, half_t>
+);
+\end{code}
+\item Added mathematical functions overloads
+  \begin{itemize}
+  \item Currently falling back to \texttt{float} and not actually using
+        intrinsics...
+  \end{itemize}
+\item Implemented support for mixed comparisons
+\begin{code}
+x < 0.f  // OK
+0.f < x  // error before but fine since 4.2
+\end{code}
+\end{itemize}
+\end{frame}

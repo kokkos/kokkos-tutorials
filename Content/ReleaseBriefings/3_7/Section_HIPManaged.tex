@@ -1,0 +1,47 @@
+
+%==========================================================================
+
+\begin{frame}[fragile]
+
+  {\Huge \texttt{HIP} MemorySpaces}
+
+\end{frame}
+
+
+%==========================================================================
+
+\begin{frame}[fragile]{\texttt{HIPManagedSpace}}
+
+  {\large \texttt{HIP} backend got a new page-migrating memory space}
+
+  \vspace{20pt}
+
+  \begin{itemize}
+    \item Page migrating memory space similar to \texttt{CudaUVMSpace} for \texttt{HIP}
+    \item Coarse-grained memory, thus changes are visible at kernel exit (also changed for \texttt{HIPHostPinnedSpace})
+    \item OS migrates memory to local memory on access (\textbf{not} zero copy access like \texttt{HIPHostPinnedSpace})
+  \end{itemize}
+
+  \vspace{10pt}
+  \textit{No configure time option to make it the default!}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]
+
+  {\large Requirements for page-migration on \texttt{HIP}}
+
+  \begin{itemize}
+    \item Have a GPU that supports the feature (e.g. $\geq$ MI200)
+    \item Have a OS that supports the feature (e.g. Kernel HMM module)
+    \item Compile with \texttt{xnack:+} or \texttt{xnack:any} (default)
+    \item Set runtime variable \texttt{HSA\_XNACK=1} or \texttt{amdgpu.noretry=0} at boot time
+  \end{itemize}
+
+  \vspace{10pt}
+  \textbf{Without working xnack (compiletime and runtime) the memory will not migrate but be zero copy access via the interconnecting bus}
+
+\end{frame}
+

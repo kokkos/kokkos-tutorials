@@ -1,0 +1,159 @@
+%==========================================================================
+
+\begin{frame}[fragile]
+
+  {\Huge General Enhancements}
+
+  \vspace{10pt}
+
+\end{frame}
+
+%==========================================================================
+\begin{frame}[fragile]{\texttt{Array}}
+
+Improve \texttt{Array} facility to align further with \texttt{std::array}
+\begin{itemize}
+\item Add \texttt{to\_array()}
+\begin{code}
+char a[] = { 'f', 'o', 'o', '\0' };
+auto b = Kokkos::to_array(a);                // Kokkos::Array<char, 4>
+
+auto c = Kokkos::to_array({0, 2, 1, 3});     // Kokkos::Array<int, 4>
+auto d = Kokkos::to_array<long>({0, 1, 3});  // Kokkos::Array<long, 3>;
+\end{code}
+\item Provide \texttt{kokkos\_swap(Array<T, N>\&, Array<T, N>\&)} specialization
+\item Make \texttt{Array<T, N>} equality comparable
+\begin{code}
+Kokkos::Array<int, 2> e = /* ... */;
+Kokkos::Array<int, 2> f = /* ... */;
+
+KOKKOS_ASSERT((e == f) != (e != f));
+\end{code}
+\end{itemize}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{\texttt{TeamPolicy} CTAD}
+\begin{itemize}
+\item Added CTAD deduction guides for \texttt{TeamPolicy}
+\begin{code}
+TeamPolicy()                                -> TeamPolicy<>;
+TeamPolicy(int, ...)                        -> TeamPolicy<>;
+TeamPolicy(DefaultExecutionSpace, int, ...) -> TeamPolicy<>;
+
+static_assert(!is_same_v<SomeExecutionSpace, DefaultExecutionSpace>);
+TeamPolicy(SomeExecutionSpace, int, ...)    -> TeamPolicy<SomeExecutionSpace>;
+
+\end{code}
+\end{itemize}
+
+\end{frame}
+
+%==========================================================================
+
+% \begin{frame}[fragile]{Structured binding support for Kokkos::complex}
+
+\begin{frame}[fragile]{Structured binding support for \texttt{complex}}
+\begin{itemize}
+\item Added tuple protocol to \texttt{complex} for structured binding support
+  \begin{itemize}
+  \item Based on structured binding support for \texttt{std::complex} added to C++26
+  \item Add Tuple Protocol to \texttt{complex}
+  \item[]   \url{https://wg21.link/P2819R2} 
+  \end{itemize}
+\begin{code}
+Kokkos::complex<double> z(11., 13.);
+auto&[r, i] = z;
+Kokkos::kokkos_swap(r, i);
+KOKKOS_ASSERT(r == 13. && i == 11.);
+\end{code}
+\end{itemize}
+
+\end{frame}
+
+
+
+% \end{frame}
+
+%==========================================================================
+\begin{frame}[fragile]{Add converting constructor in Kokkos::RandomAccessIterator}
+
+\begin{itemize}
+\item Harmonize \texttt{View} and (internal) random access iterator convertibility
+\end{itemize}
+
+\begin{code}[keywords={Convertibility rules}]
+Kokkos::View<int *> x;
+Kokkos::View<const int *> const_y(x); // compiles
+//Kokkos::View<int *> y(const_x); // compiler error
+
+auto x_it = begin(x);
+decltype(begin(const_y)) const_it = x_it; // previously did not compile
+\end{code}
+
+\end{frame}
+%==========================================================================
+\begin{frame}[fragile]{Add a check precondition non-overlapping ranges for the adjacent\_difference algorithm}
+\begin{itemize}
+\item Disallow the overlapping of source and destination iterators (in debug mode). See \url{https://eel.is/c++draft/numeric.ops#adjacent.difference-8}
+\item DO NOT check overlapping if the source and destination iterators are constructed from a single multidimensional view and the strides of these iterators are not identical
+\end{itemize}
+
+\begin{code}[keywords={Check overlaps in debug mode}]
+// Case 0 No longer allowed (Source and destination iterators are the same)
+Kokkos::View<double*> a("A",N0);
+auto res1 = KE::adjacent_difference("label", exespace(), a, a, args...);
+
+// Case 1 Still allowed (b0/b1 iterates over even/odd numbers only)
+Kokkos::View<double[2]*> b("B",N0);
+auto sub_b0 = Kokkos::subview(b, 0, Kokkos::ALL);
+auto sub_b1 = Kokkos::subview(b, 1, Kokkos::ALL);
+auto sub_first_b0 = KE::begin(sub_b0);  // 0, 2, 4, ...
+auto sub_first_b1 = KE::begin(sub_b1); // 1, 3, 5, ...
+auto res2 = KE::adjacent_difference("label", exespace(),
+            sub_first_b0, sub_first_b1, args...);
+\end{code}
+
+\end{frame}
+%==========================================================================
+% \begin{frame}[fragile]{Improve compile-times with Kokkos_ENABLE_DEBUG_BOUNDS_CHECK in Cuda}
+
+% \end{frame}
+%==========================================================================
+
+\begin{frame}[fragile]{SIMD: Allow flexible vector width for 32 bit types}
+
+\textbf{Use full vector width for 32 bit data types}
+\begin{itemize}
+  \item The vector width of \texttt{Kokkos::simd} was determined based on 64 bit data types in available vector registers
+  \item For 32 bit data types, Abi can be specified to use larger vector width
+\end{itemize}
+
+\begin{code}[keywords={simd}]
+  {
+    // For AVX512
+    using namespace Kokkos::Experimental;
+    using native_type      = native_simd<float>;
+    using simd_type        = simd<float, simd_abi::avx512_fixed_size<8>>;
+    using simd_larger_type = simd<float, simd_abi::avx512_fixed_size<16>>; 
+
+    static_assert(simd_type::size()   == native_type::size());
+    static_assert(simd_type::size()*2 == simd_larger_type::size());
+  }
+\end{code}
+
+Applied for: AVX2, AVX512, NEON
+
+\end{frame}
+
+%==========================================================================
+\begin{frame}[fragile]{Host: Use unlikely attribute when reference counting views on host backends}
+  \begin{itemize}
+    \item We use \texttt{unlikely} attribute from C++20 to improve reference counting in views on host backends.
+    \item This only impacts LLVM compilers.
+  \end{itemize}
+
+\end{frame}
+%==========================================================================

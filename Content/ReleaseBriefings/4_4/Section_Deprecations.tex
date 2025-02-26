@@ -1,0 +1,84 @@
+
+%==========================================================================
+
+\begin{frame}[fragile]
+
+  {\Huge Deprecations}
+  
+    \vspace{10pt}
+
+\end{frame}
+
+\begin{frame}[fragile]{Deprecations}
+\begin{itemize}
+\item Deprecated allocation step inside \texttt{deep\_copy(UnorderedMap,UnorderedMap)}
+  \begin{itemize}
+    \item[] Maps now must have the same capacity to \texttt{deep\_copy}
+  \end{itemize}
+\item Deprecated implicit conversions of integers to \texttt{ChunkSize}
+\begin{itemize}
+  \item[] Behavior only introduced in 4.3
+\end{itemize}
+\item Deprecated implicit conversions to all execution spaces
+\end{itemize}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Deprecate \texttt{Array<...,Proxy>} Argument}
+\begin {itemize}
+\item Deprecated trailing \texttt{Proxy} template argument in \texttt{Kokkos::Array}
+\begin{code}
+// DEPRECATED
+// template <typename T = void,
+//           size_t N = KOKKOS_INVALID_INDEX,
+//           typename Proxy = void>
+template <typename T, size_t N>
+struct Array { /* ... */ };
+\end{code}
+  \begin{itemize}
+    \item Deprecates \textit{non-owning, dynamically sized} \texttt{contiguous/strided} functionality
+    \item More in line with (always) \textit{owning} \& \textit{statically sized} \texttt{std::array}
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Deprecate \texttt{is\_layouttiled}}
+\begin {itemize}
+\item Removed \texttt{Kokkos::Experimental::LayoutTiled} class template
+  \begin{itemize}
+  \item Never useable
+  \end{itemize}
+\item Deprecated \texttt{is\_layouttiled} trait
+  \begin{itemize}
+  \item Not useful, but no rush to remove it
+  \end{itemize}
+\item Deprecated \texttt{Kokkos::layout\_iterate\_type\_selector}
+  \begin{itemize}
+  \item Not useful outside of Kokkos implementation
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+%==========================================================================
+\begin{frame}[fragile]{Deprecate \texttt{pair<T,void>}}
+\begin {itemize}
+\item Deprecated specialization of \texttt{Kokkos::pair} for a single element
+\begin{code}
+// DEPRECATED
+// template <typename T>
+// struct pair<T, void> { /* ... */ };
+\end{code}
+  \begin{itemize}
+  \item Never supported in \texttt{std::pair}
+  \item Never documented
+  \item Never tested
+  \item No known usage
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+%==========================================================================

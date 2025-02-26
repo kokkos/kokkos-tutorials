@@ -1,0 +1,263 @@
+\input{KokkosTutorial_PreTitle}
+%disclaimer for Sandia. uncomment and the whole blob goes away @ b80c116300122
+\def\sandid{SAND2020-7475 PE}
+
+% \title{Performance Portability with Kokkos}
+\title{The Kokkos Lectures}
+
+%BAD misuse of author field
+\author{Module 2: Views and Spaces}
+
+%\author{
+%  Jeff Miles \inst{1},
+%  Christian Trott \inst{1}
+%}
+%\institute[shortinst]{\tiny \inst{1} Sandia National Laboratories, \inst{2} Oak Ridge National Laboratory \and \inst{3} Los Alamos National Laboratory}
+%\institute[shortinst]{\tiny \inst{1} Sandia National Laboratories}
+
+\input{KokkosTutorial_PostTitle}
+
+\shortfalse
+\mediumtrue
+\fulltrue
+\notoverviewtrue
+
+\begin{document}
+
+% \begin{frame}
+%   \titlepage
+% \end{frame}
+% \input{sections/Section_nvlabs}
+
+\begin{frame}
+	\titlepage
+\end{frame}
+
+\begin{frame}{Welcome to Kokkos}
+
+\textbf{Online Resources}:
+
+\begin{itemize}
+        \item \url{https://github.com/kokkos}:
+                \begin{itemize}
+                        \item Primary Kokkos GitHub Organization
+                \end{itemize}
+        \item \url{https://kokkos.org/kokkos-core-wiki/videolectures.html}
+                \begin{itemize}
+			\item{Slides, recording and Q\&A for the lectures}
+                \end{itemize}
+        \item \url{https://kokkos.org/kokkos-core-wiki}:
+                \begin{itemize}
+                        \item Programming guide and API reference documentation
+                \end{itemize}
+        \item \url{https://kokkosteam.slack.com}:
+                \begin{itemize}
+                        \item Slack channel for Kokkos.
+                        \item Please join: fastest way to get your questions answered.
+                        \item Can whitelist domains, or invite individual people.
+                \end{itemize}
+\end{itemize}
+
+\end{frame}
+
+
+\begin{frame}{Lecture Series Outline}
+
+\begin{itemize}
+        \item Module 1: Introduction, Building and Parallel Dispatch
+        \item \textbf{Module 2: Views and Spaces}
+        \item Module 3: Data Structures + MultiDimensional Loops
+        \item Module 4: Hierarchical Parallelism
+        \item Module 5: Tasking, Streams and SIMD
+        \item Module 6: Internode: MPI and PGAS
+        \item Module 7: Tools: Profiling, Tuning and Debugging
+        \item Module 8: Kernels: Sparse and Dense Linear Algebra
+        \item Reserve Day
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Module 1: Summary}
+	\textbf{Kokkos Ecosystem:}
+	\begin{itemize}
+		\item C++ Performance Portability Programming Model.
+		\item The Kokkos Ecosystem provides capabilities needed for serious code development.
+		\item Kokkos is supported by multiple National Laboratories with a sizeable dedicated team.
+	\end{itemize}
+
+	\textbf{Building Kokkos}
+	\begin{itemize}
+    \item{Kokkos's primary build system is CMAKE.}
+    \item{Kokkos options are transitively passed on, including many necessary compiler options.}
+    \item{The Spack package manager does support Kokkos.}
+    \item{For applications with few if any dependencies, building Kokkos as part of your code is an option with CMake and GNU Makefiles.}
+	\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Module 1: Summary}
+	\textbf{Data Parallelism:}
+	\begin{itemize}
+		\item Simple things stay simple!
+		\item You use \textbf{parallel patterns} and \textbf{execution policies} to execute \textbf{computational bodies}
+		\item Simple parallel loops use the \texttt{parallel\_for} pattern:
+\begin{code}[linebackgroundcolor={\btLstHL<1->{3}{bodyColor}},frame=single]
+  @patternparallel_for@pattern("Label",@policyN@policy, [=] (int64_t i) {
+   /* loop body */
+  });
+\end{code}
+\item Reductions combine contributions from loop iterations
+\begin{code}[linebackgroundcolor={\btLstHL<1->{3}{bodyColor}},frame=single]
+int result;
+@patternparallel_reduce@pattern("Label",@policyN@policy, [=] (int64_t i, int& lres) {
+   /* loop body */
+    lres += /* something */
+  },result);
+\end{code}
+
+\end{itemize}
+
+	\textbf{Recording:} \url{https://bit.ly/kokkos-lecture-series-1}
+
+\end{frame}
+
+\begin{frame}{Module 2}
+  \begin{block}{Kokkos View}
+    What are Views? How to create them? Why should you use it?
+  \end{block}
+
+
+  \begin{block}{Memory and Execution Spaces}
+    How to control where data lives and code executes.
+  \end{block}
+
+  \begin{block}{Memory Access Patterns}
+    The importance of access patterns for performance portability and how to control it.
+  \end{block}
+
+  \begin{block}{Advanced Reductions}
+    Going beyond just basic summation.
+  \end{block}
+\end{frame}  
+
+\input{../sections/Section_Views}
+
+\input{../sections/Section_Spaces}
+
+\input{../sections/Section_MemoryAccessPatterns}
+
+\input{../sections/Section_AdvancedReductions}
+
+\begin{frame}[fragile]{Module 2: Summary}
+	\textbf{Kokkos View}
+	\begin{itemize}
+		\item Multi Dimensional Array.
+		\item Compile and Runtime Dimensions.
+		\item Reference counted like a \texttt{std::shared\_ptr} to an array.
+	\end{itemize}
+\begin{code}[keywords={View,int}]
+	Kokkos::View<int*[5]> a("A", N);
+	a(3,2) = 7;
+\end{code}
+
+	\textbf{Execution Spaces}
+	\begin{itemize}
+		\item{Parallel operations execute in a specified \textbf{Execution Space}}
+		\item{Can be controlled via template argument to \textbf{Execution Policy}}
+		\item{If no Execution Space is provided use \texttt{DefaultExecutionSpace}}
+	\end{itemize}
+\begin{code}[keywords={parallel_for,Cuda,RangePolicy}]
+// Equivalent:
+parallel_for("L", N, functor);
+parallel_for("L",
+  RangePolicy<DefaultExecutionSpace>(0, N), functor);
+\end{code}
+\end{frame}
+
+\begin{frame}[fragile]{Module 2: Summary}
+	\textbf{Memory Spaces}
+	\begin{itemize}
+		\item Kokkos Views store data in \textbf{Memory Spaces}.
+		\item Provided as template parameter.
+		\item If no Memory Space is given, use  \texttt{Kokkos::DefaultExecutionSpace::memory\_space}.
+		\item \texttt{deep\_copy} is used to transfer data: no hidden memory copies by Kokkos.
+	\end{itemize}
+\begin{code}[keywords={View,int,CudaSpace,create_mirror_view}]
+	View<int*, CudaSpace> a("A", M);
+	// View in host memory to load from file
+	auto h_a = create_mirror_view(a);
+        load_from_file(h_a);
+	// Copy
+	deep_copy(a,h_a);
+\end{code}
+
+\end{frame}
+
+\begin{frame}[fragile]{Module 2: Summary}
+	\textbf{Layouts}
+	\begin{itemize}
+		\item Kokkos Views use an index mapping to memory determined by a \textbf{Layout}.
+		\item Provided as template parameter.
+		\item If no \textbf{Layout} is given, derived from the execution space associated with the memory space.
+		\item Defaults are good if you parallelize over left most index!
+	\end{itemize}
+
+\begin{code}[keywords={View,int,CudaSpace}]
+	View<int**, LayoutLeft> a("A", N, M);
+	View<int**, LayoutRight> b("B", N, M);
+
+	parallel_for("Fill", N, KOKKOS_LAMBDA(int i) {
+          for(int j = 0; j < M; j++) {
+            a(i,j) = i * 1000 + j; // coalesced
+	    b(i,j) = i * 1000 + j; // cached
+          }
+	});
+\end{code}
+
+\end{frame}
+
+\begin{frame}[fragile]{Module 2: Summary}
+	\textbf{Advanced Reductions}
+	\begin{itemize}
+        \item \texttt{parallel\_reduce} defaults to summation
+        \item Kokkos reducers can be used to reduce over arbitrary operations
+        \item Reductions over multiple values are supported
+        \item Only reductions into scalar arguments are guaranteed to be synchronous
+        \item Support for custom reductions
+	\end{itemize}
+
+\begin{code}[keywords={View,int,CudaSpace}]
+    parallel_reduce("Join", n,
+      KOKKOS_LAMBDA(int i, double& a, int& b) {
+        int idx = foo();
+        if(idx > b) b = idx;
+        a += bar();
+      }, result, Kokkos::Max<int>{my_max});
+\end{code}
+
+\end{frame}
+
+\begin{frame}{Module 3: Outlook (07/31)}
+
+	\vspace{10pt}
+	\textbf{Advanced Data Structures}
+	\begin{itemize}
+        \item Subsetting and slicing of \texttt{View}s
+        \item Higher-level and special purpose \texttt{View} data structures
+        \item Atomic access to a \texttt{View}'s data
+	\end{itemize}
+
+	\vspace{10pt}
+	\textbf{More Parallel Policies:}
+	\begin{itemize}
+		\item Multidimensional loops with \texttt{MDRangePolicy}
+	\end{itemize}
+
+	\vspace{10pt}
+    \textbf{Slack channel:} {\scriptsize \url{https://kokkosteam.slack.com/}}
+	
+	\vspace{10pt}
+	\textbf{Recordings/Slides:} {\scriptsize \url{https://kokkos.org/kokkos-core-wiki/videolectures.html}}
+
+\end{frame}
+
+\end{document}
+

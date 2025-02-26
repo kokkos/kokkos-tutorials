@@ -1,0 +1,161 @@
+\definecolor{eminence}{RGB}{108,48,130}
+\definecolor{weborange}{RGB}{255,165,0}
+\definecolor{frenchplum}{RGB}{129,20,83}
+\lstset{
+ morekeywords=[2]{parallel_for,parallel_reduce,View,HostSpace,MemoryTraits,Unmanaged,RandomAccess,deep_copy,KOKKOS_LAMBDA,
+ AUTO,TeamPolicy,TeamThreadRange,ThreadVectorRange,Schedule,Static},
+ keywordstyle=[2]\color{frenchplum}
+}
+\begin{frame}[fragile]{Example: Conjugate Gradient Solver}
+\begin{itemize}
+        \item Simple iterative linear solver
+        \item Uses only three math operations
+                \begin{itemize}
+                        \item Vector addition (AXPBY)
+                        \item Dot product (DOT)
+                        \item Sparse matrix vector multiply (SPMV)
+                \end{itemize}
+        \item Data management with Kokkos Views
+\end{itemize}
+\begin{lstlisting}
+View<double*,HostSpace,MemoryTraits<Unmanaged>> h_x(x_in,nrows);
+View<double*> x("x",nrow);
+deep_copy(x,h_x);
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]{CG Solve: AXPBY}
+\begin{itemize}
+        \item Simple data parallel loop: \texttt{Kokkos::parallel\_for}
+        \item Easy to express in most programming models
+        \item Bandwith bound
+        \item Serial implementation
+\end{itemize}
+\begin{lstlisting}
+void axpby(int n, double* z,
+           double alpha, const double* x,
+           double beta, const double* y) {
+  for(int i=0; i<n; ++i)
+    z[i] = alpha*x[i] + beta*y[i];
+}
+\end{lstlisting}
+\vspace{-5pt}
+\begin{itemize}
+        \item Kokkos implementation
+\end{itemize}
+\begin{lstlisting}
+void axpby(int n, View<double*> z,
+           double alpha, View<const double*> x,
+           double beta, View<const double*> y) {
+  parallel_for("AXPBY", n, KOKKOS_LAMBDA (const int i) {
+    z[i] = alpha*x[i] + beta*y[i];
+});
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]{CG Solve: Dot Product}
+\begin{itemize}
+        \item Simple data parallel loop with reduction: \texttt{Kokkos::parallel\_reduce}
+        \item Non trivial in CUDA due to lack of built-in reduction support
+        \item Bandwith bound
+        \item Serial implementation
+\end{itemize}
+\vspace{-10pt}
+\begin{lstlisting}
+double dot(int n, const double* x, const double* y) {
+  double sum = 0.0;
+  for(int i=0; i<n; ++i)
+    sum += x[i]*y[i];
+  return sum;
+}
+\end{lstlisting}
+\vspace{-10pt}
+\begin{itemize}
+        \item Kokkos implementation
+\end{itemize}
+\vspace{-10pt}
+\begin{lstlisting}
+double dot(int n, View<const double*> x, View<const double*> y) {
+  double x_dot_y;
+  parallel_reduce("DOT", n, KOKKOS_LAMBDA (const int i,
+                                           double& sum) {
+    sum += x[i]*y[i];
+  }, x_dot_y);
+  return x_dot_y;
+}
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]{CG Solve: Sparse Matrix Vector Multiply}
+\begin{itemize}
+        \item Loop over rows
+        \item Dot product of marix row with a vector
+        \item Example of non-tightly nested loop
+        \item Random access on the vector (texture fetch on GPUs)
+\end{itemize}
+\begin{lstlisting}
+double spmv(int n, const int* A_row_offsets,
+            const int* A_cols, const double* A_vals,
+            double* y, const double* x) {
+for(int row=0; row<nrows; ++row) {
+  double sum = 0.0;
+  int row_start=A_row_offsets[row];
+  int row_end=A_row_offsets[row+1];
+  for(int i=row_start; i<row_end; ++i) {
+    sum += A_vals[i]*x[A_cols[i]];
+  }
+  y[row] = sum;
+}
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]{CG Solve: Sparse Matrix Vector Multiply}
+\begin{lstlisting}[basicstyle=\tiny]
+double spmv(int n, View<const int*> A_row_offsets,
+            View<const int*> A_cols, View<const double*> A_vals,
+            View<double* y>,
+            View<const double*,MemoryTraits<RandomAccess>> x) {
+// Performance heuristic to figure out how many rows to give to a team
+int rows_per_team = get_row_chunking(A_row_offsets);
+
+parallel_for("SPMV", TeamPolicy<Schedule<Static>>(
+    (nrows+rows_per_team-1)/rows_per_team, AUTO, 8),
+  KOKKOS_LAMBDA (const TeamPolicy<>::member_type& team) {
+    const int first_row = team.league_rank()*rows_per_team;
+    const int last_row = first_row+rows_per_team<nrows ?
+        first_row+rows_per_team : nrows;
+    parallel_for(TeamThreadRange(team,first_row,last_row),
+        [&] (const int row) {
+      const int row_start=A_row_offsets[row];
+      const int row_length=A_row_offsets[row+1]-row_start;
+      double y_row;
+      parallel_reduce(ThreadVectorRange(team,row_length),
+          [&] (const int i,double& sum) {
+        sum += A_vals(i+row_start)*x(A_cols(i+row_start));
+      }, y_row);
+      y(row) = y_row;
+    });
+  });
+}
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}{CG Solve: Performance}
+\begin{columns}[t,onlytextwidth]
+  \begin{column}{0.45\textwidth}
+    \begin{itemize}
+      \small
+      \itemsep 0pt
+      \parskip 0pt
+      \item Comparison with other programming models
+      \item Straightforward implementation of kernels
+      \item OpenMP 4.5 was immature at that point
+      \item Two problem sizes: 100x100x100 and 200x200x200 elements
+    \end{itemize}
+  \end{column}
+  \begin{column}{0.55\textwidth}
+    \includegraphics[width=\textwidth]{figures/cg_solve_performance_nvidia_p100_ibm_power8.png}
+    \includegraphics[width=\textwidth]{figures/cg_solve_performance_intel_knl_7250.png}
+  \end{column}
+\end{columns}
+\end{frame}

@@ -1,0 +1,48 @@
+
+\begin{frame}[fragile]{\texttt{Kokkos::sort} accepts a custom comparison functor}
+
+\begin{itemize}
+\item Defined in header \texttt{<Kokkos\_Sort.hpp>}
+\item Two new overloads to support a custom comparator.
+
+\begin{code}[keywords={sort}]
+template <class ExecSpace, class ViewType, class CompType>
+void sort(const ExecSpace& exespace,     // (1)
+          const ViewType & view,
+          const CompType & comparator);
+
+template <class ViewType, class CompType>
+void sort(const ViewType & view,         // (2)
+          const CompType & comparator);
+\end{code}
+
+\item \texttt{view} must be rank-1 with \texttt{LayoutLeft}, \texttt{LayoutRight}, or \texttt{LayoutStride}
+  and must be accessible from \texttt{exespace}
+
+\item (1) is potentially asynchronous
+\item (2) calls (1) using the \texttt{view}'s execution space, and fences
+\end{itemize}
+
+\end{frame}
+
+
+\begin{frame}[fragile]{\texttt{Kokkos::sort} accepts a custom comparison functor}
+
+\begin{itemize}
+\item \texttt{comparator} must be callable from the execution space passed
+\item \texttt{comparator} must be callable with two arguments \texttt{a,b} of type (possible const-qualified) \texttt{value\_type}, where \texttt{value\_type} is the non-const value type of the \texttt{view}.
+\item Snippet:
+\begin{code}[keywords={sort}]
+struct MyComp {
+KOKKOS_FUNCTION bool operator()(int a, int b) const{
+  // return true if a is less than b,
+  // according to some, potentially non-trivial logic
+}
+
+Kokkos::View<int*> v("v", 1000);
+Kokkos::sort(v, MyComp());
+\end{code}
+
+\end{itemize}
+
+\end{frame}

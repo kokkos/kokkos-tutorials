@@ -1,0 +1,27 @@
+
+%==========================================================================
+
+\begin{frame}[fragile]
+
+  {\Huge Bitset Constructor Update}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Bitset constructor update}
+
+\texttt{Bitset(unsigned arg\_size = 0u)}
+\vspace{10pt}
+\begin{itemize}
+	\item A \texttt{Bitset} constructor with a default size of \texttt{Bitset} was making a deferred constructor call.
+	\item Caused an unnecessary memory allocation when \texttt{Bitset} was constructed with the default size of 0.
+\end{itemize}
+
+\vspace{10pt}
+
+Refactored to no longer have the default argument and use a defaulted default \texttt{Bitset} constructor instead.
+
+\end{frame}
+
+%==========================================================================

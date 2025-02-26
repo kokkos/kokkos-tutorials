@@ -1,0 +1,85 @@
+
+%==========================================================================
+
+\begin{frame}[fragile]
+
+        {\Huge Important upcoming changes in 4.0}
+
+  \vspace{-20pt}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{C++ Standard Change}
+\textbf{Kokkos 4.0 will require C++17!}
+
+\begin{itemize}
+  \item {Will support C++17, C++20 and C++23}
+  \item {Allows us to keep the testing amount manageable}
+  \item {Will enable new interfaces and streamlined implementation}
+  \begin{itemize}
+    \item {Use of CTAD reduces the need to spell template arguments out}
+    \item {Fold expressions help with internal implementation, and improve compile times}
+    \item {\texttt{constexpr if} reduces use of clunky SFINAE patterns}
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}[fragile]{C++ Standard Change}
+\textbf{New Compiler Minimums}
+
+\vspace{10pt}
+\small
+\begin{tabular}{ll}
+\textbf{Compiler} & \textbf{Version} \\
+\hline
+GCC & 8.2 \\
+Clang & 8.0 \\
+Clang as CUDA compiler & 10.0 \\
+Intel & 19.0.5 \\
+CUDA-NVCC & 11.0 \\
+CUDA with Clang as CUDA compiler & 10.0.1 \\
+ROCM & 5.2.0 \\
+IntelLLVM (CPU) & 2021.1.1 \\
+IntelLLVM (SYCL) & 2022.2.0 \\
+NVC++ & 22.3 \\
+MSVC & 19.29 \\
+IBM XL & Not Supported \\
+Classic PGI & Not Supported \\
+\end{tabular}
+\end{frame}
+
+\begin{frame}[fragile]{HIP Promotion}
+\textbf{HIP Backend will be promoted from Experimental in 4.0}
+
+\vspace{10pt}
+
+\begin{itemize}
+\item {Use \texttt{Kokkos::HIP} etc. instead of \texttt{Kokkos::Experimental::HIP}.}
+\item {We will now support ROCM versions longer, and not update with every minor release.}
+\item {For a transition time \texttt{HIP} will be available in both namespaces.}
+\end{itemize}
+
+\end{frame}
+
+
+\begin{frame}[fragile]{Deprecated Code Removal}
+\textbf{Removal of deprecated code}
+
+\vspace{10pt}
+\begin{itemize}
+\item {We will start to remove code which was deprecated during the 3.x release cycle}
+\item {Turn \texttt{Kokkos\_ENABLE\_DEPRECATED\_CODE\_3} \texttt{OFF} to remove that code in 3.7 and check whether you are ready}
+\begin{itemize}
+\item {There are just a handful exceptions we will leave in for one or two more minor cycles to give more transition time}
+\end{itemize}
+\item {\texttt{Kokkos\_ENABLE\_DEPRECATED\_CODE\_4} will be used for features deprecated in the 4.x release cycle, slated for removal in 5.0 - maybe 2024/25}
+\end{itemize}
+
+
+\end{frame}
+
+
+

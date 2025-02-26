@@ -1,0 +1,26 @@
+%==========================================================================
+
+% \begin{frame}[fragile]
+
+%   {\Huge Deprecations}
+
+%   \vspace{10pt}
+
+% \end{frame}
+
+\begin{frame}[fragile]{Some atomic operations deprecated (1/2)}
+ \begin{description}[\texttt{atomic\_compare\_exchange\_strong()}]
+     \item[\texttt{atomic\_query\_version()}] No users, and not clear how it would be used
+     \item[\texttt{atomic\_assign()}] Use \texttt{atomic\_store()} instead
+     \item[\texttt{atomic\_compare\_exchange\_strong()}] Use \texttt{atomic\_compare\_exchange()} and compare result
+     \item[\texttt{atomic\_\{increment, decrement\}()}] Use \texttt{atomic\_\{inc, dec\}()} instead
+ \end{description}
+\end{frame}
+
+\begin{frame}[fragile]{Misc deprecations (2/2)}
+  \begin{description}[\texttt{is\_asynchronous()}]
+      \item[\texttt{is\_asynchronous()}] Only existed in OpenMP and HPX backends and was unused
+      \item[Tasking interface] Unused, and is a maintenance burden
+  \end{description}
+ \end{frame}
+ 

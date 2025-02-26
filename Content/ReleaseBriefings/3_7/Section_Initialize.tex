@@ -1,0 +1,197 @@
+
+%==========================================================================
+
+\begin{frame}[fragile]
+
+        {\Huge Kokkos execution environment}
+
+  \vspace{-20pt}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{A few reminders on the Kokkos execution environment}
+\begin{itemize}
+\item \texttt{Kokkos::initialize} must be called before any other API function or constructor
+\item Kokkos can be initialized at most once
+\item Kokkos must be finalized before exiting the program if it has been initialized
+\item All Kokkos objects must be destroyed before \texttt{Kokkos::finalize} gets called
+\item Once \texttt{Kokkos::finalize} has been called, no Kokkos API function nor constructor may be called
+\end{itemize}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Added \texttt{Kokkos::is\_finalized}}
+\begin{itemize}
+\item \texttt{Kokkos::is\_initialized} returning \texttt{false} does not mean it is safe to call \texttt{Kokkos::initialize()}
+\item \texttt{Kokkos::is\_finalized()} fills that gap
+\item Just like \texttt{Kokkos::is\_initialized}, \texttt{Kokkos::is\_finalized} can be called at any time (exception to the rule on the previous slide)
+\end{itemize}
+
+\vspace{2em}
+\tiny
+\begin{tabular}{llll}
+ & \textbf{Before} \texttt{initialize()} & \textbf{After} \texttt{initialize()} \\
+ &                                       & but \textbf{before} \texttt{finalize()}  & \textbf{After} \texttt{finalize()} \\
+\texttt{is\_initialized} returns & \textcolor{red}{\texttt{false}} & \textcolor{green}{\texttt{true}} & \textcolor{red}{\texttt{false}} \\
+\texttt{is\_finalized}   returns & \textcolor{red}{\texttt{false}} & \textcolor{red}{\texttt{false}} & \textcolor{green}{\texttt{true}}
+\end{tabular}
+
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{\texttt{ScopeGuard} behavior change}
+
+\begin{itemize}
+\item Old behavior: constructor calls \texttt{Kokkos::initialize()} if \texttt{Kokkos::is\_initialized()} is \texttt{false}
+\begin{itemize}
+\item \textit{Problem}: silently ignores potentially inconsistent settings, like device-id or number of threads
+\end{itemize}
+\item New behavior: constructor simply forwards arguments to \texttt{Kokkos::initialize()}
+\begin{itemize}
+\item \textit{Consequence}: the constructor may indirectly abort if Kokkos was already initialized.
+\end{itemize}
+\item Unchanged: destructor calls \texttt{Kokkos::finalize()}
+\end{itemize}
+        
+\vspace{2em}
+{\tiny
+\begin{lstlisting}[language=c++]
+// if you really think you need the old behavior
+auto guard = std::unique_ptr<Kokkos::ScopeGuard>(
+    Kokkos::is_initialized() ? new Kokkos::ScopeGuard()
+                             : nullptr);
+\end{lstlisting}
+}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{\texttt{ScopeGuard} typical use cases}
+\begin{code}[keywords={ScopeGuard}]
+int main(int argc, char* argv[]) {
+  // Does not require introducing a scope as with
+  // Kokkos::initialize();
+  // {
+  //   Kokkos::View<int> foo("foo");
+  //   /*...*/
+  // }
+  // Kokkos::finalize();
+  Kokkos::ScopeGuard guard(argc, argv);
+  Kokkos::View<int> foo("foo");
+  /*...*/
+}
+\end{code}
+
+\begin{code}[keywords={ScopeGuard}]
+// With more complex control flow ensures that
+// Kokkos::finalize() is called upon scope exit
+Kokkos::ScopeGuard guard;
+/*...*/
+if (COND)
+  return EXIT_FAILURE;  // finalize here
+/*...*/
+return EXIT_SUCCESS;    // and here
+\end{code}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{\texttt{Kokkos::InitializationSettings} replacing \texttt{InitArguments}}
+
+\textbf{Prefer \texttt{Kokkos::initialize(int\& argc, char* argv[])} unless you have a good reason!}
+
+\begin{code}[keywords={InitializationSettings,InitArguments}]
+#if KOKKOS_VERSION < 30700
+// Deprecated
+Kokkos::InitArguments args;
+args.device_id = 1;
+args.set_num_threads = 2;
+args.disable_warnings = true;
+Kokkos::initialize(args);
+#else
+// Since Kokkos 3.7
+Kokkos::initialize(Kokkos::InitializationSettings()
+                       .set_device_id(1)
+                       .set_num_threads(2)
+                       .set_disable_warnings(false));
+#endif
+\end{code}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Rational for \texttt{Kokkos::InitializationSettings}}
+
+Why changing?
+\begin{itemize}
+\item Difficult to get rid of deprecated data members (e.g. \texttt{numa}) or rename them
+\item Consistency with command-line arguments and environment variables
+\item Cannot distinguish user-specified from defaulted options
+\end{itemize}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Settings available}
+
+\tiny
+\begin{tabular}{lll}
+\textbf{command line arguments} & \textbf{environment variables} & \texttt{Kokkos::InitializationSettings} \\
+\texttt{--kokkos-num-threads=1} & \texttt{KOKKOS\_NUM\_THREADS=1} & \texttt{set\_num\_threads(1)} \\
+\texttt{--kokkos-device-id=2} & \texttt{KOKKOS\_DEVICE\_ID=2} & \texttt{set\_device\_id(2)} \\
+\texttt{--kokkos-disable-warning=false} & \texttt{KOKKOS\_DISABLE\_WARNINGS=false} & \texttt{set\_disable\_warnings(false)} \\
+\texttt{--kokkos-map-device-id-by=random} & \texttt{KOKKOS\_MAP\_DEVICE\_ID\_BY=random} & \texttt{set\_map\_device\_id\_by("random")} \\
+\texttt{--kokkos-print-configuration} & \texttt{KOKKOS\_PRINT\_CONFIGURATION=1} & \texttt{set\_print\_configuration(true)} \\
+\texttt{--kokkos-tune-internals=true} & \texttt{KOKKOS\_TUNE\_INTERNAL=true} & \texttt{set\_tune\_internals(true)} \\
+\texttt{--kokkos-tools-libs="f.so;b.so"} & \texttt{KOKKOS\_TOOLS\_LIBS="f.so;b.so"} & \texttt{set\_tools\_libs("f.so;b.so")} \\
+\texttt{--kokkos-tools-args="\textbackslash"-x 2\textbackslash""} & \texttt{KOKKOS\_TOOLS\_ARGS="\textbackslash"-x 2\textbackslash""} & \texttt{set\_tools\_largs("\textbackslash"-x 2\textbackslash"")} \\
+\texttt{--kokkos-tools-help} & \texttt{KOKKOS\_TOOLS\_HELP=YES} & \texttt{set\_tools\_help(true)} \\
+\end{tabular}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Migrating to 3.7}
+\begin{itemize}
+\item All non-prefixed options (other than \texttt{--help}) are deprecated
+\item Boolean as string (case insensitive) 
+  \begin{itemize}
+  \item \texttt{true|yes|1}
+  \item \texttt{false|no|0}
+  \end{itemize}
+\item Pay attention to the warnings that are raised when using deprecated settings
+\item Use \texttt{--kokkos-help} to find out the list of available options
+%\item \texttt{--[kokkos-]threads} deprecated in favor of \texttt{--kokkos-num-threads}
+%\item \texttt{--[kokkos-]device}
+%\item \texttt{--[kokkos-]numa}
+%\item \texttt{--[kokkos-]ndevices}
+%\item \texttt{--[kokkos-]num-devices}
+%\item \texttt{InitArguments::skip\_devices}
+%\item \texttt{KOKKOS\_NUM\_DEVICES}, \texttt{KOKKOS\_SKIP\_DEVICE}, and \texttt{KOKKOS\_RAND\_DEVICES}
+\end{itemize}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}{Section Summary}
+
+  \begin{itemize}
+    \item Added \texttt{Kokkos::is\_finalized} \\
+    May initialize if \texttt{!is\_initialized()\&\&!is\_finalized()}
+    \item \texttt{Kokkos::ScopeGuard} constructor unconditionally forwarding arguments to \texttt{Kokkos::initialize}
+    \item \texttt{Kokkos::InitArguments} deprecated in favor of \texttt{Kokkos::InitializationSettings}
+    \item Command line arguments and environment variables updated to increase consistency
+  \end{itemize}
+
+\end{frame}

@@ -1,0 +1,171 @@
+
+%==========================================================================
+
+\begin{frame}[fragile]
+
+  {\Huge Kokkos SIMD}
+
+  \vspace{10pt}
+
+  \textbf{Content:}
+  \begin{itemize}
+    \item Math and shift operations 
+    \item Generator constructors
+    \item Conditionals: \texttt{gather\_from} and \texttt{scatter\_to}
+    \item Miscellaneous
+  \end{itemize}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Added operations}
+
+\textbf{Math Operations}
+\bigskip
+\begin{itemize}
+  \item \texttt{simd Kokkos::abs(simd const\& a)}
+  \item \texttt{simd<double, Abi> Kokkos::floor(simd const\& a)}
+  \item \texttt{simd<double, Abi> Kokkos::ceil(simd const\& a)}
+  \item \texttt{simd<double, Abi> Kokkos::round(simd const\& a)}
+  \item \texttt{simd<double, Abi> Kokkos::trunc(simd const\& a)}
+\end{itemize}
+\bigskip
+\texttt{floor}, \texttt{ceil}, \texttt{round}, \texttt{trunc} only operate
+on floating point simd data types
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Added operations}
+
+\textbf{Shift Operators}
+\bigskip
+\begin{itemize}
+  \item \texttt{simd operator>>(const simd\& lhs, const simd\& rhs)}
+  \item \texttt{simd operator>>(const simd\& lhs, const int rhs)}
+  \item \texttt{simd operator<<(const simd\& lhs, const simd\& rhs)}
+  \item \texttt{simd operator<<(const simd\& lhs, const int rhs)}
+\end{itemize}
+\bigskip
+For \texttt{AVX2} \texttt{Kokkos::simd<std::int64\_t>}, shift operators do not
+use intrinsics
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Added operations}
+
+\textbf{Generator constructors}
+\begin{itemize}
+  \item \texttt{template <class G> simd\_mask(G\&\& gen)}
+  \item \texttt{template <class G> simd(G\&\& gen)}
+\end{itemize}
+\bigskip
+\begin{code}[keywords={GeneratorConstructors}]
+template <typename ValueType, typename Abi>
+void gen_ctor_test() {
+  using simd_type = Kokkos::Experimental::simd<ValueType, Abi>;
+  
+  simd_type lhs;
+  lhs.copy_from( /*...*/ );
+
+  simd_type rhs(KOKKOS_LAMBDA(std::size_t i) { return /*...*/; });
+  mask_type mask(KOKKOS_LAMBDA(std::size_t i) { return /*...*/; });
+  simd_type blend(KOKKOS_LAMBDA(std::size_t i) {
+    return (mask[i]) ? lhs[i] : rhs[i]; });
+}
+\end{code}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Added operations}
+
+\textbf{Conditionals}
+\vspace{10pt}
+
+\texttt{gather\_from}
+\begin{itemize}
+  \item \texttt{void where\_expression::gather\_from(const data\_type* mem, simd<std::int32\_t, Abi> const\& index)}
+\end{itemize}
+
+\bigskip
+\texttt{scatter\_to}
+\begin{itemize}
+  \item \texttt{void const\_where\_expression::scatter\_to(data\_type* mem, simd<std::int32\_t, Abi> const\& index) const}
+\end{itemize}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Added operations}
+
+\begin{code}[keywords={GatherFrom}]
+
+template <typename ValueType, typename Abi>
+void gather() {
+  using simd_type = Kokkos::Experimental::simd<ValueType, Abi>;
+  using index_type = Kokkos::Experimental::simd<std::int32_t, Abi>;
+  using mask_type = typename simd_type::mask_type;
+  
+  simd_type dst;
+  mask_type mask(true);
+  ValueType src[] = /*...*/;
+
+  // Indicies to gather from src for each simd lane
+  index_type index = /*...*/;
+
+  where(mask, dst).gather_from(src, index);
+}
+\end{code}
+
+\begin{itemize}
+  \item \texttt{gather\_from} and \texttt{scatter\_to} are Kokkos functions
+and are not part of the proposed interface for ISO C++ standard
+\end{itemize}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Miscellaneous}
+
+\begin{itemize}
+  \item \texttt{<cmath>} functions in Kokkos SIMD are no longer in \texttt{experimental} namespace
+\end{itemize}
+
+\begin{table}[]
+\begin{tabular}{|l|l|l|l|l|}
+\hline
+copysign & max   & tan  & asinh  & pow   \\ \hline
+abs      & min   & asin & acosh  & hypot \\ \hline
+sqrt     & exp2  & acos & atanh  & atan2 \\ \hline
+cbrt     & log10 & atan & erf    &       \\ \hline
+exp      & log2  & sinh & erfc   &       \\ \hline
+log      & sin   & cosh & tgamma &       \\ \hline
+fma      & cos   & tanh & lgamma &       \\ \hline
+\end{tabular}
+\end{table}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Miscellaneous}
+
+  \begin{itemize}
+    \item Added \textit{float} support to all simd types
+    \item Converted all binary operators to hidden-friends
+    \item \texttt{Kokkos\_ENABLE\_NATIVE} now detects and sets a supported SIMD types
+    \item \texttt{Kokkos\_ARCH\_AVX2} is now on for ZEN2 AMD CPU
+  \end{itemize}
+
+\end{frame}
+
+%==========================================================================
+

@@ -1,0 +1,65 @@
+
+%==========================================================================
+
+\begin{frame}[fragile]
+
+  {\Huge Backend Updates}
+
+  \vspace{10pt}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Backend Updates CUDA (1/4)}
+  \begin{itemize}
+	  \item Improve compile-times when building with \texttt{Kokkos\_ENABLE\_DEBUG\_BOUNDS\_CHECK} (approx. 3x faster to compile)
+    \item Add support for \texttt{--disable-warnings} flag into \texttt{nvcc\_wrapper}
+    \item Use \texttt{team\_size\_recommended()} as default team size 
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Backend Updates HIP (2/4)}
+  \begin{itemize}
+    \item Add unified memory support for MI300:
+      \begin{itemize}
+        \item make HIPSpace accessible on the host
+        \item need to opt-in with \texttt{Kokkos\_IMPL\_HIP\_UNIFIED\_MEMORY}
+        \item introduced in 4.3.1
+      \end{itemize}
+    \item Add options for user to control GPU compilation flags:
+      \begin{itemize}
+        \item \texttt{Kokkos\_IMPL\_AMDGPU\_FLAG} and \texttt{Kokkos\_IMPL\_AMDGPU\_LINK}
+        \item we only set RDC flag
+        \item user still needs to set \texttt{Kokkos\_ARCH\_GFX} but we do no set the
+          architecture flag
+      \end{itemize}
+    \item Rework atomics to use builtins
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Backend Updates SYCL (3/4)}
+
+\begin{itemize}
+  \item Add support for Graphs
+  \item Fix multi-GPU support 
+  \item Improve performance for top-level parallel\_reduce and parallel\_scan, and team\_reduce 
+  \item Fix lock for guarding scratch space in TeamPolicy parallel\_reduce 
+\end{itemize}
+
+
+\end{frame}
+
+\begin{frame}[fragile]{Backend Updates Other (4/4)}
+
+\begin{itemize}
+\item OpenACC: Make \texttt{TeamPolicy} \texttt{parallel\_for} execute on the correct async queue
+\item OpenMPTarget: Honor user requested loop ordering in \texttt{MDRange} policy
+\item OpenMPTarget: Prevent data races by guarding the scratch space used in \texttt{parallel\_scan}
+\item HPX: Fix the compilation of the HPX backend with nvcc 
+\end{itemize}
+
+\end{frame}
+
+%==========================================================================
+

@@ -1,0 +1,116 @@
+%==========================================================================
+
+\begin{frame}[fragile]
+
+  {\Huge View of Views}
+  
+    \vspace{10pt}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{End of view object lifetime}
+
+What happens when a view object gets out of scope?
+\begin{code}
+{
+  View<T*, HostSpace> v("v", n);
+  // [...]
+}  // calls view destructor, i.e. v.~View()
+\end{code}
+
+\pause
+\begin{code}
+   // equivalent to:
+   //   parallel_for(
+   //     RangePolicy<DefaultHostExecutionSpace>(0, n),
+   //     KOKKOS_LAMBDA(size_t i) { v(i).~T(); }
+   //   );
+   //   kokkos_free(v.data());
+\end{code}
+
+\pause
+\bigskip
+Now, what if \texttt{T} is a view, or some user-defined type that contains a view?
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{The infamous View of Views}
+
+Our programming guide states it clearly (paraphrased):
+
+\begin{quote}
+Please don't. \\
+But, if you do, here is the right way to do it:
+\end{quote}
+
+\pause
+\begin{code}
+using Naughty = Kokkos::View<T*, SomeMemorySpace>
+View<Naughty**, HostSpace> v(view_alloc("v", WithoutInitializing), 2, 3);
+// create and initiliaze elements with a placement new
+new &v(0,0) Naughty("w00", 4);
+new &v(1,0) Naughty("w10", 5);
+new &v(0,1) Naughty("w01", 6);
+// [...]
+// must **manually** call the elements destructor
+v(0,0).~Naughty();
+v(1,0).~Naughty();
+v(0,1).~Naughty();
+\end{code}
+
+Lifetime management of element objects is the user's responsability, and it must be done on the host, \textbf{not with a parallel region}.
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{What if I forgot to clean up?}
+
+\begin{columns}
+\begin{column}{0.65\textwidth}
+    What happens depends on how the (outter) view was constructed:
+    \begin{itemize}
+    \item If you passed the \texttt{WithoutInitializing} allocation property, you potentially leak resources
+    \item Otherwise, you program may hang when you upgrade to 4.4
+        \begin{itemize}
+        \item Outter view destructor launches a parallel region to end the lifetime of individual elements
+        \item If an individual element being destructed causes some non-empty (inner) view to go out of scope, Kokkos semantics are being violated
+        \item Inner view object being destroyed leads to an attempt to acquire the lock that is already engaged for the outter view cleanup
+        \end{itemize}
+    \end{itemize}
+\end{column}
+\begin{column}{0.35\textwidth}
+    \begin{center}
+    \includegraphics[width=\linewidth]{4_4/cleanupafteryourself}
+    \end{center}
+\end{column}
+\end{columns}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{New SequentialHostInit view allocation property in 4.5}
+
+\begin{itemize}
+\item Introduced new \texttt{SequentialHostInit} view allocation property in \texttt{develop}
+\item Does not support non-default-constructible element types
+\item May backport it to a 4.4.1 patch release if there is strong appetite for it
+\end{itemize}
+
+\begin{code}
+using Naughty = Kokkos::View<T*, SomeMemorySpace>
+View<Naughty**, HostSpace> v(view_alloc("v", SequentialHostInit), 2, 3);
+// copy assign elements
+v(0,0) = Naughty("w00", 4);
+v(1,0) = Naughty("w10", 5);
+v(0,1) = Naughty("w01", 6);
+// v.~View() handles properly elements destruction
+\end{code}
+
+\end{frame}
+

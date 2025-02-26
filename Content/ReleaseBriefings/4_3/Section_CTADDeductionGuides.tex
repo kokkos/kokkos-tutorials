@@ -1,0 +1,151 @@
+
+%==========================================================================
+
+\begin{frame}[fragile]
+
+  {\Huge Compile-Time Argument Deduction (CTAD / Deduction Guides)}
+  
+    \vspace{10pt}
+
+  \textbf{Content:}
+    \begin{itemize}
+        \item What are deduction guides?
+        \item \texttt{Kokkos::Array} deduction guide
+        \item \texttt{Kokkos::RangePolicy} deduction guides
+        \item \texttt{Kokkos::MDRangePolicy} deduction guides
+    \end{itemize}
+
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{CTAD / Deduction Guides}
+
+\begin{itemize}
+\item C++17
+\item Usability Improvement
+\item Deduces class template parameters from types and/or number of parameters passed to constructors
+\item Eliminates need to specify template parameters when declaring automatic variables
+\end{itemize}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Array Deduction Guide}
+
+\begin{code}[keywords={Array}]
+// Kokkos::Array<double, 3>
+Kokkos::Array a4{3.0, 1.0, 4.0};	
+\end{code}
+
+\begin{itemize}
+\item matches \texttt{std::array} deduction guide
+\end{itemize}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{RangePolicy Deduction Guides}
+
+\begin{code}[keywords={RangePolicy}]
+
+int64_t work_begin   = /* ... */;  // conversions as well
+int64_t work_end     = /* ... */;  // conversions as well
+Kokkos::ChunkSize cs = /* ... */;  // conversions as well
+Kokkos::DefaultExecutionSpace des; // conversions as well
+SomeExecutionSpace ses;            // different from Kokkos::DefaultExecutionSpace
+
+// Kokkos::RangePolicy<>
+Kokkos::RangePolicy rp0;
+Kokkos::RangePolicy rp1(work_begin, work_end);
+Kokkos::RangePolicy rp2(work_begin, work_end, cs);
+Kokkos::RangePolicy rp3(des, work_begin, work_end);
+Kokkos::RangePolicy rp4(des, work_begin, work_end, cs);
+
+// Kokkos::RangePolicy<SomeExecutionSpace>
+Kokkos::RangePolicy rp5(ses, work_begin, work_end);
+Kokkos::RangePolicy rp6(ses, work_begin, work_end, cs);
+
+\end{code}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{MDRangePolicy initializer\_list Deduction Guides}
+
+\begin{code}[keywords={MDRangePolicy initializer_list}]
+
+Kokkos::DefaultExecutionSpace des;
+SomeExecutionSpace ses;            // different from Kokkos::DefaultExecutionSpace
+int64_t i;
+
+// Kokkos::MDRangePolicy<Kokkos::Rank<5>>
+Kokkos::MDRangePolicy pl0({1, 2, 3, 4, 5}, {1, 2, 3, 4, 5});
+Kokkos::MDRangePolicy pl1({1, 2, 3, 4, 5}, {1, 2, 3, 4, 5}, { i });
+Kokkos::MDRangePolicy pl2(des, {1, 2, 3, 4, 5}, {1, 2, 3, 4, 5});
+Kokkos::MDRangePolicy pl3(des, {1, 2, 3, 4, 5}, {1, 2, 3, 4, 5}, { i });
+
+// Kokkos::MDRangePolicy<SomeExecutionSpace, Kokkos::Rank<5>>
+Kokkos::MDRangePolicy pl4(ses, {1, 2, 3, 4, 5}, {1, 2, 3, 4, 5});
+Kokkos::MDRangePolicy pl5(ses, {1, 2, 3, 4, 5}, {1, 2, 3, 4, 5}, { i });
+
+\end{code}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{MDRangePolicy C Array Deduction Guides}
+
+\begin{code}[keywords={MDRangePolicy C Array}]
+
+Kokkos::DefaultExecutionSpace des;
+SomeExecutionSpace ses;            // different from Kokkos::DefaultExecutionSpace
+int cbegin[3];
+int cend[3];
+int64_t ctiling[2];
+
+// Kokkos::MDRangePolicy<Kokkos::Rank<3>>
+Kokkos::MDRangePolicy pc0(cbegin, cend);
+Kokkos::MDRangePolicy pc1(cbegin, cend, ctiling);
+Kokkos::MDRangePolicy pc2(des, cbegin, cend);
+Kokkos::MDRangePolicy pc3(des, cbegin, cend, ctiling)
+
+// Kokkos::MDRangePolicy<SomeExecutionSpace, Kokkos::Rank<3>>
+Kokkos::MDRangePolicy pc4(ses, cbegin, cend);
+Kokkos::MDRangePolicy pc5(ses, cbegin, cend, ctiling);
+
+\end{code}
+
+\end{frame}
+
+%==========================================================================
+\begin{frame}[fragile]{MDRangePolicy Array Deduction Guides}
+
+\begin{code}[keywords={MDRangePolicy Kokkos::Array}]
+
+Kokkos::DefaultExecutionSpace des;
+SomeExecutionSpace ses;            // different from Kokkos::DefaultExecutionSpace
+Kokkos::Array<int, 2> abegin;
+Kokkos::Array<int, 2> aend;
+Kokkos::Array<int64_t, 2> atiling;
+
+// Kokkos::MDRangePolicy<Kokkos::Rank<2>>
+Kokkos::MDRangePolicy pa0(abegin, aend);
+Kokkos::MDRangePolicy pa1(abegin, aend, atiling);
+Kokkos::MDRangePolicy pa2(des, abegin, aend);
+Kokkos::MDRangePolicy pa3(des, abegin, aend, atiling)
+
+// Kokkos::MDRangePolicy<SomeExecutionSpace, Kokkos::Rank<2>>
+Kokkos::MDRangePolicy pa4(ses, abegin, aend);
+Kokkos::MDRangePolicy pa5(ses, abegin, aend, atiling);
+
+\end{code}
+
+\end{frame}
+
+%==========================================================================

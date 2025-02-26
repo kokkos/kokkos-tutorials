@@ -1,0 +1,61 @@
+
+%==========================================================================
+
+\begin{frame}[fragile]
+
+  {\Huge Querying the Number of Devices}
+
+  \vspace{10pt}
+
+	\textbf{Content:}
+  \begin{itemize}
+    \item Runtime function for querying the number of devices
+    \item Device ID consistency with \texttt{KOKKOS\_VISIBLE\_DEVICES}
+  \end{itemize}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Querying the number of devices}
+
+\textbf{A runtime function to query the number of devices}
+\bigskip
+
+\texttt{[[nodiscard]] int Kokkos::num\_devices() noexcept {...}}
+\vspace{10pt}
+
+\begin{itemize}
+	\item Callable before \texttt{Kokkos::initialize()}
+	\item Returns the device count based on visible devices
+	\item Returns -1 if no GPU backend is enabled
+	\item Replaces \texttt{{Cuda,HIP}::detect\_device\_count()}
+\end{itemize}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Kokkos::device\_id() consistency}
+
+\textbf{Fixed a defect in \texttt{Kokkos::device\_id()}}
+\bigskip
+
+\texttt{KOKKOS\_VISIBLE\_DEVICES} were not being considered for \texttt{Kokkos::device\_id()}.
+\vspace{10pt}
+
+\begin{table}[]
+\begin{tabular}{l|llll}
+\multicolumn{1}{c|}{\textbf{initialization settings}} & \multicolumn{1}{c}{\textbf{Pre-4.3}} & \multicolumn{1}{c}{\textbf{4.3}} &  &  \\ \hline
+\textless{}none\textgreater{}                         & 0                                    & 0                                &  &  \\
+device\_id=1                                          & 1                                    & 1                                &  &  \\
+KOKKOS\_VISIBLE\_DEVICES=0                            & 0                                    & 0                                &  &  \\
+KOKKOS\_VISIBLE\_DEVICES=3                            & 3                                    & 0                                &  &  \\
+KOKKOS\_VISIBLE\_DEVICES=1,0                          & 1                                    & 0                                &  &  \\
+device\_id=1 KOKKOS\_VISIBLE\_DEVICES=1,0             & 0                                    & 1                                &  & 
+\end{tabular}
+\end{table}
+
+\end{frame}
+
+%==========================================================================

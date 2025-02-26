@@ -1,0 +1,322 @@
+\begin{frame}[fragile]
+
+  {\Huge Sparse Linear Algebra}
+
+  \vspace{10pt}
+
+  {\large Sparse linear algebra data structures and functions.}
+
+  \vspace{20pt}
+
+  \textbf{Learning objectives:}
+  \begin{itemize}
+    \item {Key characteristics algorithms}
+    \item {Containers: CrsMatrix, StaticCrsGraph, Vector}
+    \item {SpMV}
+    \item {SpADD}
+    \item {SpGEMM}
+  \end{itemize}
+
+  \vspace{-20pt}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Why do we need this?}
+  \textbf{Support for important class of applications}
+
+  \begin{itemize}
+  \item Representation of choices for discrete PDE systems (FEM, FD, CVFEM, ...)
+  \item Natural use for network representation
+    \begin{itemize}
+    \item Electrical grid, electronic circuit
+    \item Social network
+    \end{itemize}
+  \end{itemize}
+
+
+  \begin{block}{Unique format supported: Compressed row sparse}
+    Sparse matrices can be stored in various format, currently only Crs format is fully supported, BlockCrs is partially supported
+  \end{block}
+\end{frame}
+
+\begin{frame}[fragile]{Algorithmic characteristics}
+\textbf{Constraints from Crs format}
+
+\begin{itemize}
+\item hard to optimize memory access patterns
+\item often multi-pass algorithms required
+  \begin{enumerate}
+  \item compute storage
+  \item compute column index and actual values
+  \end{enumerate}
+\item typically algorithms can be split in symbolic and numeric phases
+\end{itemize}
+
+\begin{block}{Symbolic/Numeric split}
+  While extremely useful for reuse it is potentially slower for single use case depending on implementation
+\end{block}
+\end{frame}
+
+\begin{frame}[fragile]{KokkosKernels Handle}
+\textbf{Handle: hiding important details!}
+
+\begin{itemize}
+\item What the handles does for you:
+  \begin{itemize}
+  \item stores user parameters
+  \item keeps temporary data needed in numeric of solve/apply phases
+  \item cleans up temporary data at destruction
+  \item contains kernel specific "sub-handle"
+  \item specifies required data types
+  \end{itemize}
+
+\item Usage: \texttt{KokkosKernels::Experimental::\\ KokkosKernelsHandle<size\_type,\\
+  \hspace{3.8cm} index\_type,\\
+  \hspace{3.8cm} scalar\_type,\\
+  \hspace{3.8cm} ExecutionSpace,\\
+  \hspace{3.8cm} TempMemSpace,\\
+  \hspace{3.8cm} PermMemSpace>()}
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Containers}
+
+\textbf{One dense structure:}
+\begin{itemize}
+\item \texttt{View} (of rank 1): represents a "vector"
+\item \texttt{View} (of rank 2): represents a "multi-vector"
+\end{itemize}
+
+\vspace{1em}
+\textbf{Two sparse structures:}
+\begin{itemize}
+  \item \texttt{StaticCrsGraph}: encodes the sparsity pattern in \texttt{row\_map} and \texttt{entries}
+  \item \texttt{CrsMatrix}: contains a \texttt{StaticCrsGraph} and \texttt{values}
+\end{itemize}
+
+\vspace{1em}
+\textbf{Example:}
+\texttt{example/wiki/sparse/KokkosSparse\_wiki\_crsmatrix.cpp}
+\end{frame}
+
+\begin{frame}{Sparse kernels interfaces}
+  \textbf{Two interfaces for one kernel?}
+  \begin{enumerate}
+  \item Simplified interface
+    \begin{itemize}
+    \item uses high level containers
+    \item reduced number of parameters and templates
+    \item allocates memory
+    \end{itemize}
+  \item Expert interface
+    \begin{itemize}
+    \item uses low level container (i.e. views)
+    \item allows for finer memory management
+    \end{itemize}
+  \end{enumerate}
+
+\begin{block}{Simplified/Expert interface}
+  For clarity we will focus on the simplified interface in the rest of the lecture
+\end{block}
+\end{frame}
+
+\begin{frame}[fragile]{SpMV}
+  \textbf{SpMV: a mixed sparse/dense kernel}
+
+  \begin{equation*}
+  0.5*\begin{bmatrix}
+    4\\ 5\\ 6\\
+  \end{bmatrix}+1.0
+  \begin{bmatrix}
+    1 & & 2 \\
+    & 3 & \\
+    4 & & 5 \\
+  \end{bmatrix}
+  \begin{bmatrix}
+    1\\ 2\\ 3\\
+  \end{bmatrix}
+  =\begin{bmatrix}
+  9 \\ 8.5 \\ 22
+  \end{bmatrix}
+  \end{equation*}
+  
+  \begin{itemize}
+  \item Computes: $y = \beta*y + \alpha*A*x$
+  \item Output is a dense vector
+    \begin{itemize}
+    \item single pass algorithm since no CrsGraph needs to be computed
+    \item good amount of parallelism exploitable
+    \end{itemize}
+  \item Usage:  \\ \hspace{1em}\texttt{KokkosSparse::spmv(mode, alpha, A, x, beta, y);}
+  \item Example:\\ \hspace{1em}\texttt{example/wiki/sparse/KokkosSparse\_wiki\_spmv.cpp}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{SpADD}
+  \textbf{SpADD: Sparse Matrix Addition}
+    \begin{equation*}
+      2.0\begin{bmatrix}
+        1 &   & 2 \\
+          & 3 & 4 \\
+        5 &   &   \\
+      \end{bmatrix}
+      +0.5\begin{bmatrix}
+      6 &  7 &  \\
+        &  8 &  \\
+        &    & 9\\
+      \end{bmatrix}
+      =\begin{bmatrix}
+       5 & 3.5 &   4\\
+         &  10 &   8\\
+      10 &     & 4.5\\
+      \end{bmatrix}
+    \end{equation*}
+  
+  \begin{itemize}
+  \item Computes: $C=\alpha A + \beta B$ given $A$ and $B$ two CrsMatrices
+  \item Sorted inputs speeds-up the kernel and reduces memory consumption
+  \item Usage:\\
+    \hspace{1em} \texttt{KokkosSparse::spadd\_symbolic(handle, A, B, C);}\\
+    \hspace{1em} \texttt{KokkosSparse::spadd\_numeric(handle, alpha, A, beta, B, C);}
+  \item Example:\\
+    \hspace{1em} \texttt{example/wiki/sparse/KokkosSparse\_wiki\_spadd.cpp}
+  \end{itemize}
+\end{frame}
+
+
+\begin{frame}[fragile]{SpGEMM}
+\textbf{SpGEMM: Sparse General Matrix Matrix Multiply}
+ 
+\vspace{.4cm}
+
+\begin{itemize}
+
+  \item Compute $A\times B=C$ for given sparse matrices $A$ and $B$
+  \begin{equation*}
+  \left[ 
+  \begin{tabular}{ccc}
+	1 &    & 2 \\
+   	   & 3 & 4 \\
+        5 &    & 
+  \end{tabular}
+  \right]
+  \times
+  \left[ 
+  \begin{tabular}{r r r r}
+	6 &    & 7 & \\
+   	8 & 9 &    & \\
+           &    &10&11 
+  \end{tabular}
+  \right] 
+  =
+    \left[ 
+  \begin{tabular}{r r r r}
+	  6 &      & 27 & 22 \\
+   	24 & 27 & 40 & 41 \\
+        30 & 35 &      &      \\ 
+  \end{tabular}
+  \right]   
+\end{equation*}
+  \begin{itemize}
+     \item Sparsity structure of $C$ is not known in advance!
+  \end{itemize}
+  
+  \vspace{.4cm}
+  
+  \item We have a two-phase implementation:
+  \begin{itemize}
+    \item This allows determining the sparsity of $C$ efficiently
+  \end{itemize}
+ \end{itemize}  
+\end{frame}
+
+\begin{frame}[fragile]{SpGEMM}
+\textbf{SpGEMM: Sparse General Matrix Matrix Multiply}
+
+\vspace{.4cm}
+
+\begin{itemize}
+\item \textbf{Symbolic phase:} 
+  \begin{itemize} 
+  \item \texttt{KokkosSparse::spgemm\_symbolic(handle, \\ 
+    \hspace{2.9cm}A, isTrnspsdA, B, isTrnspsdB, C);} 
+  \item determines number of nonzeros in each row of $C$ and
+  \item allocates memory for column indices and values of the nonzeros
+  \end{itemize} 
+
+  \vspace{.4cm}
+
+\item \textbf{Numeric phase}
+  \begin{itemize}
+  \item \texttt{KokkosSparse::spgemm\_numeric(handle, \\ 
+    \hspace{2.7cm}A, isTrnspsdA, B, isTrnspsdB, C);}
+  \item computes column indices and values of the nonzeros of $C$
+  \end{itemize}
+
+  \vspace{.4cm}
+
+\item \textbf{Example}\\[-3ex]
+  \hspace{1em} \texttt{example/wiki/sparse/KokkosSparse\_wiki\_spgemm.cpp}
+\end{itemize}  
+\end{frame}
+
+
+\begin{frame}[fragile]{SpGEMM}
+\textbf{SpGEMM: Sparse General Matrix Matrix Multiply}
+
+\begin{itemize}
+
+  \item We follow Gustavson's algorithm: \\
+   \hspace{0.4cm}   \textbf{for} each row index $i\gets 0$  \textbf{to} $nrowsA$ \textbf{do} \\
+   \hspace{0.8cm} 	   \textbf{for} each column index $j\in A(i,:)$ \textbf{do} \\
+   \hspace{1.2cm}	     	//\texttt{accumulate partial row results}\\
+   \hspace{1.2cm}	     	$C(i,:) \gets C(i,:) + A(i,j)B(j,:)$
+   
+  \vspace{.4cm}
+  \item Our implementation exploits hierarchical paralelism
+  \begin{itemize}
+  	\item Teams are assigned contiguous row chunks in $A$  
+      	\item Threads are assigned individual rows of $A$
+        \item Vector lanes are assigned the nonzeros of rows of $B$
+  \end{itemize} 
+
+
+ \end{itemize}  
+\end{frame}
+
+\begin{frame}[fragile]{SpGEMM}
+\textbf{SpGEMM: Sparse General Matrix Matrix Multiply}
+
+\begin{itemize}
+  \item We follow Gustavson's algorithm: \\
+   \hspace{0.4cm}   \textbf{for} each row index $i\gets 0$  \textbf{to} $nrowsA$ \textbf{do} \\
+   \hspace{0.8cm} 	   \textbf{for} each column index $j\in A(i,:)$ \textbf{do} \\
+   \hspace{1.2cm}	     	//\texttt{accumulate partial row results}\\
+   \hspace{1.2cm}	     	$C(i,:) \gets C(i,:) + A(i,j)B(j,:)$
+  \item Our thread-scalable hashmap accumulator implementation
+  \begin{itemize} 
+    	\item is used in both symbolic and numeric phases
+  	\item supports both sparse and dense accumulators
+	\item has a two-level structure: Level-1 ($L_1$) and Level-2 ($L_2$)
+	\begin{itemize}
+	  \item $L_1$ hashmap lives in the fast shared memory
+	  \item $L_2$ hashmap is created only if $L_1$ hashmap runs out of memory
+	  \item $L_2$ hashmap lives in the large global memory 
+	\end{itemize}
+  \end{itemize}
+  \item For more details see: {\footnotesize M. Deveci, C. Trott, S. Rajamanickam, "Multithreaded sparse matrix-matrix multiplication for many-core and GPU architectures", Parallel Computing 78, 33-46, 2018.}
+ \end{itemize}  
+\end{frame}
+
+\begin{frame}[fragile]{Summary SpLA}
+
+  \textbf{Summary: Sparse Linear Algebra}
+  \begin{itemize}
+    \item {Main difficulties: finding sparsity patterns and memory access}
+    \item {Containers: \texttt{View}, \texttt{StaticCrsGraph} and \texttt{CrsMatrix}}
+    \item {Kernels: SpMV, SpADD and SpGEMM}
+  \end{itemize}
+
+\end{frame}

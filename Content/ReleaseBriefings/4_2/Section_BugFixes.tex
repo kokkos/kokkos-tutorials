@@ -1,0 +1,41 @@
+\begin{frame}[fragile]{Bug fixes}
+\begin{itemize}
+\item Missing memory fence in \texttt{RandomPool::free\_state} functions.
+      Possible race condition sometimes led to repeated random number
+      sequences on different threads with CUDA.
+\item Fix wrong behavior for corner case in
+      \texttt{Kokkos::Experimental::is\_partitioned} algorithm.
+\item Wrong implementation for \texttt{cyl\_bessel\_i0} yielding unexpected
+      NaNs. Special mathematical functions still belong to
+      \texttt{Kokkos::Experimental::}.
+\item Bug in OpenMPTarget with init/join in reducers.
+\item Resolve symlink creation issue at configuration time on Windows.
+\item Minor fixes to \texttt{Kokkos::Array} (mostly anecdotal).
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Bug fixes}
+\begin{itemize}
+\item Fix corner cases when deep copying empty views that can lead to
+      undefined behavior.
+\item Uninitialized variable in \texttt{parallel\_for(TeamPolicy)} affecting
+      level 1 scratch pad memory in the CUDA backend (introduced in 4.1).
+\item Fix bug in CUDA PTX for atomic min/max operations of 64-bit integers.
+      Wrong answer when mixing negative and positive values.
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Bug fixes}
+Fixes to be included in 4.2.01
+\begin{itemize}
+\item Accidental finalization of tools when non-default host execution space
+      instance is deleted.
+\item Missing \texttt{inline} in new HIP graph implementation leading to
+      multiple definition linking error downstream.
+\item Add warp synchronization in CUDA \texttt{parallel\_reduce} to avoid
+      possible race conditions reported by \texttt{cuda-memcheck}.
+\item Workaround bogus deprecated declarations warning for GCC versions less than 11
+\item Fix MSVC CUDA build (missing header include)
+\end{itemize}
+\end{frame}
+

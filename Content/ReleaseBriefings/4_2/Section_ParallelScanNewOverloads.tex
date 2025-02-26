@@ -1,0 +1,79 @@
+
+%==========================================================================
+\begin{frame}[fragile]
+
+  {\huge \texttt{parallel\_scan}: new overload for nested policies with return value}
+
+  \vspace{10pt}
+
+  \textbf{Content:}
+  \begin{itemize}
+    \item API
+    \item Example
+  \end{itemize}
+
+\end{frame}
+
+
+%==========================================================================
+\begin{frame}[fragile]{\texttt{parallel\_scan}: new overload API}
+
+\begin{itemize}
+\item New overload with return value for nested policies
+
+\hspace{-0.8cm}
+\begin{code}[keywords={parallel_scan}]
+template<class ExecPolicy, class FunctorType, class ReturnType>
+KOKKOS_FUNCTION
+Kokkos::parallel_scan(const ExecPolicy &policy,
+                      const FunctorType &functor,
+                      ReturnType &return_value);
+\end{code}
+
+\vspace{4pt}
+\item Valid policies: \texttt{ThreadVectorRange}, \texttt{TeamThreadRange}
+
+\vspace{4pt}
+\item \texttt{return\_value} is {\bf overwritten}
+
+\vspace{4pt}
+\item Only valid inside a parallel region executed via \texttt{TeamPolicy} or \texttt{TaskTeam}.
+
+\vspace{4pt}
+\item \texttt{ReturnType} must be compatible with the type of functor
+
+\end{itemize}
+
+\end{frame}
+
+
+%==========================================================================
+\begin{frame}[fragile]{\texttt{parallel\_scan}: new overload's representative snippet}
+
+\hspace{-1.1cm}
+\begin{code}[keywords={parallel_scan, TeamThreadRange, TeamPolicy}]
+  template<class ViewType, class TeamHandleType>
+  struct Functor{
+    ViewType m_view;
+
+    KOKKOS_FUNCTION void operator()(const TeamHandleType& handle) const{
+      const auto leagueRank = handle.league_rank();
+      // ...
+      int accum;
+      Kokkos::parallel_scan(
+         Kokkos::TeamThreadRange(handle, 0, m_view.extent(1)),
+         KOKKOS_LAMBDA(int i, value_type& val, const bool final) {
+           val += m_view(leagueRank, i);
+           if (final) { // do something }
+         }, accum);
+    }};
+
+  using view_t       = Kokkos::View<int**>;
+  using policy_t     = Kokkos::TeamPolicy<>;
+  using team_hande_t = typename policy_t::member_type;
+  view_t v("v", numRows, numCols);
+  Kokkos::parallel_for(policy_t(numRows, Kokkos::AUTO),
+                       Functor<view_t, team_hande_t>(...));
+\end{code}
+
+\end{frame}

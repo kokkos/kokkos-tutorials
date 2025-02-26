@@ -1,0 +1,209 @@
+\input{KokkosTutorial_PreTitle}
+%disclaimer for Sandia. uncomment and the whole blob goes away @ b80c116300122
+\def\sandid{SAND2020-9031 PE}
+
+% \title{Performance Portability with Kokkos}
+\title{The Kokkos Lectures}
+
+%BAD misuse of author field
+\author{Module 7: Kokkos Tools}
+
+
+\input{KokkosTutorial_PostTitle}
+
+\shortfalse
+\mediumtrue
+\fulltrue
+\notoverviewtrue
+
+\begin{document}
+
+\begin{frame}
+	\titlepage
+\end{frame}
+
+\begin{frame}[fragile]{Welcome to Kokkos}
+
+\textbf{Online Resources}:
+
+\begin{itemize}
+        \item \url{https://github.com/kokkos}:
+                \begin{itemize}
+                        \item Primary Kokkos GitHub Organization
+                \end{itemize}
+        \item \url{https://github.com/kokkos/kokkos-tutorials/wiki/Kokkos-Lecture-Series}:
+                \begin{itemize}
+			\item{Slides, recording and Q\&A for the Lectures}
+                \end{itemize}
+        \item \url{https://kokkos.github.io/kokkos-core-wiki}:
+                \begin{itemize}
+                        \item Wiki including API reference
+                \end{itemize}
+        \item \url{https://github.com/kokkos/kokkos-tools/wiki}:
+                \begin{itemize}
+                        \item Kokkos Tools Wiki
+                \end{itemize}
+        \item \url{https://kokkosteam.slack.com}:
+                \begin{itemize}
+                        \item Slack channel for Kokkos.
+                        \item Please join: fastest way to get your questions answered.
+                        \item Can whitelist domains, or invite individual people.
+                \end{itemize}
+\end{itemize}
+
+\end{frame}
+
+
+\begin{frame}[fragile]{Lecture Series Outline}
+
+\begin{itemize}
+        \item 07/17 Module 1: Introduction, Building and Parallel Dispatch
+        \item 07/24 Module 2: Views and Spaces
+        \item 07/31 Module 3: Data Structures + MultiDimensional Loops
+        \item 08/07 Module 4: Hierarchical Parallelism
+        \item 08/14 Module 5: Tasking, Streams and SIMD
+        \item 08/21 Module 6: Internode: MPI and PGAS
+        \item \textbf{08/28 Module 7: Tools: Profiling, Tuning and Debugging}
+        \item 09/04 Module 8: Kernels: Sparse and Dense Linear Algebra
+        \item 09/11 Reserve Day
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{Module 6 Summary}
+\textbf{Simple MPI and Kokkos Interaction is easy!}
+\begin{itemize}
+  \item Simply pass \texttt{data()} of a View to MPI functions plus its size.
+  \begin{itemize}
+    \item But it better be a contiguous View!
+  \end{itemize}
+  \item Initialize Kokkos after MPI, and finalize it before MPI
+\end{itemize}
+
+\vspace{10pt}
+\textbf{Overlapping communication and computation possible}
+\begin{itemize}
+  \item Use Execution Space instances to overlap packing/unpacking with other computation.
+  \item Order operations to maximize overlapping potential. 
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Module 6 Summary}
+\textbf{Fortran Language Compatibility Layer}
+\begin{itemize}
+  \item Initialize Kokkos from Fortran via \texttt{kokkos\_initialize} and \texttt{kokkos\_finalize}
+  \item \texttt{nd\_array\_t} is a representation of a \texttt{Kokkos::View}
+  \item Create \texttt{nd\_array\_t} from a Fortran array via \texttt{to\_nd\_array}
+  \item Allocate \texttt{Kokkos::DualView} in Fortran with \texttt{kokkos\_allocate\_dualview}
+\end{itemize}
+
+
+  \vspace{10pt}
+  \textbf{The Python Interop}
+  \begin{itemize}
+    \item Initialize and Finalize Kokkos from Python
+    \item Create Views from Python
+    \item Alias Kokkos Views with NumPy arrays
+    \item \textbf{This is in pre-release: ask us for access.}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Module 7: Learning objectives}
+  \begin{block}{Simple Tools Usage}
+    \begin{itemize}
+    \item How to dynamically load a Kokkos Tool.
+    \item Simple Profiling and Debugging.
+    \item Leveraging the KokkosP instrumentation for third party tools.
+  \end{itemize}
+  \end{block}
+
+  \begin{block}{Kokkos Tuning}
+  \begin{itemize}
+    \item Learn to auto-tune runtime parameters.
+  \end{itemize}
+  \end{block}
+
+  \begin{block}{Build Your Own Tool}
+  \begin{itemize}
+    \item Learn how to build your own tools.
+  \end{itemize}
+  \end{block}
+
+  \begin{block}{Leveraging Static Analysis}
+  \begin{itemize}
+    \item How to use Kokkos' LLVM tools for static analysis.
+  \end{itemize}
+  \end{block}
+\end{frame}
+
+\input{../sections/Section_Tools_Simple}
+\input{../sections/Section_Tools_Connectors}
+%\input{../sections/Section_Tools_QuickStart}
+\input{../sections/Section_Tools_Tuning}
+\input{../sections/Section_Tools_Custom}
+\input{../sections/Section_Tools_ClangSA}
+
+\begin{frame}[fragile]{Module 7: Summary}
+
+\textbf{Kokkos Tools:}
+\begin{itemize}
+  \item Kokkos Tools provide an instrumentation interface \textbf{KokkosP} and \textbf{Tools} to leverage it.
+  \item The interface is \textbf{always available} - even in release builds.
+  \item Zero overhead if no tool is loaded during the run.
+  \item Dynamically load a tool via setting \texttt{KOKKOS\_TOOLS\_LIBS} environment variable.
+  \item Set callbacks in code for tools compiled into the executable. 
+\end{itemize}
+
+\textbf{Kokkos Connector Tools:}
+\begin{itemize}
+  \item Connectors inject Kokkos specific information into vendor and academic tools.
+  \item Helps readability of profiles.
+  \item Removes need to put vendor specific instrumentation in codes.
+  \item Growing list of tools support Kokkos natively.
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Module 7: Summary}
+\textbf{Kokkos Tuning Hooks enable more performance portability}
+\begin{itemize}
+  \item Avoid figuring out the right heuristic for every platform.
+  \item Input variables descripte the problem scope.
+  \item Output variables descripe the search space.
+\end{itemize}
+
+\textbf{Implementing your own tools is easy!}
+\begin{itemize}
+  \item Simply implement the needed C callback functions.
+  \item Only implement what you need.
+  \item The callback registration system allows to embed tools in applications.
+\end{itemize}
+
+\textbf{Static Analysis}
+\begin{itemize}
+  \item Have semantic checks going beyond C++ errors.
+  \item Integrates into your editors.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Module 8: Outlook (09/04)}
+	\textbf{KokkosKernels Dense Linear Algebra}
+
+	\textbf{KokkosKernels Sparse Linear Algebra}
+
+	\textbf{KokkosKernels Sparse Solvers}
+
+	\textbf{KokkosKernels Graph Kernels}
+
+
+	\vspace{5pt}
+	\textbf{Don't Forget:} Join our Slack Channel and drop into our office hours on Tuesday.
+	
+	\vspace{5pt}
+	\textbf{Updates at:} \href{https://kokkos.link/the-lectures-updates}{kokkos.link/the-lectures-updates}
+	
+	\vspace{5pt}
+	\textbf{Recordings/Slides:} \href{https://kokkos.link/the-lectures}{kokkos.link/the-lectures}
+
+\end{frame}
+\end{document}
+

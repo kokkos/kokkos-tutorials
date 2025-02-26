@@ -1,0 +1,131 @@
+
+%==========================================================================
+
+\begin{frame}[fragile]
+
+        {\Huge \texttt{KOKKOS\_IF\_ON\_\{HOST,DEVICE\}} macros}
+
+  \vspace{-20pt}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{\texttt{\#ifdef \_\_CUDA\_ARCH\_\_} idiom not portable}
+\textbf{Motivating example}
+\begin{code}[keywords={__CUDA_ARCH__}]
+__host__ __device__ void terminate() {
+#ifdef __CUDA_ARCH__
+  asm("trap;");  // inline PTX assembly when called on device
+#else
+  _exit();       // OS call when called on the host
+#endif
+}
+\end{code}
+
+\begin{itemize}
+\item NVIDIA HPC compiler uses a unified heterogeneous compilation model (single-pass)
+\item NVC++ cannot support {\color{blue}\texttt{\_\_CUDA\_ARCH\_\_}} because that assumes split compilation
+\end{itemize}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Use cases}
+\textbf{Overloading based on \texttt{\_\_host\_\_ and \_\_device\_\_} attributes}
+\begin{code}[keywords={__CUDA_ARCH__}]
+struct MyS { int i; };
+#ifdef __NVCC__
+  #ifndef __CUDA_ARCH__
+    __host__ MyS MakeStruct() { return MyS{0};}
+  #else
+    __device__ MyS MakeStruct() { return MyS{1};}
+  #endif
+#else
+    __host__ MyS MakeStruct() { return MyS{0};}
+    __device__ MyS MakeStruct() { return MyS{1};}
+#endif
+\end{code}
+
+\vspace{10pt}
+\textbf{Different class on host/device (NOT SUPPORTED)}
+\begin{code}[keywords={__CUDA_ARCH__}]
+struct solver {
+  // ...
+  #ifndef __CUDA_ARCH__
+  std::ofstream output_;
+  #endif
+};
+\end{code}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{\texttt{KOKKOS\_IF\_ON\_\{HOST,DEVICE\}} macros}
+\textbf{Revisit overloading on host and device example}
+\begin{code}[keywords={KOKKOS_IF_ON_HOST,KOKKOS_IF_ON_DEVICE}]
+struct MyS { int i; };
+KOKKOS_FUNCTION MyS MakeStruct() {
+  KOKKOS_IF_ON_HOST(( return MyS{0}; ))
+  KOKKOS_IF_ON_DEVICE(( return MyS{1}; ))
+}
+\end{code}
+
+\textbf{Things to note}
+\begin{itemize}
+\item Both macros introduce a new scope
+\begin{code}[keywords={KOKKOS_IF_ON_HOST}]
+  KOKKOS_IF_ON_HOST((
+    int x = 0;
+    std::cout << x << '\n';
+  )) // scope of 'x' ends here
+\end{code}
+\item Cannot be used in a context that requires constant expressions (\texttt{constexpr})
+\item Do not play nice with other preprocessor directives
+\end{itemize}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Preprocessor directives}
+
+\begin{code}[keywords={KOKKOS_IF_ON_HOST,KOKKOS_IF_ON_DEVICE}]
+
+KOKKOS_FUNCTION void host_compute() {
+#if KOKKOS_VERSION >= 30700
+  auto sqrt2f = Kokkos::sqrtf(2);
+  // ...
+#else
+  auto sqrt2f = 1.41421356237f;
+  // ...
+#endif
+}
+
+KOKKOS_FUNCTION void device_compute() { /* ... */ }
+
+KOKKOS_FUNCTION decltype(auto) compute() {
+  KOKKOS_IF_ON_HOST(( return host_compute(); ))
+  KOKKOS_IF_ON_DEVICE(( return device_compute(); ))
+}
+\end{code}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}{Section Summary}
+
+  \begin{itemize}
+    \item{{\color{blue}\texttt{\#ifdef \_\_CUDA\_ARCH\_\_}} idiom is not portable}
+    \item{Release 3.6 introduces two macros: {\color{blue}\texttt{KOKKOS\_IF\_ON\_HOST}} and {\color{blue}\texttt{KOKKOS\_IF\_ON\_DEVICE}}}
+    \begin{alertblock}{Warning!}
+       Avoid using as much possible.  These macros are a last resort facility for differentiating between host and device inside a kernel.
+       Consider other approaches such as partial template specialization on execution spaces.
+    \end{alertblock}
+    \item{Upcoming support for NVC++ (in the next release or two)}
+  \end{itemize}
+
+\end{frame}

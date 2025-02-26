@@ -1,0 +1,108 @@
+\begin{frame}{Kokkos Tools Quick Start}
+\textbf{Learning Objectives:} 
+
+\begin{itemize}
+\item Quickly start using a tool via Kokkos Tools build system for any Kokkos application and backend.
+\item Set environment variables of Kokkos Tools to customize its tools' behaviors.
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}{All the info so far is great...}
+\begin{center}
+I want to start using Kokkos Tools this minute for my use case. 
+% <Optional text:>
+% What's the tl;dr? 
+\end{center}
+\end{frame}
+
+\begin{frame}[fragile]{Quick Start: Generic}
+\begin{enumerate}
+\small 
+\item \textbf{Assume} an install prefix of your Kokkos build in \texttt{\$\{YOUR\_KOKKOS\}}.
+\item \textbf{Obtain} via \texttt{git clone github.com/kokkos/kokkos-tools; cd kokkos-tools;} and load needed external software dependences.
+\item \textbf{Install} with CMake:
+\begin{lstlisting}
+mkdir build; cd build; cmake ..
+-DKokkos_ROOT="${YOUR_KOKKOS}"
+-DCMAKE_INSTALL_PREFIX="${YOUR_KTO_INSTALL}";
+make -j 4; make install;
+\end{lstlisting}
+
+\item \textbf{Set up} environment variables:
+\begin{lstlisting}
+export KOKKOS_TOOLS_GLOBAL<toolvar>=...
+\end{lstlisting}
+\item \textbf{Load} tool library via
+\begin{lstlisting}
+export KOKKOS_TOOLS_LIBS=
+"${YOUR_KTO_INSTALL}/lib64/libkp_toolName.so"
+\end{lstlisting}
+
+\item \textbf{Run}: \texttt{cd /path/to/your/app; ./yourKokkosApp.exe};
+\end{enumerate}
+
+\end{frame}
+
+\begin{frame}[fragile]{Quick Start: \texttt{nvtx-connector} on Perlmutter}
+
+\begin{enumerate}
+\small 
+
+\item \textbf{Assume} an install prefix of Kokkos with the CUDA backend enabled in \texttt{\${YOUR\_KOKKOS}}.\\
+\item \textbf{Obtain}
+\begin{lstlisting}
+git clone https://github.com/kokkos/kokkos-tools;
+cd kokkos-tools; module load PrgEnv-gnu;
+\end{lstlisting}
+\item \textbf{Install} with CMake:
+\begin{lstlisting}
+mkdir build; cd build; cmake ..
+-DKokkos_ROOT="${YOUR_KOKKOS}"
+-DCMAKE_INSTALL_PREFIX="/where/to/install/the/tools";
+make -j 4; make install;
+\end{lstlisting}
+
+\item \textbf{Set up}: 
+\begin{lstlisting} 
+export KOKKOS\_TOOLS\_GLOBALFENCES=1;
+\end{lstlisting}
+
+\item \textbf{Load}:
+\begin{lstlisting}
+export KOKKOS_TOOLS_LIBS=
+"/where/to/install/the/tools/lib64/libkp_nvtx_connector.so";
+\end{lstlisting}
+
+\item \textbf{Run}: \texttt{cd /path/to/your/app; ncu -o profile ./yourKokkosApp.exe;}
+\end{enumerate}
+\end{frame}
+
+
+\begin{frame}[fragile]{Additional Notes}
+	\begin{enumerate}
+	   \item For the latest default version of Kokkos Tools, make sure you are on the develop branch of the github repository and do a git pull.
+	   \item Use \texttt{ccmake ..} instead of \texttt{cmake ..} for Kokkos Tools to see the list of Kokkos Tools options available.
+	\end{enumerate}
+\end{frame}
+
+
+\begin{frame}[fragile]{Summary of Quick Start Guide}
+To quickly start using a tool in Kokkos Tools for your Kokkos application, you do the following via git and CMake:
+\begin{enumerate}
+\item \textbf{Assume} an appropriate build of Kokkos is available.
+\item \textbf{Obtain} the latest version of Kokkos Tools.
+\item \textbf{Install} Kokkos Tools on your machine.
+\item \textbf{Set up} installed tool libraries through specifying values for environment variables.
+\item \textbf{Load} the Kokkos Tools tool library or libraries you want to use.
+\item \textbf{Run} your Kokkos application, as usual.
+\end{enumerate}
+
+\begin{center}
+\small See \url{https://github.com/kokkos/kokkos-tools/blob/develop/README.md}
+for the latest. 
+\end{center}
+
+\end{frame}
+
+

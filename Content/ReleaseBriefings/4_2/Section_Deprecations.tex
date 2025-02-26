@@ -1,0 +1,16 @@
+\begin{frame}[fragile]{Deprecations}
+\begin{itemize}
+\item Deprecated \texttt{Kokkos::vector}
+\item Use \texttt{std::aligned\_alloc} for all host allocations
+\begin{itemize}
+\item Removed code that performed allocations with other mechanisms
+\item Deprecated \texttt{PosixMemAlign}, \texttt{PosixMMap},
+      \texttt{IntelMMAlloc} enumerators from
+      \texttt{RawMemoryAllocationFailure::AllocationMechanism}
+      which is defined in \texttt{Kokkos::Experimental::}
+\item Deprecated the \texttt{HostSpace::AllocationMechanism} enumeration and
+      the \texttt{HostSpace(AllocationMechanism)} explicit constructor
+\end{itemize}
+\end{itemize}
+\end{frame}
+

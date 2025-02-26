@@ -1,0 +1,290 @@
+
+% Motivation
+%  - data interop with fortran arrays
+%  - have arrays in fortran alias Kokkos::Views allocation
+% 1) Application in Fortran, performance critical stuff in C++
+%  - how to create views/arrays and alias them
+% 2) Application in C++ some physics modules in Fortran
+% 3) Calling serial CUDA Fortran functions from a kernel
+%  - in the future maybe fortran OpenMP target functions
+\begin{frame}[fragile]
+
+  {\Huge Fortran InterOp}
+
+  \vspace{10pt}
+
+  {\large How to write hybrid Fortran - Kokkos code.}
+
+  \vspace{20pt}
+
+  \textbf{Learning objectives:}
+  \begin{itemize}
+    \item {Allocating data in Fortran and viewing it as Kokkos Views.}
+    \item {Calling C++ functions with Kokkos in it from Fortran.}
+    \item {Allocating DualView's from within Fortran.}
+  \end{itemize}
+
+  \vspace{-20pt}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Why do we need this?}
+
+\textbf{HPC world owns many Fortran LOC!}
+
+\vspace{10pt}
+\begin{itemize}
+  \item We generally cannot port it all at once.
+  \item We need an incremental porting strategy
+  \begin{itemize}
+    \item Keep our e.g. Fortran mains, drivers, physics packages
+    \item But port relevant infrastructure, or hotspot kernels to C++ and Kokkos
+  \end{itemize}
+\end{itemize}
+
+\vspace{10pt}
+\pause
+\textbf{How do we make Kokkos and Fortran talk with each other?}
+\end{frame}
+
+\begin{frame}[fragile]{FLCL}
+\textbf{Fortran Language Compatibility Layer (FLCL)}
+
+\begin{itemize}
+  \item Pass multidimensional arrays accross the C++/Fortran boundary
+  \begin{itemize}
+    \item See Fortran arrays as Kokkos Views and vice versa
+  \end{itemize}
+  \item Create Kokkos View and DualView from Fortran
+  \begin{itemize}
+     \item Allows Fortran to be the memory owner but call C++ functions with Kokkos kernels for CUDA/HIP
+  \end{itemize}
+  \item Initialize and Finalize Kokkos from Fortran
+  \item FortranIndex$<$T$>$ scalar type to deal with 1 vs 0 based indexing in sparse data structures
+\end{itemize}
+
+\pause
+\begin{block}{FLCL}
+  The Fortran Language Compatibility Layer allows an incremental porting of a Fortran code to Kokkos.
+\end{block}
+\end{frame}
+
+\begin{frame}[fragile]{Initializing Kokkos}
+\textbf{Simple binding of \texttt{Kokkos::initialize} and \texttt{Kokkos::finalize}}
+
+\vspace{5pt}
+\begin{itemize}
+  \item \texttt{kokkos\_initialize()}
+  \begin{itemize}
+    \item Call after \texttt{MPI\_Initialize}
+    \item Parses the command line arguments of the executable
+  \end{itemize}
+  \item \texttt{kokkos\_initialize\_without\_args()}
+  \begin{itemize}
+    \item Call after \texttt{MPI\_Initialize}
+    \item Ignores command line arguments of the executable
+    \item Kokkos will still look up environment variables
+  \end{itemize}
+  \item \texttt{kokkos\_finalize}
+  \begin{itemize}
+    \item Call before \texttt{MPI\_Finalize}
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{nd\_array\_t}
+\begin{block}{nd\_array\_t}
+  The compatibility glue between Fortran arrays and Kokkos Views.
+\end{block}
+
+\pause
+\textbf{Keeps Track of:}
+\begin{itemize}
+  \item An array's rank
+  \item Extents of the array
+  \item Strides of the array
+  \item Pointer to the allocation
+\end{itemize}
+
+\pause
+\vspace{5pt}
+\textbf{How do we create an \texttt{nd\_array\_t}?}
+\begin{itemize}
+  \item Explicit routines like \texttt{to\_nd\_array\_i64\_d6}
+  \item Simple interface taking a fortran array as argument
+  \begin{code}
+    array = to_nd_array(foo)  ! Fortran
+  \end{code}
+\end{itemize}
+
+\pause
+\textbf{This allows us to write a simple hybrid Fortran/Kokkos code!}
+\end{frame}
+
+\begin{frame}[fragile]{AXPBY}
+\textbf{Everyone loves AXPBY so we do it here!}
+
+\begin{itemize}
+  \item Using a few modules including iso\_c\_binding and the flcl\_mod provided by FLCL
+  \item \texttt{axpby} is just a fortran subroutine taking fortran arguments (next slide)
+\end{itemize}
+
+\begin{code}[keywords={program,axpy,flcl_mod,axpy_f_mod,kokkos_initialize,kokkos_finalize}]
+program example_axpy
+  use, intrinsic :: iso_c_binding
+  use :: flcl_mod
+  use :: axpy_f_mod
+  implicit none
+ 
+  real(c_double), dimension(:), allocatable :: c_y
+  real(c_double), dimension(:), allocatable :: x
+  real(c_double) :: alpha
+  integer :: mm = 5000
+  ... setup here ...
+  call kokkos_initialize()
+  call axpy(c_y, x, alpha)
+  call kokkos_finalize()
+end program example_axpy
+\end{code}
+
+
+\end{frame}
+
+\begin{frame}[fragile]{AXPBY}
+\begin{code}[keywords={axpy,f_axpy,c_axpy,iso_c_binding,flcl_mod,to_nd_array,nd_array_y,nd_array_x,nd_array_t}]
+module axpy_f_mod
+    use, intrinsic :: iso_c_binding
+    use :: flcl_mod
+    public
+      interface
+        subroutine f_axpy( nd_array_y, nd_array_x, alpha ) &
+          & bind(c, name='c_axpy')
+          use, intrinsic :: iso_c_binding
+          use :: flcl_mod
+          type(nd_array_t) :: nd_array_y
+          type(nd_array_t) :: nd_array_x
+          real(c_double) :: alpha
+        end subroutine f_axpy
+      end interface
+      contains
+        subroutine axpy( y, x, alpha )
+          use, intrinsic :: iso_c_binding
+          use :: flcl_mod
+          implicit none
+          real(c_double), dimension(:), intent(inout) :: y
+          real(c_double), dimension(:), intent(in) :: x
+          real(c_double), intent(in) :: alpha
+          call f_axpy(to_nd_array(y), to_nd_array(x), alpha)
+        end subroutine axpy
+end module axpy_f_mod
+\end{code}
+\end{frame}
+
+\begin{frame}[fragile]{AXPY - The C++}
+
+In C++ create an unmanaged view from the \texttt{nd\_array\_t} handle:
+
+\begin{code}[keywords={flcl,extern,flcl_ndarray_t,view_from_ndarray}]
+#include "flcl-cxx.hpp"
+extern "C" {
+  void c_axpy( flcl_ndarray_t *nd_array_y,
+               flcl_ndarray_t *nd_array_x,
+               double *alpha )
+  {
+    auto y = flcl::view_from_ndarray<double*>(*nd_array_y);
+    auto x = flcl::view_from_ndarray<double*>(*nd_array_x);
+
+    Kokkos::parallel_for( "axpy", y.extent(0), 
+      KOKKOS_LAMBDA( const size_t idx) {
+      y(idx) += *alpha * x(idx);
+    });
+  }
+}
+\end{code}
+
+\begin{itemize}
+  \item All the arrays are \texttt{LayoutLeft} i.e. Fortran Layout
+  \item The data type needs to match.
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{DualView Allocation}
+\textbf{FLCL allows allocating DualViews from Fortran}
+\begin{code}[keywords={kokkos_allocate_dualview,c_ptr}]
+real(c_double), dimension(:), pointer :: array_x
+type(c_ptr) :: v_x
+... setup here ...
+call kokkos_allocate_dualview(array_x, v_x, "array_x", length)
+\end{code}
+
+\begin{itemize}
+  \item \texttt{array\_x} is an array aliasing the host view of the dualview
+  \item \texttt{v\_x} is a pointer to the DualView itself.
+\end{itemize}
+
+\pause
+In C++ take a pointer to a pointer of a DualView as argument:
+
+\begin{code}[keywords={flcl,dualview_r64_1d_t}]
+#include "flcl-cxx.hpp"
+void c_foo( flcl::dualview_r64_1d_t**  v_x ) {
+  flcl::dualview_r64_1d_t dv_x = **v_x;
+  dv_x.sync_device();
+  ...
+}
+\end{code}
+
+\vspace{-4pt}
+\begin{itemize}
+  \item Can assign to an instance, DualView is reference counted
+  \item Note: there is NO type safety in the Fortran/C++ boundary, better make sure you get the types right!
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{DualView GlueCode}
+
+\textbf{Write the same gluecode as for AXPY example:}
+
+\begin{code}[keywords={foo,c_foo,flcl_mod,flcl,dualview_r64_1d_t,c_ptr}]
+module interface_f_mod
+  use, intrinsic :: iso_c_binding
+  use :: flcl_mod
+  implicit none
+  public
+  interface
+    subroutine foo( v_x ) &
+      & bind(c, name="c_foo")
+      use, intrinsic :: iso_c_binding
+      use :: flcl_mod
+      implicit none
+      type(c_ptr), intent(inout) :: v_x
+    end subroutine foo
+  end interface
+end module interface_f_mod
+
+void c_foo( flcl::dualview_r64_1d_t**  v_x ) {
+  flcl::dualview_r64_1d_t dv_x = **v_x;
+  dv_x.sync_device();
+  ...
+}
+\end{code}
+\end{frame}
+
+\begin{frame}[fragile]{Summary}
+\begin{itemize}
+  \item Fortran Language Compatibility Layer provides facilities for interoperability of Kokkos and Fortran
+  \item Initialize Kokkos from Fortran via \texttt{kokkos\_initialize} and \texttt{kokkos\_finalize}
+  \item \texttt{nd\_array\_t} is a representation of a \texttt{Kokkos::View}
+  \item Create \texttt{nd\_array\_t} from a Fortran array via \texttt{to\_nd\_array}
+  \item Allocate \texttt{Kokkos::DualView} in Fortran with \texttt{kokkos\_allocate\_dualview}
+\end{itemize}
+
+\vspace{10pt}
+\textbf{Available at \url{https://github.com/kokkos/kokkos-fortran-interop}.}
+\begin{itemize}
+  \item Feedback is appreciated!
+\end{itemize}
+\end{frame}

@@ -1,0 +1,60 @@
+
+%==========================================================================
+
+\begin{frame}[fragile]
+
+  {\Huge Backend Updates}
+
+  \vspace{10pt}
+
+  \textbf{Content:}
+  \begin{itemize}
+    \item Backend Updates Cuda
+    \item Backend Updates HIP
+    \item Backend Updates SYCL and OpenACC
+  \end{itemize}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Backend Updates I}
+\texttt{CUDA}
+\begin{itemize}
+    \item Fixed potential data race in \texttt{parallel\_reduce}
+    \item Use \texttt{cudaMallocAsync} by default
+    \item Bugfix when specifying non-default device ID while launching threads after initialization
+    \item Deprecate \texttt{Cuda(cudaStream\_t,bool)} constructor
+\end{itemize}
+\end{frame}
+\begin{frame}[fragile]{Backend updates II}
+\texttt{HIP}
+\begin{itemize}
+    \item New naming convention:\\ \texttt{Kokkos\_ARCH\_VEGA90A} $\rightarrow$ \texttt{Kokkos\_ARCH\_AMD\_GFX90A}
+    \item Add initial support for gfx942
+    \item Add support for ROCM 5.5 and 5.6
+    \item Improve reduction performance
+    \item Fix potential data race in \texttt{HIP} \texttt{parallel\_reduce}
+    \item Deprecate \texttt{HIP(hipStream\_t,bool)} constructor
+    \item Add support for \texttt{Kokkos::Graph}
+    \item Fix concurrency calculation
+\end{itemize}
+\end{frame}
+\begin{frame}[fragile]{Backend Updates III}
+\texttt{SYCL}
+\begin{itemize}
+    \item Enforce external \texttt{sycl::queues} to be in-order
+    \item Make in-order \texttt{sycl::queues} the default via macro
+    \item Improve reduction performance
+    \item Allow using the \texttt{SYCL} execution space on AMD GPUs
+    \item Allow sorting via native \texttt{oneDPL} to support \texttt{View}s with \texttt{stride=1}
+\end{itemize}
+\vfill
+\texttt{OpenACC}
+\begin{itemize}
+    \item Add support for \texttt{clacc} compiler
+\end{itemize}
+\end{frame}
+
+%==========================================================================
+

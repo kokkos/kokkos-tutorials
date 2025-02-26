@@ -1,0 +1,148 @@
+
+%==========================================================================
+
+\begin{frame}[fragile]
+
+  {\Huge Backend Updates}
+
+  \vspace{10pt}
+
+  \textbf{Content:}
+  \begin{itemize}
+    \item SYCL
+    \item OpenMPTarget
+    \item CUDA and HIP
+  \end{itemize}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{SYCL Backend Updates}
+\begin{itemize}
+\item For \texttt{RangePolicy} with \texttt{parallel\_for}, the workgroup size can be specified manually:
+\begin{code}
+parallel_for(
+  RangePolicy<ExecutionSpace>(space, 0, N)
+    .set_chunk_size(1024), *this);
+\end{code}
+
+\item Intel compiler flags very aggressive, applications might need
+\begin{code}
+-fp-model=precise
+\end{code}
+
+or similar for correct results.
+\end{itemize}
+\end{frame}
+
+%==========================================================================
+
+
+\begin{frame}[fragile]{OpenMPTarget Backend Updates}
+
+    \begin{itemize}
+        \item The backend now allows selecting the default GPU which can be set by using \texttt{--kokkos-device-id=<number>}. 
+        \item The backend can now detect the number of devices on a single node. 
+    \end{itemize}
+    
+\end{frame}
+ 
+%==========================================================================
+
+\begin{frame}[fragile]{CUDA Backend Updates}
+  \begin{itemize}
+    \item Allow CUDA PTX forward compatibility 
+      \begin{itemize}
+        \item code compiled for compute capability 5.2 will now run on device compute capability 7.5
+      \end{itemize}
+    \item Improve CUDA cache config setting
+      \begin{itemize}
+        \item let CUDA runtime decide what is the best usage of the cache (shared vs L1 balance)
+      \end{itemize}
+    \item Do not rely on synchronization behavior of default stream
+      \begin{itemize}
+        \item default instance does not synchronize the other instances
+      \end{itemize}
+    \item Add support for Hopper architecture
+  \end{itemize}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{HIP Backend Updates}
+  \begin{itemize}
+    \item HIP, HIPSpace, HIPHostPinnedSpace, and HIPManagedSpace out of
+      Experimental
+      \begin{itemize}
+        \item backward compatible change
+        \item long term support of ROCm 5.2 and later
+      \end{itemize}
+    \item Export AMD architecture flags when using Trilinos
+      \begin{itemize}
+        \item fix issue when compiling on node without GPU
+      \end{itemize}
+    \item Do not rely on synchronization behavior of default stream
+    \item Dropped support for MI25 and added support for Navi1030
+  \end{itemize}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{HIP Backend Updates}
+  \begin{itemize}
+    \item There is a compiler bug ROCm 5.3 and 5.4 when using LocalMemory launch mechanism: 
+      \begin{itemize}
+        \item sometimes hangs
+        \item sometimes passes
+        \item often error out with \emph{Reason: Unknown}
+      \end{itemize}
+    \item To fix the issue, force GlobalMemory launch mechanism
+\begin{code}[keywords={ImplForceGlobalLaunch}]
+parallel_for(
+  Experimental::require(
+    RangePolicy(0, N),
+    Experimental::WorkItemProperty::ImplForceGlobalLaunch),
+  ...);
+\end{code}
+    \item We do not apply unconditionally because it reduces performance
+  \end{itemize}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Bug fixes for CUDA and HIP Backends}
+  \begin{itemize}
+     \item CUDA and HIP fixes:
+       \begin{itemize}
+         \item Fix incorrect offset when using parallel\_scan for $<$ 4 bytes data
+           types
+         \item Fix max scratch size calculation for level 0 scratch
+       \end{itemize}
+     \item HIP fixes:
+       \begin{itemize}
+         \item Fix linking error when using amdclang (OLCFDEV-1167)
+         \item Fix race condition when using \texttt{HSA\_XNACK=1}
+       \end{itemize}
+  \end{itemize}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Default instance synchronization behavior}
+  \begin{itemize}
+  \item CUDA and HIP default instances used to implicitly synchronize with other instances as well as raw CUDA and HIP code
+  \item This was NOT intentional behavior
+\begin{code}
+parallel_for(N, f1);
+// f2 would be sequenced after f1 in previous releases
+parallel_for(RangePolicy<>(exec, 0 , N), f2);
+\end{code}
+  \item Call \texttt{DefaultExecutionSpace().fence()}
+  \item Beware of non-Kokkos code calling CUDA or HIP
+    \begin{itemize}
+    \item MPI, BLAS, etc.
+    \item Previously might have been implicitly synchronized with Kokkos code
+    \end{itemize}
+  \end{itemize}
+\end{frame}

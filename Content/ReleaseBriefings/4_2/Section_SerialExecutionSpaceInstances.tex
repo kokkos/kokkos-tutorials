@@ -1,0 +1,41 @@
+\begin{frame}[fragile]{Serial execution space instances}
+\begin{itemize}
+\item Allow creating non-default \texttt{Serial} exec space instances
+\item New constructor taking \texttt{NewInstance} tag as argument
+\begin{code}[keywords={NewInstance}]
+Kokkos::Serial e1(Kokkos::NewInstance());
+
+auto e2 = Kokkos::Experimental::partition_space(
+  Kokkos::DefaultHostExecutionSpace(), 1)[0]; // better
+\end{code}
+\item Thread safe since 3.5 but kernels were effectively serialized
+\item Now enabling overlap of computation on distinct instances
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Serial execution space instances}
+\begin{code}[keywords={NewInstance}]
+#include <Kokkos_Core.hpp>
+#include <thread>
+
+template <class Exec> void foo(Exec exec) {
+  parallel_for("foo", RangePolicy<Exec>(exec, 0, 3),
+    KOKKOS_LAMBDA(int i) { printf("just doin my job %d\n", i); });
+}
+
+template <class Exec> void bar(Exec exec) { /* ... */ }
+
+int main(int argc, char *argv[]) {
+  Kokkos::ScopeGuard kenv(argc, argv);
+  using Exec = Kokkos::DefaultHostExecutionSpace;
+  auto instances = Kokkos::Experimental::partition_space(
+    Exec(), 1, 1);
+  std::thread t0(foo<Exec>, instances[0]);
+  std::thread t1(bar<Exec>, instances[1]);
+  t0.join();
+  t1.join();
+  return 0;
+}
+\end{code}
+
+\end{frame}

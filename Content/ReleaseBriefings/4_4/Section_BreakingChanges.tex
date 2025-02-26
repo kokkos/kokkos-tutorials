@@ -1,0 +1,34 @@
+%==========================================================================
+
+\begin{frame}[fragile]
+
+  {\Huge Potentially Breaking Changes}
+  
+    \vspace{10pt}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Breaking Changes 1/1}
+
+\begin{itemize}
+
+\item Dropped \texttt{Array} special treatment in \texttt{View}
+  \begin{itemize}
+  \item was treated as an extra compile-time dimension in the view
+  \item now able to construct unmanaged view of arrays
+  \end{itemize}
+
+\item Got rid of \texttt{Experimental::RawMemoryAllocationFailure}
+  \begin{itemize}
+  \item no known usage
+  \item internally catching them and rethrowing regular \texttt{std::runtime} exceptions
+  \end{itemize}
+
+\item Bug fix for thread safety can lead to deadlocks if user code violates Kokkos sematics
+      (see \textbf{Bug Fixes - Thread Safety} and \textbf{View of Views})
+
+\end{itemize}
+
+\end{frame}

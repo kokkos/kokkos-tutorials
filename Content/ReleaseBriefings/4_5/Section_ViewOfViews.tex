@@ -1,0 +1,80 @@
+%==========================================================================
+
+\begin{frame}[fragile]
+
+  {\Huge SequentialHostInit and Views of Views}
+  
+    \vspace{10pt}
+\begin{center}
+\textit{Or:} What to do if you need Views of "complicated" objects?
+\end{center}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{"Complicated" objects}
+\textbf{To create a \textit{normal} \texttt{View} the objects it views need to be:}
+\begin{itemize}
+  \item default-constructible in the View associated execution space
+  \item destructible in the View associated execution space 
+\end{itemize}
+
+\vspace{10pt}
+
+\textbf{This Means:} Default constructor and desctructor:
+\begin{itemize}
+\item{must be \texttt{KOKKOS\_FUNCTION} (or defaulted)}
+\item{can't allocate or deallocate data}
+\item{can't call Kokkos parallel operations (\texttt{parallel\_for} etc.)}
+\item{can't create or destroy Views!}
+\end{itemize}
+
+\vspace{10pt}
+\begin{center}
+\textit{If your object does any of these things it is "Complicated"!}
+\end{center}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{SequentialHostInit view allocation property in 4.5}
+
+\begin{itemize}
+\item Construction and Destruction of objects will happen sequentially on Host!
+\item Backported to 4.4.1
+\end{itemize}
+
+\begin{code}
+using Complicated = Kokkos::View<T*, SomeMemorySpace>
+View<Complicated**, HostSpace> v(view_alloc("v", SequentialHostInit), 2, 3);
+// copy assign elements
+v(0,0) = Complicated("w00", 4);
+v(1,0) = Complicated("w10", 5);
+v(0,1) = Complicated("w01", 6);
+// v.~View() handles properly elements destruction
+\end{code}
+
+\vspace{10pt}
+\textbf{Requirements for generic "Complicated" types:}
+\begin{itemize}
+\item \texttt{T} is default constructible and destructible on host
+\item \texttt{SomeMemorySpace} is host accessible (e.g. \texttt{SharedSpace} or \texttt{HostSpace})
+\end{itemize}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{How do I know I need this?}
+\begin{center}
+Since Kokkos 4.4 programs may dead-lock when creating or destroying View's of complicated objects!
+\end{center}
+
+\vspace{10pt}
+
+Previously legal code leveraging `WithoutInitializing` with proper element clean-up before destruction continues to be legal!
+\end{frame}
+%==========================================================================
+
+

@@ -1,0 +1,53 @@
+
+%==========================================================================
+
+\begin{frame}[fragile]{C++ Standard Change}
+\textbf{Kokkos 4.0 requires C++17!}
+
+\begin{itemize}
+  \item {Supporting C++17, C++20 and C++23}
+  \item {Allows us to keep the testing amount manageable}
+  \item {Will enable new interfaces and streamlined implementation}
+  \begin{itemize}
+    \item {Use of CTAD reduces the need to spell template arguments out}
+    \item {Fold expressions help with internal implementation, and improve compile times}
+    \item {\texttt{constexpr if} reduces use of clunky SFINAE patterns}
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}[fragile]{Toolchains minimum requirements change}
+\textbf{New Compiler Minimums}
+
+\vspace{10pt}
+\small
+\begin{tabular}{ll}
+\textbf{Compiler} & \textbf{Version} \\
+\hline
+GCC & 8.2 \\
+Clang & 8.0 \\
+Clang as CUDA compiler & 10.0 \\
+Intel & 19.0.5 \\
+CUDA-NVCC & 11.0 \\
+CUDA with Clang as CUDA compiler & 10.0.1 \\
+ROCM & 5.2.0 \\
+IntelLLVM (CPU) & 2021.1.1 \\
+IntelLLVM (SYCL) & 2022.2.0 \\
+NVC++ & 22.3 \\
+MSVC & 19.29 \\
+IBM XL & Not Supported \\
+Classic PGI & Not Supported \\
+\end{tabular}
+\end{frame}
+
+\begin{frame}[fragile]{A word on NVHPC}
+\begin{itemize}
+  \item NVIDIA is working on making NVC++ a single-pass CUDA compiler
+  \item Kokkos 4 recognizes NVC++ as a CUDA compiler
+  \item While tested, this is still experimental and several compiler bugs have been reported
+  \item To use NVC++ as the host compiler with NVCC like before, you must use \texttt{nvcc\_wrapper} and pass \texttt{-ccbin nvc++} as cxx and linker flags or set the environment variable \texttt{NVCC\_WRAPPER\_DEFAULT\_COMPILER}
+  \item Note as before, NVC++ does not use the GCC in your environment. You must create a configure file with \texttt{makelocalrc} pointing to a GCC supporting C++17
+\end{itemize}
+\end{frame}
+

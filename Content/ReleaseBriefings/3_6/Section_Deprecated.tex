@@ -1,0 +1,123 @@
+
+%==========================================================================
+
+\begin{frame}[fragile]
+
+        {\Huge Deprecated in release 3.6}
+
+  \vspace{-20pt}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Deprecated}
+
+Configure with \texttt{-DKokkos\_ENABLE\_DEPRECATED\_CODE\_3=OFF} to disable   
+
+\begin{itemize}
+\item Array reductions with pointer return types
+\item \texttt{OpenMP::\{validate\_partition,partition\_master\}}
+\item \texttt{KOKKOS\_ACTIVE\_EXECUTION\_MEMORY\_SPACE\_*} macros and \texttt{ActiveExecutionMemorySpace} alias
+\item \texttt{log2(unsigned) -> int}
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{Namespace Change}
+\begin{center}
+Not technically deprecation since it was in non-backward guaranteeing state!
+\end{center}
+\texttt{Kokkos::Impl::} $->$ \texttt{Kokkos::}
+\begin{code}	
+    is_array_layout
+    is_execution_policy
+    is_execution_space
+    is_memory_space
+    is_memory_traits
+    is_space
+    is_view
+    SpaceAccessibility
+    Timer  // also header impl/Kokkos_Timer.hpp
+\end{code}
+
+
+\texttt{Kokkos::Experimental::} $->$ \texttt{Kokkos::}
+\begin{code}
+    Iterate
+    MDRangePolicy
+    Rank
+\end{code}
+\end{frame}
+
+
+\begin{frame}[fragile]{Removed}
+
+Removed:
+
+\begin{code}
+    KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST/DEVICE
+    Kokkos::Impl::ActiveExecutionMemorySpace
+    Kokkos::Impl::verify_space
+    Kokkos::Experimental::MasterLock
+    OpenMP/HPX::partition_master
+    int log2(int) // we got double log2(INTEGRAL) and REAL log2(REAL)
+\end{code}
+
+\texttt{is\_space} member types removed:
+\begin{code}
+    is_space::host_memory_space
+    is_space::host_execution_space
+    is_space::host_mirror_space
+\end{code}
+\end{frame}
+
+
+\begin{frame}[fragile]{Backend Specific Things}
+
+CUDA and HIP Error management functionality removed, which should never have been public:
+\begin{code}
+    CudaSpace::access_error()
+    CudaUVMSpace::number_of_allocations()
+    CUDA_SAFE_CALL
+    HIPSpace::access_error()
+    HIP_SAFE_CALL
+\end{code}
+
+Only partially supported by backends:
+\begin{code}
+    TeamPolicy::vector_length() // only existed for some backends
+\end{code}
+
+Behavior change in \texttt{UnorderedMap}:
+\begin{code}
+    UnorderdMap::value_at(i) with i>=capacity()
+    UnorderdMap::key_at(i) with i>=capacity()
+\end{code}
+\end{frame}
+
+
+\begin{frame}[fragile]{Interface Changes and Configure}
+Change in argument order:
+\begin{code}
+    // deprecated
+    create_mirror_view(space, view, WithoutInitializing);
+    // new
+    create_mirror_view(WithoutInitializing, space, view);
+\end{code}
+
+Array reductions:
+\begin{itemize}
+  \item Array reductions, have a runtime length array as result.
+  \item Only supported with functors, not lambdas (one has to define \texttt{value\_type} and \texttt{value\_count} as members)
+  \item Deprecated the option to provide raw pointer as the result argument for \texttt{parallel\_reduce}, use a \texttt{View} instead.
+\end{itemize}
+
+Configure options Removed:
+\begin{code}
+	Kokkos_ARCH_EPYC -> ZEN/ZEN2 depending on platform
+	Kokkos_ARCH_RYZEN -> ZEN/ZEN2 depending on platform
+	Kokkos_ARCH=
+	Kokkos_DEVICES=
+\end{code}
+\end{frame}

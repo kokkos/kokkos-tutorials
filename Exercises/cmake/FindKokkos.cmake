@@ -20,7 +20,11 @@ if (NOT CMAKE_BUILD_TYPE)
 endif ()
 
 # Where to find Kokkos' source code. This might be set by the user.
-set(KokkosTutorials_KOKKOS_SOURCE_DIR "${CMAKE_CURRENT_BINARY_DIR}/dep/kokkos" CACHE PATH "Description for KokkosTutorials_KOKKOS_SOURCE_DIR")
+# In order to automatically share the download between exercises when they are compiled individually,
+# the default directory is inside the source tree.
+# This might break if the default in source directory is called from multiple cmake instances at the same time.
+
+set(KokkosTutorials_KOKKOS_SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}/../dep/kokkos" CACHE PATH "Description for KokkosTutorials_KOKKOS_SOURCE_DIR")
 
 if (NOT KokkosTutorials_FORCE_INTERNAL_Kokkos)
     find_package(Kokkos CONFIG)

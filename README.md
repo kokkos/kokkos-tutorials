@@ -63,7 +63,7 @@ cmake -B build_cuda -DKokkos_ENABLE_CUDA=ON
 cmake --build build_cuda
 ```
 
-For a AMD gpu, using gpu arch autodetection:
+For an AMD GPU with autodetection of the GPU architecture:
 
 ```shell
 cmake -B build_hip -DKokkos_ENABLE_HIP=ON

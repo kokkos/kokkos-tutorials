@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.16)
 project(KokkosTutorialDualView)
 
 # Add a custom module path for find_package
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../.cmake")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake")
 
 find_package(Kokkos REQUIRED)
 

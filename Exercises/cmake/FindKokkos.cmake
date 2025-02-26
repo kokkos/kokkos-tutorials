@@ -1,3 +1,11 @@
+macro(KokkosTutorials_WarnGPU)
+    if (Kokkos_ENABLE_CUDA OR Kokkos_ENABLE_HIP OR Kokkos_ENABLE_SYCL OR Kokkos_ENABLE_OPENMPTARGET OR Kokkos_ENABLE_HPX)
+        message(WARNING "${CMAKE_CURRENT_SOURCE_DIR}"
+                "a Kokkos accelerator backend is enabled, it might cause issue with the current program"
+                "Please recompile with only a host backend enabled (e.g. -DKokkos_ENABLE_OPENMP=ON)")
+    endif ()
+endmacro()
+
 # Early return if Kokkos is already set up
 # We do not use Kokkos_FOUND as it is not globally defined
 if (TARGET Kokkos::kokkos)

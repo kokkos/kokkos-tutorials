@@ -3,40 +3,52 @@ name: Generate slides from source
 on:
   push:
   pull_request:
-    branches: [ "main" ]
+    branches: [ "latexmk" ]
+    path:
+      - 'Content/**'
+      - '.github/workflows/generate-slides.yaml'
 
 jobs:
   build:
-    strategy:
-      matrix:
-        which: [Presentations, ReleaseBriefings]
 
     runs-on: ubuntu-latest
 
     steps:
-    - name: Install packages
-      run: >
-        sudo apt-get update &&
-        DEBIAN_FRONTEND=noninteractive
-        sudo apt-get install -y --no-install-recommends
-        make
-        texlive
-        texlive-latex-extra
-        texlive-plain-generic
-
     - name: Checkout source
       uses: actions/checkout@v4
 
-    - name: Build slides
-      run: >
-        cd Content/${{ matrix.which }} &&
-        make
-
-    - name: Upload PDFs as artifacts
-      id: deployment
+    - name: Build Presentations slides
+      uses: xu-cheng/latex-action@v3
+      with:
+        working_directory: Content/Presentations/modularized
+        root_file: |
+          KokkosTutorial_01_Introduction.tex
+          KokkosTutorial_02_ViewsAndSpaces.tex
+          KokkosTutorial_03_MDRangeMoreViews.tex
+          KokkosTutorial_04_HierarchicalParallelism.tex
+          KokkosTutorial_05_SIMDStreamsTasking.tex
+          KokkosTutorial_06_InternodeMPIAndPGAS.tex
+          KokkosTutorial_07_Tools.tex
+          KokkosTutorial_08_KokkosKernels.tex
+        compiler: latexmk
+        args: -pdf -interaction=nonstopmode -shell-escape
+    
+    - name: Upload Presentations PDFs as artifacts
       uses: actions/upload-artifact@v4.6.1
       with:
-        name: Slides${{ matrix.which }}
-        path: |
-          Content/${{ matrix.which }}/release-*.pdf
-          Content/${{ matrix.which }}/modularized/*.pdf
+        name: PresentationsSlides
+        path: Content/Presentations/modularized/*.pdf
+
+    - name: Build Release Briefings slides
+      uses: xu-cheng/latex-action@v3
+      with:
+        working_directory: Content/ReleaseBriefings
+        root_file: release-*.tex
+        compiler: latexmk
+        args: -pdf -interaction=nonstopmode -shell-escape
+
+    - name: Upload Release Briefings PDFs as artifacts
+      uses: actions/upload-artifact@v4.6.1
+      with:
+        name: ReleaseBriefingsSlides
+        path: Content/ReleaseBriefings/*.pdf

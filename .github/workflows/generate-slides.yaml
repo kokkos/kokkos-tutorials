@@ -3,7 +3,7 @@ name: Generate slides from source
 on:
   push:
   pull_request:
-    branches: [ "latexmk" ]
+    branches: [ "main" ]
     path:
       - 'Content/**'
       - '.github/workflows/generate-slides.yaml'

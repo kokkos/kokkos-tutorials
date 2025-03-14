@@ -34,5 +34,8 @@ release-44:
 release-45:
 	pdflatex release-45.tex
 
+release-46:
+	pdflatex release-46.tex
+
 clean:
 	rm -r *.aux *.log *.nav *.out *.snm *.toc *.vrb

@@ -1,5 +1,5 @@
 
-default: release-45
+default: release-46
 
 workaround-on:
 	sed -i.bak 's|%\\input|\\input|g' KokkosTutorial_PreTitle.tex

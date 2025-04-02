@@ -46,5 +46,67 @@
 
 %==========================================================================
 
+\begin{frame}[fragile]\label{sec:new_features}
+
+  {\Huge Kokkos::Graph features}
+
+  \vspace{10pt}
+
+\end{frame}
+
+\begin{frame}[fragile]{Kokkos::Graph recap}
+ \begin{itemize}
+     \item Allows creating a graph of kernels
+     \item Executed in order when calling \texttt{submit(ExecutionSpace)}
+      \begin{code}[keywords={auto}]
+    ...
+    auto graph = Kokkos::Experimental::create_graph(exec, [&](auto root) {
+      auto node_A = root.then_parallel_for(
+                    policy_t(exec, 0, 1),
+                    FetchValuesAndContribute(data, index_A, value_A));
+      auto node_B = root.then_parallel_for(
+                    policy_t(exec, 0, 1),
+                    FetchValuesAndContribute(data, index_B, value_B));}
+    ...
+    graph.submit(exec);
+     \end{code}
+ \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Kokkos::Graph new features}
+ \begin{itemize}
+   \item \texttt{then}-node: adds callable to be executed once
+   \item Executed in the \texttt{ExecutionSpace} the graph is submitted to
+     \begin{code}[keywords={auto}]
+    ...
+    auto graph = Kokkos::Experimental::create_graph(exec, [&](auto root) {
+      auto node_A = root.then_parallel_for(
+                    policy_t(exec, 0, 1),
+                    FetchValuesAndContribute(data, index_A, value_A));
+      auto node_B = node_A.then(
+                    FetchValuesAndContribute(data, index_B, value_B));}
+    ...
+    graph.submit(exec);
+     \end{code}
+ \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Kokkos::Graph new features}
+ \begin{itemize}
+   \item Interoperabiliy: create a Kokkos::Graph from CUDA/HIP/SYCL graph
+   \item Does not yet allow linking Kokkos nodes to native nodes
+     \begin{code}[keywords={auto}]
+    ...
+    cudaGraph_t native_graph = nullptr;
+    KOKKOS_IMPL_CUDA_SAFE_CALL(cudaGraphCreate(&native_graph, 0));
+    auto graph_from_native =
+      Kokkos::Experimental::create_graph_from_native(exec, native_graph);
+    auto root = Kokkos::Impl::GraphAccess::create_root_ref(graph_from_native);
+    root.then_parallel_for(1, Increment<view_t>{data});
+    ...
+    graph_from_native.submit(exec);
+     \end{code}
+ \end{itemize}
+\end{frame}
 
 %==========================================================================

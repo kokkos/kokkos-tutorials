@@ -15,34 +15,7 @@
 
 % note: always keep the [fragile] for your frames!
 
-\begin{frame}[fragile]{DualView changes I}
-  Skip sync and modify for host-accessible memory spaces
-  \begin{itemize}
-      \item Previously, \texttt{modify} and \texttt{sync} were only skipped if the \texttt{DualView}'s memory space was \texttt{HostSpace}.
-      \item Now, for host-accessible memory spaces (\texttt{DualView} only references one \texttt{View})
-        \begin{itemize}
-          \item \texttt{modify} is a no-op
-          \item \texttt{sync} is a no-op if an execution space instance is provided and invokes a global fence otherwise
-        \end{itemize}
-      \item Fixes usage with asynchronous host-accessible memory spaces, e.g., \texttt{HPX}.
-  \end{itemize}
-\end{frame}
-\begin{frame}[fragile]{DualView changes II}
-  Code like
-  \begin{code}[keywords={std}]
-    DualView<int*, device> a("a", 10);
-    A.modify<device>();
-    Kokkos::parallel_for<device>([=](int i){
-      a.view_device()(i)=1;
-    });
-    A.sync<host>();
-    std::cout<<a.view_host()(0)<<std::endl;
-  \end{code}
- 
-  remains valid without extra fences.
-\end{frame}
-
-\begin{frame}[fragile]{DualView changes III}
+\begin{frame}[fragile]{DualView changes}
   Deprecate direct access to \texttt{d\_view} and \texttt{h\_view}
   \begin{itemize}
     \item Modifying the allocations in d\_view and h\_view is dangerous, especially if \texttt{modify} and \texttt{sync} are skipped

@@ -46,5 +46,23 @@
 
 %==========================================================================
 
+\begin{frame}[fragile]{Fix a warning from kokkos\_check}
+ \begin{itemize}
+    \item \texttt{kokkos\_check}: makes sure that Kokkos was built with the requested backends and target architectures and generates a fatal error if it was not.
+    \item Fix a warning when a user calls the cmake function \texttt{kokkos\_check} from a \texttt{<PackageName>Config.cmake} file
+    {\tiny \begin{verbatim}
+CMake Warning (dev) at /usr/share/cmake-3.22/Modules/FindPackageHandleStandardArgs.cmake:438 (message):
+  The package name passed to `find_package_handle_standard_args`
+  (Kokkos_DEVICES) does not match the name of the calling package (SomePackage).
+  This can lead to problems in calling code that expects `find_package`
+  result variables (e.g., `_FOUND`) to follow a certain pattern.
+Call Stack (most recent call first):
+  ... /kokkos/lib/cmake/Kokkos/KokkosConfigCommon.cmake:110 (find_package_handle_standard_args)
+  ...
+This warning is for project developers.  Use -Wno-dev to suppress it.
+    \end{verbatim}}
+ \end{itemize}
+\end{frame}
+
 
 %==========================================================================

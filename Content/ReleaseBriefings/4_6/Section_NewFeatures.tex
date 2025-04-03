@@ -59,17 +59,19 @@
      \item describes asynchronous workloads organised as a direct acyclic graph (DAG)
      \item executed using \texttt{submit()}, possibly many times, observing dependencies
       \begin{code}[keywords={auto}]
-    ...
-    auto graph = Kokkos::Experimental::create_graph(exec, [&](auto root) {
-      auto node_A = root.then_parallel_for(
-                    policy_t(exec, 0, 1),
-                    FetchValuesAndContribute(data, index_A, value_A));
-      auto node_B = root.then_parallel_for(
-                    policy_t(exec, 0, 1),
-                    FetchValuesAndContribute(data, index_B, value_B));}
-    ...
-    graph.submit(exec);
-     \end{code}
+auto graph = Kokkos::create_graph([&](auto root) {
+    auto node_A = root.then_parallel_for("A", ...policy..., ...functor...);
+    auto node_B = node_A.then_parallel_for("B", ...policy..., ...functor...);
+    auto node_C = node_A.then_parallel_for("C", ...policy..., ...functor...);
+
+    auto node_D = Kokkos::when_all(node_B, node_C).
+                  then_parallel_for("D", ...policy..., ...functor...);
+});
+
+graph.instantiate();
+
+graph.submit();
+      \end{code}
  \end{itemize}
 \end{frame}
 
@@ -78,15 +80,14 @@
   \item \href{https://github.com/kokkos/kokkos/pull/7629}{\texttt{then} node}: executes a callable on device
    \item Executed in the \texttt{ExecutionSpace} the graph is submitted to
      \begin{code}[keywords={auto}]
-    ...
-    auto graph = Kokkos::Experimental::create_graph(exec, [&](auto root) {
-      auto node_A = root.then_parallel_for(
-                    policy_t(exec, 0, 1),
-                    FetchValuesAndContribute(data, index_A, value_A));
-      auto node_B = node_A.then(
-                    FetchValuesAndContribute(data, index_B, value_B));}
-    ...
-    graph.submit(exec);
+auto graph = Kokkos::create_graph([&](auto root) {
+    auto node_A = root.then_parallel_for("A", ...policy..., ...functor...);
+    auto node_B = node_A.then(...functor...);
+});
+
+graph.instantiate();
+
+graph.submit();
      \end{code}
  \end{itemize}
 \end{frame}
@@ -96,15 +97,14 @@
    \item \href{https://github.com/kokkos/kokkos/pull/7664}{interoperability}: create a \texttt{Kokkos::Graph} from a native Cuda/HIP/Sycl graph
    \item Does not yet allow linking Kokkos nodes to native nodes
      \begin{code}[keywords={auto}]
-    ...
-    cudaGraph_t native_graph = nullptr;
-    KOKKOS_IMPL_CUDA_SAFE_CALL(cudaGraphCreate(&native_graph, 0));
-    auto graph_from_native =
-      Kokkos::Experimental::create_graph_from_native(exec, native_graph);
-    auto root = Kokkos::Impl::GraphAccess::create_root_ref(graph_from_native);
-    root.then_parallel_for(1, Increment<view_t>{data});
-    ...
-    graph_from_native.submit(exec);
+cudaGraph_t native_graph = nullptr;
+KOKKOS_IMPL_CUDA_SAFE_CALL(cudaGraphCreate(&native_graph, 0));
+auto graph_from_native =
+  Kokkos::Experimental::create_graph_from_native(exec, native_graph);
+auto root = Kokkos::Impl::GraphAccess::create_root_ref(graph_from_native);
+root.then_parallel_for(1, Increment<view_t>{data});
+...
+graph_from_native.submit(exec);
      \end{code}
  \end{itemize}
 \end{frame}

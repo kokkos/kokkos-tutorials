@@ -8,25 +8,6 @@
 
 \end{frame}
 
-\begin{frame}[fragile]{\texttt{inclusive\_scan} performance improvements (3/7)}
-  With the Cuda and HIP backends, \texttt{Kokkos::Experimental::inclusive\_scan} now calls the vendor versions from Thrust
-  \begin{itemize}
-     \item The vendor versions are faster than the \texttt{Kokkos::parallel\_scan} based default implementation
-     \item Both backends call the vendor versions by default
-       \begin{itemize}
-         \item The HIP version is called when \texttt{Kokkos\_ENABLE\_ROCTHRUST} is \texttt{ON} (which is the default)
-       \end{itemize}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}[fragile]{Reduce tooling interface overhead (4/7)}
-  Reduced the overhead of Kokkos tools related checks
-  \begin{itemize}
-      \item Store the information whether Kokkos tools are enabled after each modification to the tools callbacks
-      \item Previously, this value was recomputed everytime an event of interest (\texttt{parallel\_for}, \texttt{fence}, etc.) occured
-      \item Mostly noticeable in small serial kernels (around 100 elements)
-  \end{itemize}
-\end{frame}
 %==========================================================================
 
 % Examples
@@ -83,5 +64,24 @@ This warning is for project developers.  Use -Wno-dev to suppress it.
  \end{itemize}
 \end{frame}
 
+\begin{frame}[fragile]{\texttt{inclusive\_scan} performance improvements}
+  With the Cuda and HIP backends, \texttt{Kokkos::Experimental::inclusive\_scan} now calls the vendor versions from Thrust
+  \begin{itemize}
+     \item The vendor versions are faster than the \texttt{Kokkos::parallel\_scan} based default implementation
+     \item Both backends call the vendor versions by default
+       \begin{itemize}
+         \item The HIP version is called when \texttt{Kokkos\_ENABLE\_ROCTHRUST} is \texttt{ON} (which is the default)
+       \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Reduce tooling interface overhead}
+  Reduced the overhead of Kokkos tools related checks
+  \begin{itemize}
+      \item Store the information whether Kokkos tools are enabled after each modification to the tools callbacks
+      \item Previously, this value was recomputed everytime an event of interest (\texttt{parallel\_for}, \texttt{fence}, etc.) occured
+      \item Mostly noticeable in small serial kernels (around 100 elements)
+  \end{itemize}
+\end{frame}
 
 %==========================================================================

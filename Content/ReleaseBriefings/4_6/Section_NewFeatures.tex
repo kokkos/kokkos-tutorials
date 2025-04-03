@@ -109,4 +109,48 @@
  \end{itemize}
 \end{frame}
 
+\begin{frame}[fragile]\label{sec:new_features}
+
+  {\Huge Multi-GPU for HIP Backend}
+
+  \vspace{10pt}
+
+\end{frame}
+
+\begin{frame}[fragile]{Multi-GPU for HIP Backend}
+  \begin{itemize}
+    \item Launch kernels on multiple devices from a single host process
+    \item Available for ROCm 5.6 and later
+    \item Requires knowledge of HIP API functions for creating and destroying streams
+    \item Experimental, always looking for feedback from new users
+    \item Newly documented (for all backends)  
+      \begin{itemize} 
+        \item[] \url{https://kokkos.org/kokkos-core-wiki/API/core/MultiGPUSupport.html}
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Multi-GPU for HIP Backend}
+  \begin{code}[keywords={auto}]
+// Create streams on different devices
+hipStream_t streams[2];
+hipSetDevice(0); hipStreamCreate(&streams[0]);
+hipSetDevice(1); hipStreamCreate(&streams[1]);
+{
+  // Creating execution spaces 
+  Kokkos::HIP exec0(streams[0]), exec1(streams[1]);
+
+  // Allocating views
+  Kokkos::View<int*> v0(Kokkos::view_alloc("v0", exec0), N);
+  Kokkos::View<int*> v1(Kokkos::view_alloc("v1", exec0), M);
+
+  // Launch kernels (run concurrently)
+  Kokkos::parallel_for(Kokkos::RangePolicy(exec0, 0, N), functor0);
+  Kokkos::parallel_for(Kokkos::RangePolicy(exec1, 0, M), functor1);
+}
+// Destroy streams (after execution spaces are deleted)
+hipStreamDestroy(streams[0]); hipStreamDestroy(streams[1]);
+  \end{code}
+\end{frame}
+
 %==========================================================================

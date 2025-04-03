@@ -36,7 +36,7 @@ else ()
     if (EXISTS ${KokkosTutorials_KOKKOS_SOURCE_DIR})
         add_subdirectory(${KokkosTutorials_KOKKOS_SOURCE_DIR} Kokkos)
     else ()
-        cmake_policy(CMP0135 NEW)  # Use extract timestamp for fetch content
+        cmake_policy(VERSION 3.24)  # Use extract timestamp for fetch content
         include(FetchContent)
         FetchContent_Declare(
                 Kokkos

@@ -14,16 +14,21 @@
 
 % note: always keep the [fragile] for your frames!
 
-%\begin{frame}[fragile]{Example list}
-%  \begin{itemize}
-%      \item Item 1
-%      \item Item 2 with some \texttt{code}
-%      \begin{itemize}
-%        \item Sub-item 2.1
-%        \item Sub-item 2.2
-%      \end{itemize}
-%  \end{itemize}
-%\end{frame}
+\begin{frame}[fragile]{New build system features}
+  \begin{block}{Architecture}
+  \begin{itemize}
+      \item Add support for Zen 4 AMD microarchitecture \hyperlink{https://github.com/kokkos/kokkos/pull/7550}{\#7550}
+      \item Enable NVIDIA Grace architecture with NVHPC \hyperlink{https://github.com/kokkos/kokkos/pull/7858}{\#7858}
+      \item Support static library builds when using CUDA as CMake language [\#7830](https://github.com/kokkos/kokkos/pull/7830)
+  \end{itemize}
+  \end{block}
+
+  \begin{block}{CUDA}
+  \begin{itemize}
+      \item It is possible to build static library builds when enabling CUDA as CMake language \hyperlink{https://github.com/kokkos/kokkos/pull/7830}{\#7830}
+  \end{itemize}
+  \end{block}
+\end{frame}
 
 %\begin{frame}[fragile]{Example code}
 %    \begin{code}[keywords={std}]

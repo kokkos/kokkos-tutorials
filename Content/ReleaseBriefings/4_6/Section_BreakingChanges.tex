@@ -8,6 +8,46 @@
 
 \end{frame}
 
+
+\begin{frame}[fragile]{Intel Classic Compiler}
+  \begin{itemize}
+    \item Intel has long since deprecated Intel Classic (since around 2022), and removed from oneAPI 2024.0 release
+    \item In order to focus on newer compilers, and reduce maintenance burden, we have \textbf{removed} support for Intel Classic (oneAPI Intel/icx still supported of course!)
+  \end{itemize}
+\end{frame}
+
+
+\begin{frame}[fragile]{DualView changes}
+  \textbf{Deprecate} direct access to \texttt{d\_view} and \texttt{h\_view}
+  \begin{itemize}
+    \item Modifying the allocations in d\_view and h\_view is dangerous, especially if \texttt{modify} and \texttt{sync} are skipped
+    \item Use \texttt{view\_host} and \texttt{view\_device} instead
+    \item These two functions return by value with deprecated code enabled and by reference otherwise. This might have perfomance implications if used extensively, e.g., in loop bounds.
+  \end{itemize}
+\end{frame}
+
+
+\begin{frame}[fragile]{Experimental SIMD changes}
+  \begin{itemize}
+    \item \texttt{native\_simd}, \texttt{native\_simd\_mask} \textbf{deprecated} to align with the C++26 standard
+    \item \textbf{Removed} Obtaining a reference from \texttt{*simd*::operator[]} to align with the C++26 Standard
+    \item \textbf{Changed} the return type of \texttt{Kokkos::Experimental::*simd*::operator==} and \texttt{operator!=} to return SIMD masks instead of \texttt{bool}
+    \begin{itemize}
+      \item If you want old behavior, use \texttt{all\_of(a == b)}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Additional Deprecations and Removals}
+  \begin{itemize}
+    \item Already discussed deprecating the Makefile
+    \item StaticCrsGraph is \textbf{moved} to Kokkos Kernels and \textbf{deprecated} in Core
+    \begin{itemize}
+      \item See \url{https://github.com/kokkos/kokkos-kernels/pull/2419}
+      \item Symbol is in Kernels under \texttt{KokkosSparse::StaticCrsGraph}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
 %==========================================================================
 
 % Examples

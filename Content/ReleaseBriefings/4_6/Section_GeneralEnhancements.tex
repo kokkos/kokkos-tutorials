@@ -85,3 +85,80 @@ This warning is for project developers.  Use -Wno-dev to suppress it.
 \end{frame}
 
 %==========================================================================
+\begin{frame}[fragile]{SIMD reductions and compound assignments}
+  Added reductions and remaining compound assignments to Kokkos SIMD
+
+  \begin{itemize}
+    \item \texttt{basic\_simd\& operator/=(basic\_simd\&, U\&\&)}
+    \item \texttt{basic\_simd\& operator>>=(basic\_simd\&, U\&\&)}
+    \item \texttt{basic\_simd\& operator<<=(basic\_simd\&, U\&\&)}
+  \end{itemize}
+
+  \vspace{5pt}
+  
+  \begin{itemize}
+    \item \texttt{T reduce\_min(const basic\_simd\& x)}
+    \item \texttt{T reduce\_max(const basic\_simd\& x)}
+    \item \texttt{T reduce(const basic\_simd\& x, const mask\_type\& mask, T identity\_element, BinaryOperation binary\_op)}
+      \begin{itemize}
+        \item Supported binary operations are: std::plus, std::multiplies, std::bit\_and, std::bit\_or and std::bit\_xor
+        \item std::plus is used if binary op is not specified
+      \end{itemize}
+  \end{itemize}
+
+\end{frame}
+%==========================================================================
+\begin{frame}[fragile]{Avoid storing a view in RandomAccessIterator}
+
+  In Kokkos 4.5, \texttt{Kokkos::sort} was changed to use raw pointers on host
+  \begin{itemize}
+    \item Resolves performance issue of \texttt{Kokkos::sort} on host when using \texttt{RandomAccessIterator}
+    \item Caused by reference counting and view access in \texttt{RandomAccessIterator}
+  \end{itemize}
+
+  \vspace{10pt}
+  
+  Following revisions are made in Kokkos 4.6
+  \begin{itemize} 
+    \item Reverted previous changes in \texttt{Kokkos::sort}
+    \item Replaced views with raw pointers in \texttt{RandomAccessIterator} instead
+    \begin{itemize}
+      \item Prevents \texttt{RandomAccessIterator} from participating in view reference counting
+    \end{itemize}
+  \end{itemize}
+
+\end{frame}
+%==========================================================================
+\begin{frame}[fragile]{Print support for system allocated memory}
+  \texttt{print\_configuration} outputs if system allocated memory is accessible on GPU
+
+  \vspace{5pt}
+
+  \begin{code}
+    Device Execution Space:
+      KOKKOS_ENABLE_HIP: yes
+    HIP Options:
+      KOKKOS_ENABLE_HIP_RELOCATABLE_DEVICE_CODE: no
+    
+    Runtime Configuration:
+      ...
+
+    Kokkos::HIP[ 0 ] gcnArch gfx942:sramecc+:xnack+, Total Global Memory: 94.08 GiB,
+    Shared Memory per Block: 64 KiB,
+    APU or dGPU: APU, Is Large Bar: 1, Supports Managed Memory: 1,
+    XNACK environment variable set: yes
+    Kernel reports HMM module via `CONFIG_HMM_MIRROR=y` in `/boot/config`: yes
+    Architecture capable of accessing system allocated memory: 1,
+    System allows accessing system allocated memory on GPU: 1,
+    Wavefront Size: 64 : Selected
+  \end{code}
+    
+    % macro  KOKKOS_ENABLE_HIP : defined
+    % macro  HIP_VERSION = 60342134 = version 6.3.42134
+    % macro KOKKOS_ENABLE_ROCTHRUST : defined
+    % macro KOKKOS_ENABLE_IMPL_HIP_MALLOC_ASYNC: yes
+    % Kokkos::HIP[ 0 ] gcnArch gfx942:sramecc+:xnack+, Total Global Memory: 94.08 GiB,
+    % Shared Memory per Block: 64 KiB,
+    % APU or dGPU: APU, Is Large Bar: 1, Supports Managed Memory: 1,
+\end{frame}
+%==========================================================================

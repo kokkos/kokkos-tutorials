@@ -6,13 +6,6 @@
 
   \vspace{10pt}
 
-  \textbf{Content:}
-  \begin{itemize}
-    \item Backend Updates CUDA
-    \item Backend Updates HIP
-    \item Backend Updates SYCL
-  \end{itemize}
-
 \end{frame}
 
 
@@ -22,51 +15,21 @@
 
 % note: always keep the [fragile] for your frames!
 
-\begin{frame}[fragile]{Backend Updates CUDA}
+\begin{frame}[fragile]{CUDA, SYCL and Serial}
   \begin{itemize}
-      \item Improved performance for \texttt{Kokkos::parallel\_reduce} on H100 and newer \hyperlink{https://github.com/kokkos/kokkos/pull/7823}{\#7823}
+      \item CUDA: Improved performance for \texttt{Kokkos::parallel\_reduce} on H100 and newer by increasing launch bounds
+      \item SYCL: Improved sorting performance for non-contiguous views with \texttt{RandomAccessIterator}
+      \item Serial: Reduce fences when using \texttt{Kokkos\_ENABLE\_ATOMICS\_BYPASS}
   \end{itemize}
 \end{frame}
 
-\begin{frame}[fragile]{Backend Updates HIP}
+\begin{frame}[fragile]{HIP}
   \begin{itemize}
-      \item Change block size deduction to prefer smaller blocks/teams [\#7509](https://github.com/kokkos/kokkos/pull/7509)
-      \item Allocate memory with stream ordered semantics (\emph{i.e.}\ use \texttt{hipMallocAsync}) \hyperlink{https://github.com/kokkos/kokkos/pull/7659}{\#7659}
-      \item Fix a segfault when a virtual function called inside a kernel requires too many registers \hyperlink{https://github.com/kokkos/kokkos/pull/7660}{\#7660}
+      \item Change block size deduction to prefer smaller blocks/teams if possible
+      \item Allocate memory with stream ordered semantics (\emph{i.e.}\ use \texttt{hipMallocAsync}) as default
+      \item Fix a segfault when a virtual function called inside a kernel requires too many registers
   \end{itemize}
 \end{frame}
-
-
-\begin{frame}[fragile]{Backend Updates SYCL}
-  \begin{itemize}
-      \item Improve sorting performance for non-contiguous views \hyperlink{https://github.com/kokkos/kokkos/pull/7502}{\#7503}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}[fragile]{Backend Updates Serial}
-  \begin{itemize}
-    \item Reduce fences overhead when using \texttt{Kokkos\_ENABLE\_ATOMICS\_BYPASS} \hyperlink{https://github.com/kokkos/kokkos/pull/7821}{\#7821}
-  \end{itemize}
-\end{frame}
-
-%\begin{frame}[fragile]{Example code}
-%    \begin{code}[keywords={std}]
-%        #include <iostream>
-%        
-%        int main() {
-%            std::cout << "hello world\n";
-%        }
-%    \end{code}
-%\end{frame}
-
-%\begin{frame}[fragile]{Example table}
-%    \begin{center}
-%        \begin{tabular}{l|l}
-%            a & b \\\hline
-%            c & d
-%        \end{tabular}
-%    \end{center}
-%\end{frame}
 
 %==========================================================================
 

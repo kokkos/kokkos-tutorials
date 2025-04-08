@@ -67,7 +67,7 @@ This warning is for project developers.  Use -Wno-dev to suppress it.
 \begin{frame}[fragile]{\texttt{inclusive\_scan} performance improvements}
   With the Cuda and HIP backends, \texttt{Kokkos::Experimental::inclusive\_scan} now calls the vendor versions in Thrust
   \begin{itemize}
-     \item The vendor versions are faster than the \texttt{Kokkos::parallel\_scan}-based default implementation
+     \item The vendor versions are up to 3x faster than the \texttt{Kokkos::parallel\_scan}-based default implementation
      \item Thrust requires \texttt{Kokkos\_ENABLE\_ROCTHRUST} to be \texttt{ON} (which is the default)
   \end{itemize}
 \end{frame}

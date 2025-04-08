@@ -95,7 +95,7 @@ graph.submit();
 \begin{frame}[fragile]{Kokkos::Graph new features}
  \begin{itemize}
    \item \href{https://github.com/kokkos/kokkos/pull/7664}{interoperability}: create a \texttt{Kokkos::Graph} from a native Cuda/HIP/Sycl graph
-   \item Does not yet allow linking Kokkos nodes to native nodes
+   \item Does not yet allow adding nodes created using the native API to a \texttt{Kokkos::Graph}
      \begin{code}[keywords={auto}]
 cudaGraph_t native_graph = nullptr;
 KOKKOS_IMPL_CUDA_SAFE_CALL(cudaGraphCreate(&native_graph, 0));

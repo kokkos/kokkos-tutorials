@@ -26,7 +26,7 @@
 \begin{frame}[fragile]{HIP}
   \begin{itemize}
       \item Change block size deduction to prefer smaller blocks/teams if possible
-      \item Allocate memory with stream ordered semantics (\emph{i.e.}\ use \texttt{hipMallocAsync}) as default
+      \item Allocate memory with stream ordered semantics (\emph{i.e.}\ use \texttt{hipMallocAsync})
       \item Fix a segfault when a virtual function called inside a kernel requires too many registers
   \end{itemize}
 \end{frame}

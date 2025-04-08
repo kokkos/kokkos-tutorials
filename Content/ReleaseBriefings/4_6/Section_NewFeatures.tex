@@ -78,11 +78,12 @@ graph.submit();
 \begin{frame}[fragile]{Kokkos::Graph new features}
  \begin{itemize}
   \item \texttt{then} node: executes a callable on device
+  \item Single call of the functor per \texttt{submit()}
    \item Executed in the \texttt{ExecutionSpace} the graph is submitted to
      \begin{code}[keywords={auto}]
 auto graph = Kokkos::create_graph([&](auto root) {
     auto node_A = root.then_parallel_for("A", ...policy..., ...functor...);
-    auto node_B = node_A.then(...functor...);
+    auto node_B = node_A.then(KOKKOS_LAMBDA(){ Kokkos::printf("hello\n");});
 });
 
 graph.instantiate();

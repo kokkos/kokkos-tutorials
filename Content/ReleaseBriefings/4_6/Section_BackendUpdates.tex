@@ -17,7 +17,7 @@
 
 \begin{frame}[fragile]{CUDA, SYCL and Serial}
   \begin{itemize}
-      \item CUDA: Improved performance for \texttt{Kokkos::parallel\_reduce} on H100 and newer by increasing launch bounds
+      \item CUDA: Improved performance for \texttt{Kokkos::parallel\_reduce} on H100 and newer by removing limitations on the runtime thread configuration
       \item SYCL: Improved sorting performance for non-contiguous views with \texttt{RandomAccessIterator}
       \item Serial: Reduce fences when using \texttt{Kokkos\_ENABLE\_ATOMICS\_BYPASS}
   \end{itemize}

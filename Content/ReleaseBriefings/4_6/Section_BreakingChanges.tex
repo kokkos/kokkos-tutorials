@@ -30,8 +30,8 @@
 \begin{frame}[fragile]{Experimental SIMD changes}
   \begin{itemize}
     \item \texttt{native\_simd}, \texttt{native\_simd\_mask} \textbf{deprecated} to align with the C++26 standard
-    \item \textbf{Removed} Obtaining a reference from \texttt{*simd*::operator[]} to align with the C++26 Standard
-    \item \textbf{Changed} the return type of \texttt{Kokkos::Experimental::*simd*::operator==} and \texttt{operator!=} to return SIMD masks instead of \texttt{bool}
+    \item \textbf{Removed} Obtaining a reference from SIMD \texttt{operator[]} to align with the C++26 Standard
+    \item \textbf{Changed} the return type of SIMD \texttt{operator==} and \texttt{operator!=} to return SIMD masks instead of \texttt{bool}
     \begin{itemize}
       \item If you want old behavior, use \texttt{all\_of(a == b)}
     \end{itemize}

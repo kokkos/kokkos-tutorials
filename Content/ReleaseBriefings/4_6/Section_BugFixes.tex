@@ -34,7 +34,7 @@
         \item Fix graph node lifetime issues
         \item FIx lock-based atomics failure when launching CUDA and HIP graphs
       \end{itemize}
-      \item CUDA backend: Fix incorrect iteration in MDRangePolicy of rank $< 4$ for high iteration counts
+      \item CUDA backend: Fix incorrect iteration in MDRangePolicy of rank $> 4$ for high iteration counts
       \item SIMD:
       \begin{itemize}
         \item fix a bug in scalar min/max

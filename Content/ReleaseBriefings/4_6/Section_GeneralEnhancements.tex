@@ -48,7 +48,7 @@
 
 \begin{frame}[fragile]{Fix a warning from kokkos\_check}
  \begin{itemize}
-    \item \texttt{kokkos\_check}: makes sure that Kokkos was built with the requested backends and target architectures and generates a fatal error if it was not.
+    \item \texttt{kokkos\_check}: Check at configure time that Kokkos was built with the requested backends and target architectures. Throws a fatal error otherwise.
     \item Fix a warning when a user calls the cmake function \texttt{kokkos\_check} from a \texttt{<PackageName>Config.cmake} file
     {\tiny \begin{verbatim}
 CMake Warning (dev) at /usr/share/cmake-3.22/Modules/FindPackageHandleStandardArgs.cmake:438 (message):
@@ -65,22 +65,19 @@ This warning is for project developers.  Use -Wno-dev to suppress it.
 \end{frame}
 
 \begin{frame}[fragile]{\texttt{inclusive\_scan} performance improvements}
-  With the Cuda and HIP backends, \texttt{Kokkos::Experimental::inclusive\_scan} now calls the vendor versions from Thrust
+  With the Cuda and HIP backends, \texttt{Kokkos::Experimental::inclusive\_scan} now calls the vendor versions in Thrust
   \begin{itemize}
-     \item The vendor versions are faster than the \texttt{Kokkos::parallel\_scan} based default implementation
-     \item Both backends call the vendor versions by default
-       \begin{itemize}
-         \item The HIP version is called when \texttt{Kokkos\_ENABLE\_ROCTHRUST} is \texttt{ON} (which is the default)
-       \end{itemize}
+     \item The vendor versions are faster than the \texttt{Kokkos::parallel\_scan}-based default implementation
+     \item Thrust requires \texttt{Kokkos\_ENABLE\_ROCTHRUST} to be \texttt{ON} (which is the default)
   \end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]{Reduce tooling interface overhead}
   Reduced the overhead of Kokkos tools related checks
   \begin{itemize}
-      \item Store the information whether Kokkos tools are enabled after each modification to the tools callbacks
-      \item Previously, this value was recomputed everytime an event of interest (\texttt{parallel\_for}, \texttt{fence}, etc.) occured
-      \item Mostly noticeable in small serial kernels (around 100 elements)
+      \item Store the information whether Kokkos tools are enabled after each modification to the tools' callbacks
+      \item Previously, this value was recomputed for every event (\texttt{parallel\_for}, \texttt{fence}, etc.)
+      \item Most noticeable in small serial kernels (around 100 elements)
   \end{itemize}
 \end{frame}
 

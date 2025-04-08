@@ -77,7 +77,7 @@ graph.submit();
 
 \begin{frame}[fragile]{Kokkos::Graph new features}
  \begin{itemize}
-  \item \href{https://github.com/kokkos/kokkos/pull/7629}{\texttt{then} node}: executes a callable on device
+  \item \texttt{then} node: executes a callable on device
    \item Executed in the \texttt{ExecutionSpace} the graph is submitted to
      \begin{code}[keywords={auto}]
 auto graph = Kokkos::create_graph([&](auto root) {
@@ -94,7 +94,7 @@ graph.submit();
 
 \begin{frame}[fragile]{Kokkos::Graph new features}
  \begin{itemize}
-   \item \href{https://github.com/kokkos/kokkos/pull/7664}{interoperability}: create a \texttt{Kokkos::Graph} from a native Cuda/HIP/Sycl graph
+   \item Interoperability: create a \texttt{Kokkos::Graph} from a native Cuda/HIP/Sycl graph
    \item Does not yet allow adding nodes created using the native API to a \texttt{Kokkos::Graph}
      \begin{code}[keywords={create_graph_from_native}]
 cudaGraph_t native_graph = nullptr;

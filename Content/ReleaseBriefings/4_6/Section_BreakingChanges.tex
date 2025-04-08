@@ -20,7 +20,7 @@
 \begin{frame}[fragile]{DualView changes}
   \textbf{Deprecate} direct access to \texttt{d\_view} and \texttt{h\_view}
   \begin{itemize}
-    \item Modifying the allocations in d\_view and h\_view is dangerous, especially if \texttt{modify} and \texttt{sync} are skipped
+    \item Modifying the allocations in d\_view and h\_view directly is dangerous, especially if \texttt{modify} and \texttt{sync} are skipped
     \item Use \texttt{view\_host} and \texttt{view\_device} instead
     \item These two functions return by value with deprecated code enabled and by reference otherwise. This might have perfomance implications if used extensively, e.g., in loop bounds.
   \end{itemize}

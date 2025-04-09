@@ -83,13 +83,10 @@ graph.submit();
      \begin{code}[keywords={auto}]
 auto graph = Kokkos::create_graph([&](auto root) {
     auto node_A = root.then_parallel_for("A", ...policy..., ...functor...);
-    auto node_B = node_A.then(KOKKOS_LAMBDA(){ Kokkos::printf("hello\n");});
-});
-
-graph.instantiate();
-
-graph.submit();
+    auto node_B = node_A.then("B", ...functor...);
+});   
      \end{code}
+   \item Functor passed to \texttt{then} must be callable without arguments and marked with \texttt{KOKKOS\_FUNCTION}
  \end{itemize}
 \end{frame}
 

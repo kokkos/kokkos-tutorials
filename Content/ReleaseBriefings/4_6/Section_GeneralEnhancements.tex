@@ -69,6 +69,7 @@ This warning is for project developers.  Use -Wno-dev to suppress it.
   \begin{itemize}
      \item The vendor versions are up to 3x faster than the \texttt{Kokkos::parallel\_scan}-based default implementation
      \item Thrust requires \texttt{Kokkos\_ENABLE\_ROCTHRUST} to be \texttt{ON} (which is the default)
+     \item Approximately 1.5-3x speed up (V100, MI300A)
   \end{itemize}
 \end{frame}
 

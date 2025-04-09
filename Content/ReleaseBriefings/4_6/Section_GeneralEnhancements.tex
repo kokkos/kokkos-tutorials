@@ -79,6 +79,7 @@ This warning is for project developers.  Use -Wno-dev to suppress it.
       \item Store the information whether Kokkos tools are enabled after each modification to the tools' callbacks
       \item Previously, this value was recomputed for every event (\texttt{parallel\_for}, \texttt{fence}, etc.)
       \item Most noticeable in small serial kernels (around 100 elements)
+      \item Reduction of launch time of approximately 10ns (About the time to increment 100 elements in a kernel) on CPU
   \end{itemize}
 \end{frame}
 

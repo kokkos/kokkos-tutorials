@@ -143,7 +143,7 @@ hipSetDevice(1); hipStreamCreate(&streams[1]);
 
   // Allocating views
   Kokkos::View<int*> v0(Kokkos::view_alloc("v0", exec0), N);
-  Kokkos::View<int*> v1(Kokkos::view_alloc("v1", exec0), M);
+  Kokkos::View<int*> v1(Kokkos::view_alloc("v1", exec1), M);
 
   // Launch kernels (run concurrently)
   Kokkos::parallel_for(Kokkos::RangePolicy(exec0, 0, N), functor0);

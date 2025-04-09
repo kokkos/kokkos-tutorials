@@ -136,17 +136,10 @@ This warning is for project developers.  Use -Wno-dev to suppress it.
 
   \vspace{5pt}
 
+  \begin{center}
+    Example output for MI300A with HIP backend
+  \end{center}
   \begin{code}
-    Device Execution Space:
-      KOKKOS_ENABLE_HIP: yes
-    HIP Options:
-      KOKKOS_ENABLE_HIP_RELOCATABLE_DEVICE_CODE: no
-    
-    Runtime Configuration:
-      ...
-    Kokkos::HIP[ 0 ] gcnArch gfx942:sramecc+:xnack+, Total Global Memory: 94.08 GiB,
-    Shared Memory per Block: 64 KiB,
-    APU or dGPU: APU, Is Large Bar: 1, Supports Managed Memory: 1,
     XNACK environment variable set: yes
     Kernel reports HMM module via `CONFIG_HMM_MIRROR=y` in `/boot/config`: yes
     Architecture capable of accessing system allocated memory: 1,

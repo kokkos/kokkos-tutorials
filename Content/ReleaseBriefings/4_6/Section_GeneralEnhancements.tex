@@ -107,24 +107,52 @@ This warning is for project developers.  Use -Wno-dev to suppress it.
 
 \end{frame}
 %==========================================================================
-\begin{frame}[fragile]{Avoid storing a view in RandomAccessIterator}
+\begin{frame}[fragile]{Performance of algorithms}
 
-  In Kokkos 4.5, \texttt{Kokkos::sort} was changed to use raw pointers on host
   \begin{itemize}
-    \item Resolves performance issue of \texttt{Kokkos::sort} on host when using \texttt{RandomAccessIterator}
-    \item Caused by reference counting and view access in \texttt{RandomAccessIterator}
+    \item In Kokkos 4.5, we fixed a performance bug in \texttt{Kokkos::sort}
+    \item Root cause is in an implementation detail in \texttt{RandomAccessIterator}
   \end{itemize}
 
   \vspace{10pt}
-  
-  Following revisions are made in Kokkos 4.6
-  \begin{itemize} 
-    \item Reverted previous changes in \texttt{Kokkos::sort}
-    \item Replaced views with raw pointers in \texttt{RandomAccessIterator} instead
-    \begin{itemize}
-      \item Prevents \texttt{RandomAccessIterator} from participating in view reference counting
-    \end{itemize}
+
+  \begin{itemize}
+    \item In Kokkos 4.6 the root cause is fixed
+    \item Fixes all algorithms that rely on \texttt{RandomAccessIterator} (e.g. sort,search,etc.)
   \end{itemize}
+
+\end{frame}
+%==========================================================================
+\begin{frame}[fragile]{Performance of \texttt{search}}
+
+  \begin{center}
+    \begin{tikzpicture}
+	\begin{axis}[
+    legend pos=north west,
+    xmode=log,
+    height=0.5\textwidth,
+		xlabel=Number of Elements,
+    ylabel=Time in s]
+	\addplot[color=red,mark=x] coordinates {
+    (10000,3.0119e-05)
+    (100000,0.000321003)
+    (1000000,0.00270167)
+    (10000000,0.0288293)
+    (100000000,0.294202)
+	};
+
+	\addplot[color=black,mark=o] coordinates {
+    (10000,8.57e-06)
+    (100000,8.7155e-05)
+    (1000000,0.000909428)
+    (10000000,0.00823764)
+    (100000000,0.0830087)
+	};
+  \legend{4.5,4.6}
+	\end{axis}
+\end{tikzpicture}
+
+  \end{center}
 
 \end{frame}
 %==========================================================================

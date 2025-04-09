@@ -124,13 +124,17 @@ This warning is for project developers.  Use -Wno-dev to suppress it.
 \end{frame}
 %==========================================================================
 \begin{frame}[fragile]{Performance of \texttt{search}}
+\begin{center}
+\textbf{Improvement dependent on algorithm and hardware!}
+\end{center}
 
   \begin{center}
     \begin{tikzpicture}
 	\begin{axis}[
+    title={Host only, Intel Skylake},
     legend pos=north west,
     xmode=log,
-    height=0.5\textwidth,
+    height=0.4\textwidth,
 		xlabel=Number of Elements,
     ylabel=Time in s]
 	\addplot[mark=x] coordinates {

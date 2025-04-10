@@ -96,7 +96,6 @@ auto graph = Kokkos::create_graph([&](auto root) {
      \begin{code}[keywords={create_graph_from_native}]
 cudaGraph_t native_graph = nullptr;
 cudaGraphCreate(&native_graph, 0);
-... Add nodes to graph ...
 
 auto graph_from_native =
   Kokkos::Experimental::create_graph_from_native(exec, native_graph);

@@ -1,14 +1,10 @@
 cmake_minimum_required(VERSION 3.16)
 project(KokkosTutorialFortran)
-include(../../common.cmake)
 
-execute_process (
-    COMMAND bash -c "printenv"
-    OUTPUT_VARIABLE outVar
-)
-message("${outVar}")
+# Add a custom module path for find_package(Kokkos)
+include(../../SetUpKokkos.cmake)
 
 enable_language(Fortran)
 
-add_executable(ftest.x abi.f90 f_interface.f90 main.f90 c_interface.cpp)
-target_link_libraries(ftest.x Kokkos::kokkos)
+add_executable(ftest_solution abi.f90 f_interface.f90 main.f90 c_interface.cpp)
+target_link_libraries(ftest_solution Kokkos::kokkos)

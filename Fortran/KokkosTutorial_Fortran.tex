@@ -1,0 +1,240 @@
+
+\input{KokkosTutorial_PreTitle}
+
+\title{Kokkos-Fortran-Interop}
+
+\input{KokkosTutorial_PostTitle}
+
+\usepackage{minted}
+
+\begin{document}
+
+\begin{frame}
+	\titlepage
+\end{frame}
+
+\begin{frame}{Installation}
+  \begin{itemize}
+    \item Repository: \url{https://github.com/kokkos/kokkos-fortran-interop}
+    \item Requirements:
+      \begin{itemize}
+        \item Kokkos 4.0 or newer
+        \item C++17/Fortran08 compiler suites
+      \end{itemize}
+    \item Configure\\
+      \texttt{cmake -DKokkos\_ROOT=/kokkos/path /interop/path}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{What is Kokkos-Fortran-Interop?}
+  \begin{itemize}
+    \item Kokkos-Fortran offers wrappers around:
+      \begin{itemize}
+        \item \texttt{Kokkos::initialize(argc, argv)}
+        \item \texttt{Kokkos::finalize()}
+        \item \texttt{Kokkos::print\_configuration(output)}
+        \item \texttt{Kokkos::View} 
+        \item \texttt{Kokkos::DualView}
+      \end{itemize}
+    \item User kernels are written in C\texttt{++} $\rightarrow$ need to use
+      \texttt{iso\_c\_binding}
+    \item Only a subset of Kokkos capabilities are exposed
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Starting a program}
+  \begin{itemize}
+    \item Similar to MPI, Kokkos need to be initialized using
+      \texttt{kokkos\_initialize()} and finalized using \texttt{kokkos\_finalize()}
+    \item The \texttt{kokkos\_initialize()} subroutine initializes Kokkos and
+      reads command line arguments
+    \item \texttt{kokkos\_print\_configure("output.txt")} prints the
+      Kokkos configuration to the file \texttt{output.txt}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[containsverbatim]{Simple Example}
+  \begin{minted}{fortran}
+program my_kokkos_code
+  use :: flcl_util_kokkos_mod
+
+  ! Initialize Kokkos
+  ! This subroutine reads command line arguments
+  call kokkos_initialize()
+
+  ! Print the configuration in a file
+  call kokkos_print_configure('kokkos.out')
+
+  ! Finalize Kokkos
+  call kokkos_finalize()
+end program my_kokkos_code
+  \end{minted}
+\end{frame}
+
+\begin{frame}{Kokkos::View}
+  \begin{itemize}
+    \item \texttt{Kokkos::View} is Kokkos equivalent to an array
+    \item \texttt{Kokkos::View} can have up to 8 dimensions in C++ but they are
+      limited to 7 dimensions in Fortran
+    \item Supported Fortran types: logical, 32-bit integer, 64-bit
+      integer, 32-bit real, and 64-bit real
+    \item Type follow the pattern \texttt{view\_TYPE\_DIM\_t}, e.g.,
+      \texttt{view\_r64\_1d\_t} is a one-dimensional view of 64-bit real
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Kokkos::View}
+  \begin{itemize}
+    \item The memory space defines where the memory is allocated
+    \item Supported memory spaces: \texttt{Kokkos::HostSpace},
+      \texttt{Kokkos::CudaManagedSpace}, and \texttt{Kokkos::HIPManagedSpace}
+    \item The memory space is set when the \texttt{Kokkos-Fortran-Interop} is
+      configured
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Kokkos::View}
+  \begin{itemize}
+    \item \texttt{Kokkos::View} can be allocated directly or built from an
+      array. In the latter case, the \texttt{Kokkos::View} can only be used on
+      the host % I don't see the point of this
+    \item \texttt{Kokkos::View} that are allocated must also be deallocated
+    \item \texttt{Kokkos::View} cannot be accessed directly from Fortran instead
+      it can be accessed through a \texttt{pointer}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[containsverbatim]{Kokkos::View}
+  \begin{minted}{fortran}
+use, intrinsic :: iso_c_binding
+use :: flcl_mod
+
+real(REAL64), pointer, dimension(:) :: c_y
+type(view_r64_1d_t) :: v_c_y
+integer :: mm = 5000
+
+call kokkos_allocate_view(c_y, v_c_y, 'c_y', &
+                          int(mm, c_size_t))
+
+! Do stuff
+
+call kokkos_deallocate_view(c_y, v_c_y)
+  \end{minted}
+\end{frame}
+
+\begin{frame}{Kokkos::DualView}
+  \begin{itemize}
+    \item \texttt{Kokkos::DualView} are similar to \texttt{Kokkos::View} but
+      they are composed of two \texttt{Kokkos::View}, one on the host and one on
+      the device.
+    \item It is the user's responsibility to synchronize the data
+    \item Supported memory spaces: \texttt{Kokkos::HostSpace},
+      \texttt{Kokkos::Cuda}, \texttt{Kokkos::HIP}, and \texttt{Kokkos::SYCL}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[containsverbatim]{Kokkos::DualView}
+  \begin{minted}{fortran}
+use, intrinsic :: iso_c_binding
+use :: flcl_mod
+
+real(REAL64), pointer, dimension(:) :: c_y
+type(dualview_r64_1d_t) :: v_c_y
+integer :: mm = 5000
+
+call kokkos_allocate_dualview(c_y, v_c_y, 'c_y', &
+                              int(mm, c_size_t))
+
+! Do stuff
+
+call kokkos_deallocate_dualview(c_y, v_c_y)
+  \end{minted}
+\end{frame}
+
+\begin{frame}{Kernel}
+  \begin{itemize}
+    \item Kernels using Kokkos are written in C++
+    \item Use C-binding from Fortran standard 
+    \item Create a subroutine that calls the C++ function
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[containsverbatim]{Initialize View}
+  \begin{minted}{fortran}
+use, intrinsic :: iso_c_binding
+use :: flcl_mod
+
+real(REAL64), pointer, dimension(:) :: c_y
+type(view_r64_1d_t) :: v_c_y
+integer :: mm = 5000
+
+call kokkos_allocate_view(c_y, v_c_y, 'c_y', &
+                          int(mm, c_size_t))
+
+call init_view(v_c_y)
+
+call kokkos_deallocate_view(c_y, v_c_y)
+  \end{minted}
+\end{frame}
+
+\begin{frame}[containsverbatim]{Initialize View}
+  \begin{minted}{fortran}
+module init_f_mod
+    use, intrinsic :: iso_c_binding
+    use, intrinsic :: iso_fortran_env
+    use :: flcl_mod
+    implicit none
+    public
+      interface
+        subroutine f_init( y ) &
+          & bind(c, name='c_init')
+          use, intrinsic :: iso_c_binding
+          use :: flcl_mod
+          type(c_ptr), intent(in) :: y
+        end subroutine f_init
+      end interface
+  \end{minted}
+\end{frame}
+
+\begin{frame}[containsverbatim]{Initialize View}
+  \begin{minted}{fortran}
+      contains
+
+        subroutine init_view( y )
+          use, intrinsic :: iso_c_binding
+          use :: flcl_mod
+          implicit none
+          type(view_r64_1d_t), intent(inout) :: y
+
+          call f_init(y%ptr())
+
+        end subroutine init
+  
+end module init_f_mod
+  \end{minted}
+\end{frame}
+
+\begin{frame}[containsverbatim]{Initialize View}
+  \begin{minted}{C++}
+#include <Kokkos_Core.hpp>
+#include <flcl-cxx.hpp>
+using view_type = flcl::view_r64_1d_t;
+
+extern "C" {
+  void c_init(view_type **v_y) {
+    view_type y = **v_y;
+    Kokkos::parallel_for("init", y.extent(0), 
+        KOKKOS_LAMBDA(int idx) {
+      y(idx) += idx;
+    });
+    Kokkos::fence();
+  }
+}
+  \end{minted}
+\end{frame}
+
+\begin{frame}{Exercise}
+  Use \texttt{Kokkos::View} to do an \emph{axpy}
+\end{frame}
+
+\end{document}

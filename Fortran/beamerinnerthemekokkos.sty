@@ -1,0 +1,84 @@
+\setbeamertemplate{background}{
+    {\begin{tikzpicture}[remember picture,overlay]
+    \node[yshift=-0.75cm] at (current page.north west)
+      {\begin{tikzpicture}[remember picture, overlay]
+          \draw[fill=SandiaLightLightBlue,color=SandiaLightLightBlue] (0,0cm) rectangle (2cm,-2cm);          
+          \draw[fill=SandiaLightBlue,color=SandiaLightBlue] (0,0cm) rectangle (2cm,-1.5cm);          
+          \draw[fill=SandiaBlue,color=SandiaBlue] (0,0cm) rectangle (1cm,-1cm);          
+          \draw[fill=SandiaLightBlue,color=SandiaLightBlue] (1cm,-1cm) circle [radius=1cm];
+          \draw[fill=SandiaLightLightBlue,color=SandiaLightLightBlue] (1.5cm,-1.5cm) circle [radius=1.5cm];
+          \draw[fill=white,color=white] (2cm,-2cm) circle [radius=2cm];
+          \draw[fill=SandiaGray,color=SandiaGray] (0,0.75cm) rectangle (\paperwidth,0.55cm);
+          \draw[fill=SandiaBlue,color=SandiaBlue] (0,0) rectangle (\paperwidth,0.55cm);
+       \end{tikzpicture}
+      };
+
+      \node[yshift=0cm] at (current page.south east)
+      {\begin{tikzpicture}[remember picture, overlay]
+          \draw[fill=SandiaLightLightBlue,color=SandiaLightLightBlue] (0,.75cm) rectangle (-2cm,2.75cm);          
+          \draw[fill=SandiaLightBlue,color=SandiaLightBlue] (0,.75cm) rectangle (-2.cm,2.75cm);          
+          \draw[fill=SandiaBlue,color=SandiaBlue] (0,.75cm) rectangle (-1cm,2cm);          
+          \draw[fill=SandiaLightBlue,color=SandiaLightBlue] (-1cm,1.75cm) circle [radius=1cm];
+          \draw[fill=SandiaLightLightBlue,color=SandiaLightLightBlue] (-1.5cm,2.25cm) circle [radius=1.5cm];
+          \draw[fill=white,color=white] (-2cm,2.75cm) circle [radius=2cm];
+        \draw[fill=SandiaBlue,color=SandiaBlue] (-\paperwidth,0.0cm) rectangle
+          (\paperwidth,0.75cm) ;
+        \draw[fill=SandiaGray,color=SandiaGray] (-\paperwidth,0) rectangle
+          (\paperwidth,0.2cm);
+          \ifnum\thepage>1\relax
+        \node[anchor=west,yshift=0.5cm,xshift=-0.95\paperwidth,minimum width=0.8\paperwidth,text width=0.8\paperwidth] {\color{white}{\tiny \insertdate }};
+        \node[anchor=east,yshift=0.5cm,xshift=-0.05\paperwidth] {\color{white}{\tiny \insertframenumber/\inserttotalframenumber }};
+        \fi
+       \end{tikzpicture}
+      };
+                              
+
+   \end{tikzpicture}
+   }
+ }
+
+% Title page
+\defbeamertemplate*{title page}{kokkos}[1][]
+{ 
+   %\vskip2cm%
+    {\begin{tikzpicture}[remember picture,overlay]
+    \node[yshift=-3.0cm] at (current page.north west)
+      {\begin{tikzpicture}[remember picture, overlay]
+        \node[anchor=west,xshift=.15\paperwidth,rectangle,
+              rounded corners=20pt,inner sep=15pt,
+              fill=SandiaBlue,color=SandiaBlue]
+              {\color{white}{\LARGE\inserttitle}};
+       \end{tikzpicture}
+      };
+   \end{tikzpicture}
+   }
+%    \begin{beamercolorbox}[wd=12cm,leftskip=3cm,sep=8pt,#1]{title page header}
+%      \usebeamerfont{title}\inserttitle\par%
+%    \end{beamercolorbox}%
+    \vskip3.0cm%
+    \begin{beamercolorbox}[wd=12cm,leftskip=3cm,#1]{author}
+      \usebeamerfont{author}\insertauthor%
+    \end{beamercolorbox}
+     \vskip0.2cm%
+    \begin{beamercolorbox}[wd=12cm,leftskip=3cm,#1]{institute}
+      \usebeamerfont{author}\insertinstitute%
+    \end{beamercolorbox}
+     \vskip0.2cm%
+    \begin{beamercolorbox}[wd=12cm,leftskip=3cm,#1]{date}
+      \usebeamerfont{author}\insertdate%
+    \end{beamercolorbox}
+    \ifdefined\sandid
+     \vskip0.75cm%
+    \begin{beamercolorbox}[wd=12cm,leftskip=5cm,#1]{disclaimer}
+      \usebeamerfont{disclaimer}{\tinytiny 
+Sandia National Laboratories is a multi-mission laboratory managed and operated by National Technology and Engineering Solutions of Sandia, LLC., a wholly owned subsidiary of Honeywell International, Inc., for the U.S. Department of Energy’s National Nuclear Security Administration under contract DE-NA0003525.
+\newline
+\sandid
+      }%
+    \end{beamercolorbox}
+    \fi
+  \vfill
+}
+
+\mode
+<all>

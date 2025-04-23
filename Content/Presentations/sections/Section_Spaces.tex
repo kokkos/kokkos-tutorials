@@ -723,10 +723,10 @@ int main(int argc, char* argv[]) {
 \vspace{-3pt}
   \begin{small}
   \begin{code}
-  # gcc using OpenMP (default) and Serial back-ends, 
-  # (optional) change non-default arch with KOKKOS_ARCH
-    make -j KOKKOS_DEVICES=OpenMP,Serial KOKKOS_ARCH=...
+    cmake -B build_openmp -D Kokkos_ENABLE_OPENMP=ON
+    cmake --build build_openmp -j
   \end{code}
+  Optional: configure with \texttt{Kokkos\_ARCH\_NATIVE=ON} or specify explicitly the target architecture
   \end{small}
 
 %  \hspace{10pt} {\tiny \url{https://github.com/kokkos/kokkos/wiki/Compiling#table-43-architecture-variables}}
@@ -766,10 +766,10 @@ int main(int argc, char* argv[]) {
 \vspace{-3pt}
   \begin{small}
   \begin{code}
-  # gcc using OpenMP (default) and Serial back-ends, 
-  # (optional) change non-default arch with KOKKOS_ARCH
-    make -j KOKKOS_DEVICES=Cuda,OpenMP KOKKOS_ARCH=...
+    cmake -B build_openmp -D Kokkos_ENABLE_OPENMP=ON
+    cmake --build build_openmp -j
   \end{code}
+  Optional: configure with \texttt{Kokkos\_ARCH\_NATIVE=ON} or specify explicitly the target architecture
   \end{small}
 
 %  \hspace{10pt} {\tiny \url{https://github.com/kokkos/kokkos/wiki/Compiling#table-43-architecture-variables}}

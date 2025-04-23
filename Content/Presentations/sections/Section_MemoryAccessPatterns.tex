@@ -132,7 +132,7 @@ View<double***, @boldLayout@bold, Space> name(...);
   \item Vary problem size and number of rows (-S ...; -N ...)
   \item Change number of repeats (-nrepeat ...)
   \item Compare behavior of CPU vs GPU
-  \item Compare using \texttt{SharedSpace} vs regular device memory on GPUs
+  \item On GPUs, compare using \texttt{SharedSpace} vs using the default memory space, i.e, not providing an explicit memory space.
   \item Check what happens if \texttt{MemSpace} and \texttt{ExecSpace} do not match.
   \end{itemize}
   \end{small}

@@ -1,0 +1,256 @@
+\usetheme{kokkos}
+
+\newif\ifshort
+\newif\ifmedium
+\newif\iffull
+\newif\ifnotoverview
+
+\newcommand{\TutorialDirectory}{\texttt{Intro-Full}}
+\newcommand{\ExerciseDirectory}[1]{\texttt{Exercises/#1/}}
+\newcommand{\TutorialClone}{\texttt{Kokkos/kokkos-tutorials/\TutorialDirectory}}
+
+\definecolor{darkgreen}{rgb}{0.0, 0.5, 0.0}
+\definecolor{darkred}{rgb}{0.8, 0.0, 0.0}
+\definecolor{orange}{rgb}{0.8, 0.33, 0.0}
+\definecolor{purple}{rgb}{0.60, 0.20, 0.80}
+\colorlet{bodyColor}{blue!20}
+\colorlet{patternColor}{orange!30}
+\colorlet{policyColor}{green!30}
+
+% http://tex.stackexchange.com/questions/144448/color-a-text-line-in-a-code-lstlisting
+\lstnewenvironment{code}[1][]%
+{
+  %with txfonts: OT1/txr/m/n/10
+  %with default fonts: OT1/cmr/m/n/10
+  %\fontfamily{cmr}\selectfont
+  %\showthe\font
+   \noindent
+   \minipage{\linewidth}
+   %\vspace{0.5\baselineskip}
+   \lstset{mathescape, escapeinside={<@}{@>},
+moredelim=**[is][{\btHL[fill=patternColor]}]{@pattern}{@pattern},
+moredelim=**[is][{\btHL[fill=red!30]}]{@warning}{@warning},
+moredelim=**[is][{\btHL[fill=policyColor]}]{@policy}{@policy},
+moredelim=**[is][{\btHL[fill=bodyColor]}]{@body}{@body},
+moredelim=**[is][{\btHL[fill=red!30]}]{@warning}{@warning},
+moredelim=**[is][\color{black}]{@black}{@black},
+moredelim=**[is][\color{blue}]{@blue}{@blue},
+moredelim=**[is][\bf]{@bold}{@bold},
+moredelim=**[is][\it]{@italic}{@italic},
+moredelim=**[is][\color{boldblue}\bf]{@boldblue}{@boldblue},
+moredelim=**[is][\color{red}]{@red}{@red},
+moredelim=**[is][\color{green}]{@green}{@green},
+moredelim=**[is][\color{gray}]{@gray}{@gray},
+moredelim=**[is][\color{darkgreen}]{@darkgreen}{@darkgreen},
+moredelim=**[is][\color{darkred}]{@darkred}{@darkred},
+moredelim=**[is][\color{orange}]{@orange}{@orange},
+moredelim=**[is][\color{purple}]{@purple}{@purple},
+keywords={},
+#1}
+}
+{
+  \endminipage
+  %\vspace{1.0\baselineskip}
+}
+
+\makeatletter
+\newif\ifATOlinebackground
+\lst@Key{linebackground}{\tiny}{\def\ATOlinebackground{#1}\global\ATOlinebackgroundtrue}
+\makeatother
+
+\lstnewenvironment{shell}[1][]{%
+  \global\ATOlinebackgroundfalse
+  \lstset{language=sh,%
+    showstringspaces=false,
+    aboveskip=0pt,
+    frame=none,
+    numbers=none,
+    belowskip=2pt,
+    breaklines=true,
+    #1,
+    }
+  %\ifATOlinebackground
+  \lstset{linebackgroundcolor={
+    \ATOlinebackground
+  }}
+  %\fi
+  }{}
+
+\lstnewenvironment{cmake}[1][]{%
+  \global\ATOlinebackgroundfalse
+  \lstset{language=sh,%
+    showstringspaces=false,
+    aboveskip=0pt,
+    frame=none,
+    numbers=none,
+    belowskip=2pt,
+    breaklines=true,
+    #1,
+    }
+  %\ifATOlinebackground
+  \lstset{linebackgroundcolor={
+    \ATOlinebackground
+  }}
+  %\fi
+  }{}
+
+\newcommand{\inlinecode}[1]{{\lstset{basicstyle=\ttfamily,keywordstyle={},showstringspaces=false}\lstinline$#1$}}
+\newcommand{\inlineshell}[1]{{\lstset{basicstyle=\ttfamily,keywordstyle={},showstringspaces=false}\lstinline$#1$}}
+
+\setbeamercolor{block title}{fg=white, bg=SandiaLightBlue}
+\setbeamercolor{block body}{bg=lightgray}
+\setbeamercolor{block title alerted}{fg=white, bg=SandiaRed}
+\setbeamercolor{block body alerted}{bg=lightgray}
+
+
+
+%\usepackage[texcoord,grid,gridunit=mm,gridcolor=red!10,subgridcolor=green!10]{eso-pic}
+\usepackage[absolute,overlay]{textpos}
+
+
+
+
+
+% http://tex.stackexchange.com/questions/8851/how-can-i-highlight-some-lines-from-source-code
+
+\usepackage{pgf, pgffor}
+\usepackage{listings}
+\usepackage{lstlinebgrd} % see http://www.ctan.org/pkg/lstaddons
+
+\makeatletter
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% \btIfInRange{number}{range list}{TRUE}{FALSE}
+%
+% Test in int number <number> is element of a (comma separated) list of ranges
+% (such as: {1,3-5,7,10-12,14}) and processes <TRUE> or <FALSE> respectively
+
+\newcount\bt@rangea
+\newcount\bt@rangeb
+
+\newcommand\btIfInRange[2]{%
+    \global\let\bt@inrange\@secondoftwo%
+    \edef\bt@rangelist{#2}%
+    \foreach \range in \bt@rangelist {%
+        \afterassignment\bt@getrangeb%
+        \bt@rangea=0\range\relax%
+        \pgfmathtruncatemacro\result{ ( #1 >= \bt@rangea) && (#1 <= \bt@rangeb) }%
+        \ifnum\result=1\relax%
+            \breakforeach%
+            \global\let\bt@inrange\@firstoftwo%
+        \fi%
+    }%
+    \bt@inrange%
+}
+\newcommand\bt@getrangeb{%
+    \@ifnextchar\relax%
+        {\bt@rangeb=\bt@rangea}%
+        {\@getrangeb}%
+}
+\def\@getrangeb-#1\relax{%
+    \ifx\relax#1\relax%
+        \bt@rangeb=100000%   \maxdimen is too large for pgfmath
+    \else%
+        \bt@rangeb=#1\relax%
+    \fi%
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% \btLstHL<overlay spec>{range list}
+%
+% TODO BUG: \btLstHL commands can not yet be accumulated if more than one overlay spec match.
+%
+\newcommand<>{\btLstHL}[2]{%
+  \only#3{\btIfInRange{\value{lstnumber}}{#1}{\color{#2}\def\lst@linebgrdcmd{\color@block}}{\def\lst@linebgrdcmd####1####2####3{}}}%
+}%
+\makeatother
+
+
+
+
+
+
+% http://tex.stackexchange.com/questions/15237/highlight-text-in-code-listing-while-also-keeping-syntax-highlighting
+%\usepackage[T1]{fontenc}
+%\usepackage{listings,xcolor,beramono}
+\usepackage{tikz}
+
+\makeatletter
+\newenvironment{btHighlight}[1][]
+{\begingroup\tikzset{bt@Highlight@par/.style={#1}}\begin{lrbox}{\@tempboxa}}
+{\end{lrbox}\bt@HL@box[bt@Highlight@par]{\@tempboxa}\endgroup}
+
+\newcommand\btHL[1][]{%
+  \begin{btHighlight}[#1]\bgroup\aftergroup\bt@HL@endenv%
+}
+\def\bt@HL@endenv{%
+  \end{btHighlight}%
+  \egroup
+}
+\newcommand{\bt@HL@box}[2][]{%
+  \tikz[#1]{%
+    \pgfpathrectangle{\pgfpoint{1pt}{0pt}}{\pgfpoint{\wd #2}{\ht #2}}%
+    \pgfusepath{use as bounding box}%
+    \node[anchor=base west, fill=orange!30,outer sep=0pt,inner xsep=1pt, inner ysep=0pt, rounded corners=3pt, minimum height=\ht\strutbox+1pt,#1]{\raisebox{1pt}{\strut}\strut\usebox{#2}};
+  }%
+}
+\makeatother
+
+
+
+\usetikzlibrary{calc}
+\usepackage{xparse}%  For \NewDocumentCommand
+
+% tikzmark command, for shading over items
+\newcommand{\tikzmark}[1]{\tikz[overlay,remember picture] \node (#1) {};}
+
+\makeatletter
+\NewDocumentCommand{\DrawBox}{s O{}}{%
+    \tikz[overlay,remember picture]{
+    \IfBooleanTF{#1}{%
+        \coordinate (RightPoint) at ($(left |- right)+(\linewidth-\labelsep-\labelwidth,0.0)$);
+    }{%
+        \coordinate (RightPoint) at (right.east);
+    }%
+    \draw[red,#2]
+      ($(left)+(-0.2em,0.9em)$) rectangle
+      ($(RightPoint)+(0.2em,-0.3em)$);}
+}
+
+\NewDocumentCommand{\DrawBoxWide}{s O{}}{%
+    \tikz[overlay,remember picture]{
+    \IfBooleanTF{#1}{%
+        \coordinate (RightPoint) at ($(left |- right)+(\linewidth-\labelsep-\labelwidth,0.0)$);
+    }{%
+        \coordinate (RightPoint) at (right.east);
+    }%
+    \draw[red,#2]
+      ($(left)+(-\labelwidth,0.9em)$) rectangle
+      ($(RightPoint)+(0.2em,-0.3em)$);}
+}
+
+\NewDocumentCommand{\DrawBoxWideBlack}{s O{}}{%
+    \tikz[overlay,remember picture]{
+    \IfBooleanTF{#1}{%
+        \coordinate (RightPoint) at ($(left |- right)+(\linewidth-\labelsep-\labelwidth,0.0)$);
+    }{%
+        \coordinate (RightPoint) at (right.east);
+    }%
+    \draw[black,#2]
+      ($(left)+(-\labelwidth,0.9em)$) rectangle
+      ($(RightPoint)+(0.2em,-0.3em)$);}
+}
+\makeatother
+
+\usetikzlibrary{positioning}
+
+\usetikzlibrary{shapes}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,
+    urlcolor=cyan,
+}
+

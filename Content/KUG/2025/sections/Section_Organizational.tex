@@ -50,3 +50,74 @@
 \vspace{0.5cm}
 \end{center}
 \end{frame}
+
+
+\begin{frame}[fragile]{Release timeline}
+\begin{center}
+\textbf{We try to release on a 4 month cycle}
+\vspace{1cm}
+
+    \begin{tikzpicture}
+\begin{axis}[
+    width=\textwidth,
+    date coordinates in=x,
+    date ZERO=2023-03-03,
+    xmin=2023-01-03 00:00, xmax=2026-03-20 00:00,
+    xtick={2023-03-03,2023-07-03,2023-11-03,2024-03-03,2024-07-03,2024-11-03,2025-03-03,2025-07-03,2025-11-03,2026-03-03},
+    axis x line=bottom,% only show the bottom x axis
+    xticklabel style={rotate=90,anchor=near xticklabel},
+    xticklabel={\pgfcalendarmonthshortname{\month}/\year},
+    hide y axis,
+    ymin=0,ymax=5,
+    y=0.2cm,
+    scatter/classes={%
+        a={mark=o,draw=black}}
+    ]
+
+\addplot[scatter,only marks,mark=x,
+    mark size = 3pt,
+    color = red]
+coordinates {
+  (2023-03-03 00:00, 0)
+  (2023-06-28 00:00, 0)
+  (2023-11-20 00:00, 0)
+  (2024-04-04 00:00, 0)
+  (2024-08-12 00:00, 0)
+  (2024-11-25 00:00, 0)
+  (2025-03-28 00:00, 0)
+    };
+    \node [coordinate,pin=above:{4.0}]
+        at (axis cs:2023-03-03,0)   {};
+    \node [coordinate,pin=above:{4.6}]
+        at (axis cs:2025-03-28,0) {};
+
+\addplot[scatter,only marks,mark=x,
+    mark size = 3pt,
+    color = black!40!white]
+coordinates {
+  (2025-07-20 00:00, 0)
+  (2025-11-20 00:00, 0)
+    };
+
+    \node [coordinate,pin=above:{4.7}]
+        at (axis cs:2025-07-20,0)   {};
+    \node [coordinate,pin=above:{5.0}]
+        at (axis cs:2025-11-20,0) {};
+
+\end{axis}
+\end{tikzpicture}
+\end{center}
+
+\end{frame}
+
+\begin{frame}[fragile]{Upcoming Releases}
+  \begin{center}
+\textbf{Kokkos 5.0 is coming soon!}
+\vspace{1cm}
+  \begin{itemize}
+    \item{\textbf{4.6}: 03/2025}
+    \item{\textbf{4.7}: \textcolor{black!40!white}{07/2025}}
+    \item{\textbf{5.0}: \textcolor{black!40!white}{11/2025} Will require c++ 20!}
+  \end{itemize}
+  \end{center}
+\end{frame}

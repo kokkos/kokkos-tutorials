@@ -2,22 +2,29 @@ name: Generate slides from source
 
 on:
   push:
-  pull_request:
     branches: [ "main" ]
-    path:
-      - 'Content/**'
+  pull_request:
+    paths:
+      - 'Content/Presentations/**'
+      - 'Content/ReleaseBriefings/**'
       - '.github/workflows/generate-slides.yaml'
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout source
-      uses: actions/checkout@v4
+    - uses: actions/checkout@v4
+    - uses: dorny/paths-filter@v3
+      id: filter
+      with:
+        filters: |
+          presentations:
+            - 'Content/Presentations/**'
+          release-briefings:
+            - 'Content/ReleaseBriefings/**'
 
     - name: Build Presentations slides
+      if: ${{ steps.filter.outputs.presentations == 'true' }}
       uses: xu-cheng/latex-action@v3
       with:
         working_directory: Content/Presentations/modularized
@@ -34,12 +41,14 @@ jobs:
         args: -pdf -interaction=nonstopmode -shell-escape
     
     - name: Upload Presentations PDFs as artifacts
+      if: ${{ steps.filter.outputs.presentations == 'true' }}"
       uses: actions/upload-artifact@v4.6.1
       with:
         name: PresentationsSlides
         path: Content/Presentations/modularized/*.pdf
 
     - name: Build Release Briefings slides
+      if: ${{ steps.filter.outputs.release-briefings == 'true' }}
       uses: xu-cheng/latex-action@v3
       with:
         working_directory: Content/ReleaseBriefings
@@ -48,6 +57,7 @@ jobs:
         args: -pdf -interaction=nonstopmode -shell-escape
 
     - name: Upload Release Briefings PDFs as artifacts
+      if: ${{ steps.filter.outputs.release-briefings == 'true' }}
       uses: actions/upload-artifact@v4.6.1
       with:
         name: ReleaseBriefingsSlides

@@ -101,7 +101,7 @@ end program my_kokkos_code
       the host % I don't see the point of this
     \item \texttt{Kokkos::View} that are allocated with
       \texttt{kokkos\_allocate\_view} must also be deallocated with
-      \texttt{kokkos\kokkos_deallocate_view}
+      \texttt{kokkos\_deallocate\_view}
     \item \texttt{Kokkos::View} cannot be accessed directly from Fortran instead
       it can be accessed through a \texttt{pointer}
   \end{itemize}
@@ -131,6 +131,7 @@ call kokkos_deallocate_view(c_y, v_c_y)
       they are composed of two \texttt{Kokkos::View}, one on the host and one on
       the device.
     \item It is the user's responsibility to synchronize the data
+    \item The synchronization must done in C++
     \item Supported memory spaces: \texttt{Kokkos::HostSpace},
       \texttt{Kokkos::Cuda}, \texttt{Kokkos::HIP}, and \texttt{Kokkos::SYCL}
   \end{itemize}
@@ -189,12 +190,12 @@ module init_f_mod
     implicit none
     public
       interface
-        subroutine f_init( y ) &
-          & bind(c, name='c_init')
+        subroutine my_f_init( y ) &
+          & bind(c, name='my_c_init')
           use, intrinsic :: iso_c_binding
           use :: flcl_mod
           type(c_ptr), intent(in) :: y
-        end subroutine f_init
+        end subroutine my_f_init
       end interface
   \end{minted}
 \end{frame}
@@ -209,9 +210,9 @@ module init_f_mod
           implicit none
           type(view_r64_1d_t), intent(inout) :: y
 
-          call f_init(y%ptr())
+          call my_f_init(y%ptr())
 
-        end subroutine init
+        end subroutine init_view
   
 end module init_f_mod
   \end{minted}
@@ -224,7 +225,7 @@ end module init_f_mod
 using view_type = flcl::view_r64_1d_t;
 
 extern "C" {
-  void c_init(view_type **v_y) {
+  void my_c_init(view_type **v_y) {
     view_type y = **v_y;
     Kokkos::parallel_for("init", y.extent(0), 
         KOKKOS_LAMBDA(int idx) {

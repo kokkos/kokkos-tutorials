@@ -47,7 +47,8 @@
     \item Similar to MPI, Kokkos need to be initialized using
       \texttt{kokkos\_initialize()} and finalized using \texttt{kokkos\_finalize()}
     \item The \texttt{kokkos\_initialize()} subroutine initializes Kokkos and
-      reads command line arguments
+      reads command line arguments. It should be called after
+      \texttt{MPI\_Initialize}
     \item \texttt{kokkos\_print\_configure("output.txt")} prints the
       Kokkos configuration to the file \texttt{output.txt}
   \end{itemize}
@@ -98,7 +99,9 @@ end program my_kokkos_code
     \item \texttt{Kokkos::View} can be allocated directly or built from an
       array. In the latter case, the \texttt{Kokkos::View} can only be used on
       the host % I don't see the point of this
-    \item \texttt{Kokkos::View} that are allocated must also be deallocated
+    \item \texttt{Kokkos::View} that are allocated with
+      \texttt{kokkos\_allocate\_view} must also be deallocated with
+      \texttt{kokkos\kokkos_deallocate_view}
     \item \texttt{Kokkos::View} cannot be accessed directly from Fortran instead
       it can be accessed through a \texttt{pointer}
   \end{itemize}

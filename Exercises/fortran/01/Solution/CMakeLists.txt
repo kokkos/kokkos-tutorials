@@ -1,8 +1,7 @@
-cmake_minimum_required(VERSION 3.19)
-set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
-project(exercise LANGUAGES Fortran C CXX)
+cmake_minimum_required(VERSION 3.16)
+project(KokkosFortranTutotial01 LANGUAGES Fortran C CXX)
+include(../../../common.cmake)
 
-find_package(Kokkos)
 find_package(flcl)
 
 add_executable(exercise exercise.f90 axpy-view-f.f90 axpy-view-cxx.cc)

@@ -2,17 +2,32 @@ name: Generate slides from source
 
 on:
   push:
-    branches: [ "main" ]
-  pull_request:
     paths:
       - 'Content/Presentations/**'
       - 'Content/ReleaseBriefings/**'
-      - '.github/workflows/generate-slides.yaml'
+  pull_request:
+    branches: [ "main" ]
+    paths:
+      - 'Content/Presentations/**'
+      - 'Content/ReleaseBriefings/**'
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
+    - name: Install packages
+      run: >
+        sudo apt-get update &&
+        DEBIAN_FRONTEND=noninteractive
+        sudo apt-get install -y --no-install-recommends
+        make
+        latexmk
+        lmodern
+        texlive
+        texlive-latex-extra
+        texlive-plain-generic
+
     - uses: actions/checkout@v4
     - uses: dorny/paths-filter@v3
       id: filter
@@ -25,23 +40,12 @@ jobs:
 
     - name: Build Presentations slides
       if: ${{ steps.filter.outputs.presentations == 'true' }}
-      uses: xu-cheng/latex-action@v3
-      with:
-        working_directory: Content/Presentations/modularized
-        root_file: |
-          KokkosTutorial_01_Introduction.tex
-          KokkosTutorial_02_ViewsAndSpaces.tex
-          KokkosTutorial_03_MDRangeMoreViews.tex
-          KokkosTutorial_04_HierarchicalParallelism.tex
-          KokkosTutorial_05_SIMDStreamsTasking.tex
-          KokkosTutorial_06_InternodeMPIAndPGAS.tex
-          KokkosTutorial_07_Tools.tex
-          KokkosTutorial_08_KokkosKernels.tex
-        compiler: latexmk
-        args: -pdf -interaction=nonstopmode -shell-escape
-    
+      run: >
+        cd Content/Presentations &&
+        make
+
     - name: Upload Presentations PDFs as artifacts
-      if: ${{ steps.filter.outputs.presentations == 'true' }}"
+      if: ${{ steps.filter.outputs.presentations == 'true' }}
       uses: actions/upload-artifact@v4.6.1
       with:
         name: PresentationsSlides
@@ -49,12 +53,9 @@ jobs:
 
     - name: Build Release Briefings slides
       if: ${{ steps.filter.outputs.release-briefings == 'true' }}
-      uses: xu-cheng/latex-action@v3
-      with:
-        working_directory: Content/ReleaseBriefings
-        root_file: release-*.tex
-        compiler: latexmk
-        args: -pdf -interaction=nonstopmode -shell-escape
+      run: >
+        cd Content/ReleaseBriefings &&
+        make
 
     - name: Upload Release Briefings PDFs as artifacts
       if: ${{ steps.filter.outputs.release-briefings == 'true' }}

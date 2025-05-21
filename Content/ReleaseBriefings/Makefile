@@ -1,6 +1,6 @@
 LATEXMK_OPTS = -pdf -interaction=nonstopmode -shell-escape
 
-default: release-45
+default: release-46
 
 workaround-on:
 	sed -i.bak 's|%\\input|\\input|g' KokkosTutorial_PreTitle.tex
@@ -34,6 +34,9 @@ release-44:
 
 release-45:
 	latexmk $(LATEXMK_OPTS) release-45
+
+release-46:
+	pdflatex release-46.tex
 
 clean:
 	latexmk -c

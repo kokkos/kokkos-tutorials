@@ -1,0 +1,90 @@
+%==========================================================================
+
+\begin{frame}[fragile]
+
+  {\Huge Deprecations and other breaking changes}
+
+  \vspace{10pt}
+
+\end{frame}
+
+
+\begin{frame}[fragile]{Dropping support for Intel C++ Compiler Classic}
+  \begin{itemize}
+    \item Intel has deprecated Intel Classic in 2022, and removed it from oneAPI 2024
+    \item In order to focus on newer compilers, and reduce maintenance burden, we have \textbf{removed} support for Intel Classic (oneAPI Intel/icpx still supported of course!)
+  \end{itemize}
+\end{frame}
+
+
+\begin{frame}[fragile]{DualView changes}
+  \textbf{Deprecate} direct access to \texttt{d\_view} and \texttt{h\_view}
+  \begin{itemize}
+    \item Modifying the allocations in d\_view and h\_view directly is dangerous, especially if \texttt{modify} and \texttt{sync} are skipped
+    \item Use \texttt{view\_host()} and \texttt{view\_device()} instead
+    \item These two functions return by value with deprecated code enabled and by const reference otherwise. This might have perfomance implications if used extensively, e.g., in loop bounds.
+  \end{itemize}
+\end{frame}
+
+
+\begin{frame}[fragile]{Experimental SIMD changes}
+  \begin{itemize}
+    \item \texttt{native\_simd}, \texttt{native\_simd\_mask} \textbf{deprecated} to align with the C++26 standard
+    \item \textbf{Removed} Obtaining a reference from SIMD \texttt{operator[]} to align with the C++26 Standard
+    \item \textbf{Changed} the return type of SIMD \texttt{operator==} and \texttt{operator!=} to return SIMD masks instead of \texttt{bool}
+    \begin{itemize}
+      \item If you want old behavior, use \texttt{all\_of(a == b)}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Additional Deprecations and Removals}
+  \begin{itemize}
+    \item Already discussed deprecating the Makefile
+    \item StaticCrsGraph is \textbf{moved} to Kokkos Kernels and \textbf{deprecated} in Core
+    \begin{itemize}
+      \item See \url{https://github.com/kokkos/kokkos-kernels/pull/2419}
+      \item Symbol is in Kernels under \texttt{KokkosSparse::StaticCrsGraph}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+%==========================================================================
+
+% Examples
+
+% note: always keep the [fragile] for your frames!
+
+%\begin{frame}[fragile]{Example list}
+%  \begin{itemize}
+%      \item Item 1
+%      \item Item 2 with some \texttt{code}
+%      \begin{itemize}
+%        \item Sub-item 2.1
+%        \item Sub-item 2.2
+%      \end{itemize}
+%  \end{itemize}
+%\end{frame}
+
+%\begin{frame}[fragile]{Example code}
+%    \begin{code}[keywords={std}]
+%        #include <iostream>
+%        
+%        int main() {
+%            std::cout << "hello world\n";
+%        }
+%    \end{code}
+%\end{frame}
+
+%\begin{frame}[fragile]{Example table}
+%    \begin{center}
+%        \begin{tabular}{l|l}
+%            a & b \\\hline
+%            c & d
+%        \end{tabular}
+%    \end{center}
+%\end{frame}
+
+%==========================================================================
+
+
+%==========================================================================

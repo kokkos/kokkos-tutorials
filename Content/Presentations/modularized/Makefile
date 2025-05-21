@@ -11,29 +11,29 @@ workaround-off:
 	rm KokkosTutorial_PreTitle.tex.bak
 
 overview:
-	pdflatex Kokkos_ShortOverview
+	latexmk Kokkos_ShortOverview
 short:
-	pdflatex KokkosTutorial_Short
+	latexmk KokkosTutorial_Short
 medium:
-	pdflatex KokkosTutorial_Medium
+	latexmk KokkosTutorial_Medium
 module1:
-	pdflatex KokkosTutorial_01_Introduction
+	latexmk KokkosTutorial_01_Introduction
 module2:
-	pdflatex KokkosTutorial_02_ViewsAndSpaces
+	latexmk KokkosTutorial_02_ViewsAndSpaces
 module3:
-	pdflatex KokkosTutorial_03_MDRangeMoreViews
+	latexmk KokkosTutorial_03_MDRangeMoreViews
 module4:
-	pdflatex KokkosTutorial_04_HierarchicalParallelism
+	latexmk KokkosTutorial_04_HierarchicalParallelism
 module5:
-	pdflatex KokkosTutorial_05_SIMDStreamsTasking
+	latexmk KokkosTutorial_05_SIMDStreamsTasking
 module6:
-	pdflatex KokkosTutorial_06_InternodeMPIAndPGAS.tex
+	latexmk KokkosTutorial_06_InternodeMPIAndPGAS
 module7:
-	pdflatex KokkosTutorial_07_Tools.tex
+	latexmk KokkosTutorial_07_Tools
 module8:
-	pdflatex KokkosTutorial_08_KokkosKernels.tex
+	latexmk KokkosTutorial_08_KokkosKernels
 
 all: module1 module2 module3 module4 module5 module6 module7 module8
 
 clean:
-	rm -r *.aux *.log *.nav *.out *.snm *.toc *.vrb
+	latexmk -c

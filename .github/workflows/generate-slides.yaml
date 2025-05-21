@@ -2,15 +2,17 @@ name: Generate slides from source
 
 on:
   push:
+    paths:
+      - 'Content/Presentations/**'
+      - 'Content/ReleaseBriefings/**'
   pull_request:
     branches: [ "main" ]
+    paths:
+      - 'Content/Presentations/**'
+      - 'Content/ReleaseBriefings/**'
 
 jobs:
   build:
-    strategy:
-      matrix:
-        which: [Presentations, ReleaseBriefings]
-
     runs-on: ubuntu-latest
 
     steps:
@@ -20,23 +22,44 @@ jobs:
         DEBIAN_FRONTEND=noninteractive
         sudo apt-get install -y --no-install-recommends
         make
+        latexmk
+        lmodern
         texlive
         texlive-latex-extra
         texlive-plain-generic
 
-    - name: Checkout source
-      uses: actions/checkout@v4
+    - uses: actions/checkout@v4
+    - uses: dorny/paths-filter@v3
+      id: filter
+      with:
+        filters: |
+          presentations:
+            - 'Content/Presentations/**'
+          release-briefings:
+            - 'Content/ReleaseBriefings/**'
 
-    - name: Build slides
+    - name: Build Presentations slides
+      if: ${{ steps.filter.outputs.presentations == 'true' }}
       run: >
-        cd Content/${{ matrix.which }} &&
+        cd Content/Presentations &&
         make
 
-    - name: Upload PDFs as artifacts
-      id: deployment
+    - name: Upload Presentations PDFs as artifacts
+      if: ${{ steps.filter.outputs.presentations == 'true' }}
       uses: actions/upload-artifact@v4.6.1
       with:
-        name: Slides${{ matrix.which }}
-        path: |
-          Content/${{ matrix.which }}/release-*.pdf
-          Content/${{ matrix.which }}/modularized/*.pdf
+        name: PresentationsSlides
+        path: Content/Presentations/modularized/*.pdf
+
+    - name: Build Release Briefings slides
+      if: ${{ steps.filter.outputs.release-briefings == 'true' }}
+      run: >
+        cd Content/ReleaseBriefings &&
+        make
+
+    - name: Upload Release Briefings PDFs as artifacts
+      if: ${{ steps.filter.outputs.release-briefings == 'true' }}
+      uses: actions/upload-artifact@v4.6.1
+      with:
+        name: ReleaseBriefingsSlides
+        path: Content/ReleaseBriefings/*.pdf

@@ -1,6 +1,6 @@
 \input{KokkosTutorial_PreTitle}
 \usepackage{tikz}
-\graphicspath{{4_6/figures/}}
+\graphicspath{{figures/}}
 \usepackage{multicol}
 \usepackage{pgfplots}
 \usepgfplotslibrary{dateplot}
@@ -13,9 +13,30 @@
 \title{Kokkos User Group Meeting 2025}
 
 %BAD misuse of author field
-\author{New Capabilities}
+\author{Welcome!}
 
-\date{04/10/2025}
+\date{05/07/2025}
+
+% we want automatic slides introducing sections
+\AtBeginSection[]{
+  \begin{frame}
+  \vfill
+  \centering
+  \textbf{\huge{\insertsectionhead}}
+  \vfill
+  \end{frame}
+}
+% we also want this for subsections
+\AtBeginSubsection[]{
+  \begin{frame}
+  \vfill
+  \centering
+  \textbf{\huge{\insertsectionhead}} \\
+  \vspace{1cm}
+  \insertsubsectionhead
+  \vfill 
+  \end{frame}
+}
 
 \input{KokkosTutorial_PostTitle}
 
@@ -25,20 +46,15 @@
   \titlepage
 \end{frame}
 
-
 \begin{frame}[fragile]{Outline}
-
-  \textbf{KUG 2025}
-
-  \begin{itemize}
-    \item{Organizational}
-    \item{CI Updates}
-  \end{itemize}
-
+\textbf{KUG 2025}
+\tableofcontents
 \end{frame}
 
 
 \input{sections/Section_Organizational.tex}
-\input{sections/Section_CI.tex}
+\input{sections/Section_Changes.tex}
+\input{sections/Section_Next.tex}
+\input{sections/Section_Workgroups.tex}
 
 \end{document}

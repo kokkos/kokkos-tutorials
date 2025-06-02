@@ -1,0 +1,416 @@
+\section{Changes since Kokkos 4.0}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{New features}
+
+\begin{frame}[fragile]{Multi-GPU support for CUDA, HIP, and SYCL}
+  \begin{itemize}
+    \item Launch kernels on multiple devices from a single host process
+    \item Requires direct use of native runtime for creating and destroying streams/queues
+    \item Experimental, still looking for feedback from new users
+    \item New documentation (for all backends)  
+      \begin{itemize} 
+        \item[] \url{https://kokkos.org/kokkos-core-wiki/API/core/MultiGPUSupport.html}
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Multi-GPU for HIP Backend}
+  \begin{code}[keywords={auto}]
+// Create streams on different devices
+hipStream_t streams[2];
+hipSetDevice(0); hipStreamCreate(&streams[0]);
+hipSetDevice(1); hipStreamCreate(&streams[1]);
+{
+  // Creating execution spaces 
+  Kokkos::HIP exec0(streams[0]), exec1(streams[1]);
+
+  // Allocating views
+  Kokkos::View<int*> v0(Kokkos::view_alloc("v0", exec0), N);
+  Kokkos::View<int*> v1(Kokkos::view_alloc("v1", exec1), M);
+
+  // Launch kernels (run concurrently)
+  Kokkos::parallel_for(Kokkos::RangePolicy(exec0, 0, N), functor0);
+  Kokkos::parallel_for(Kokkos::RangePolicy(exec1, 0, M), functor1);
+}
+// Destroy streams (after execution spaces are deleted)
+hipStreamDestroy(streams[0]); hipStreamDestroy(streams[1]);
+  \end{code}
+\end{frame}
+
+\begin{frame}[fragile]{Many Team-Level Algorithms}
+
+\begin{itemize}
+\item Defined in header \texttt{<Kokkos\_StdAlgorithms.hpp>}
+\item Extended API with a new overload for team-level support
+
+\begin{code}[keywords={sort}]
+template <class TeamHandleT, ...>
+KOKKOS_FUNCTION
+/*ret type*/ algo_name(const TeamHandleT& /*teamHandle*/,
+                       /*view(s) or iterators*/,
+                       /*extra*/);
+\end{code}
+
+\item \texttt{teamHandle}: given in parallel region when using TeamPolicy
+
+\item \texttt{view(s)}: rank-1, \texttt{LayoutLeft,Right,Stride}
+
+\item \texttt{iterators}: must be random access (use \texttt{Kokkos::Experimental::begin,end,cbegin,cend})
+
+\item views and iterators must be accessible from \texttt{space} or from the space associated with \texttt{teamHandle}
+
+\item \texttt{extra}: parameters that are specific to the algorithm
+
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{Many Team-Level Algorithms}
+\begin{multicols}{4}
+\begin{itemize}
+    \itemsep0em 
+    \item AdjacentFind
+    \item Count[If]
+    \item ForEach
+    \item ForEachN
+    \item {Lexicographical\\Compare}
+    \item Mismatch
+    \item Equal
+    \item Search
+    \item FindEnd
+    \item FindFirstOf
+    \item Find\\\{If,IfNot\}
+    \item Unique
+\end{itemize}
+\columnbreak
+\begin{itemize}
+
+    \itemsep0em
+    \item AllOf
+    \item AnyOf
+    \item NoneOf
+    \item SearchN
+    \item MinElement
+    \item MaxElement
+    \item {MinMax\\Element}
+    \item Fill[N]
+    \item Replace\\\{If,Copy,CopyIf\}
+    \item Reverse
+    \item ReverseCopy
+    \item SwapRanges
+\end{itemize}
+\columnbreak
+\begin{itemize}
+
+    \itemsep0em
+    \item Rotate
+    \item RotateCopy
+    \item Move
+    \item MoveBackward
+    \item ShiftLeft
+    \item ShiftRight
+    \item Copy\\\{N,Backward,If\}
+    \item UniqueCopy
+    \item {Remove\\\{If,Copy,CopyIf\}}
+    \item Transform
+    \item Generate[N]
+    \item InclusiveScan
+
+\end{itemize}
+\columnbreak
+\begin{itemize}
+
+    \itemsep0em
+    \item {Adjacent\\Difference}
+    \item Reduce
+    \item {Transform\\Reduce}
+    \item IsSortedUntil
+    \item IsSorted
+    \item IsPartitioned
+    \item PartitionCopy
+    \item PartitionPoint
+    \item ExclusiveScan
+    \item {Transform \{In,Ex\}clusiveScan}
+    
+    
+    
+\end{itemize}
+\end{multicols}
+\end{frame}
+
+\begin{frame}[fragile]{Build systems update}
+  \begin{itemize}
+    \item support external Kokkos in Trilinos
+    \item allow linking against build tree
+    \item support building with hidden visibility, e.g., for \texttt{pybind11}
+    \item deprecate Makefile support
+    \item export \texttt{Kokkos\_{CUDA,HIP}\_ARCHITECTURES} for support with \texttt{Kokkos\_ENABLE\_COMPILE\_AS\_CMAKE\_LANGUAGE}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{New Kokkos::View implementation}
+  \begin{itemize}
+    \item We changed to a \texttt{mdspan}-based design
+    \item Most features work as before
+    \item Still lacking support for
+      \begin{itemize}
+        \item Most memory traits (apart from \texttt{Kokkos::Atomic})
+        \item Custom layouts
+        \item \texttt{specialize} for \texttt{Sacado}
+      \end{itemize}
+    \item Be aware of related deprecations!
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Open SSF Scorecard}
+\begin{center}
+\textbf{We reached ``passed'' on the OSSF Best Practices Program}
+\href{https://www.bestpractices.dev/en/projects/9344}{www.bestpractices.dev}
+
+\vspace{0.5cm}
+\textit{This means Kokkos is continuously tracking and openly reporting the conformity with open source software practices.}
+
+Blog post: \url{https://kokkos.org/blog/openssf_passing_badge/}
+\end{center}
+\end{frame}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Improvements}
+
+\begin{frame}[fragile]{SYCL reaches production-level support}
+  \begin{itemize}
+    \item Development started in 3.3.00 maturing and tracking changes to hardware and software for Aurora and its testbeds
+    \item Moved out of \texttt{Experimental} in Kokkos 4.5.00
+    \item Apart from Intel GPUs, tested with NVIDIA GPUs (CI) and AMD GPUs (WIP)
+    \item Aurora opened to the public in Februrary 2025, currently \#3 in the Top500
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Sorting improvements}
+  \begin{itemize}
+\item Improve sorting performance by using GPU libraries
+\item Improve performance of \texttt{Kokkos::sort} when \texttt{std::sort} is used
+\item Add \texttt{Experimental::sort\_by\_key} algorithm
+\item Support custom comparator in \texttt{Kokkos::sort}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Experimental SIMD changes}
+  \begin{itemize}
+    \item \texttt{native\_simd}, \texttt{native\_simd\_mask} \textbf{deprecated} to align with the C++26 standard
+    \item \textbf{Removed} Obtaining a reference from SIMD \texttt{operator[]} to align with the C++26 Standard
+    \item \textbf{Changed} the return type of SIMD \texttt{operator==} and \texttt{operator!=} to return SIMD masks instead of \texttt{bool}
+    \begin{itemize}
+      \item If you want old behavior, use \texttt{all\_of(a == b)}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{\texttt{TeamMDRangePolicies API}}
+
+API for TeamThreadMDRange, TeamVectorMDRange and ThreadVectorMDRange
+
+\vspace{10pt}
+
+\begin{code}[keywords={TeamVectorMDRange}]
+ parallel_for(
+   TeamVectorMDRange<Rank<2>, TeamHandle>(team_handle, N, M),
+   [=](int i, int j) { /* ... */ }
+ );
+\end{code}
+
+\vspace{10pt}
+
+\begin{itemize}
+  \item Takes in \texttt{Rank<N,OuterDir,InnerDir>} that describes its iteration pattern
+  \item Same behavior as regular \texttt{MDRangePolicy}
+  \begin{itemize}
+    \item \texttt{N} is number of dimensions (required to be [2, 8])
+    \item \texttt{Iterate} is an \texttt{enum \{ Default, Left, Right \}}
+    \item \texttt{Iterate} is used to choose iterating left-most dimension or right-most dimension
+    \item Only \texttt{OuterDir} is used for \texttt{TeamMDRange}
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+
+%==========================================================================
+
+\begin{frame}[fragile]{Thread-Safety}
+  \begin{itemize}
+    \item Submitting kernels from multiple threads to the same execution space instance allowed
+    \item They are guaranteed not to run concurrently. 
+    \item Requires locks even in synchronous execution spaces like \texttt{Serial} and \texttt{OpenMP}.
+    \item \texttt{Kokkos\_ENABLE\_ATOMICS\_BYPASS} disables locks and atomics for the \texttt{Serial} backend
+    \item Impact on View of View misuse and kernel in kernel calls.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Thread-Safety}
+\begin{code}
+  Kokkos::View<int> view("view");
+  Kokkos::View<int> error("error");
+  auto lambda = [=]() {
+    Kokkos::parallel_for(
+      Kokkos::RangePolicy<>(exec, 0, 1), KOKKOS_LAMBDA(int) {
+          Kokkos::atomic_store(view.data(), 0);
+          for (int i = 0; i < N; ++i) Kokkos::atomic_inc(view.data());
+          if (Kokkos::atomic_load(view.data()) != N)
+            Kokkos::atomic_store(error.data(), 1);
+        });
+  };
+  std::thread t1(lambda);
+  std::thread t2(lambda);
+  t1.join();
+  t2.join();
+\end{code}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{View of Views: Introduce new SequentialHostInit view allocation property}
+\textbf{To create a \textit{normal} \texttt{View} the objects it views need to be:}
+\begin{itemize}
+  \item default-constructible in the View associated execution space
+  \item destructible in the View associated execution space 
+\end{itemize}
+
+\vspace{10pt}
+
+\textbf{This Means:} Default constructor and destructor:
+\begin{itemize}
+\item{must be \texttt{KOKKOS\_FUNCTION} (or defaulted)}
+\item{can't allocate or deallocate data}
+\item{can't call Kokkos parallel operations (\texttt{parallel\_for} etc.)}
+\item{can't create or destroy Views!}
+\end{itemize}
+
+\vspace{10pt}
+\begin{center}
+\textit{If your object does any of these things it is "Complicated"!}
+\end{center}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{View of Views: Introduce new SequentialHostInit view allocation property}
+
+\begin{itemize}
+\item Construction and Destruction of objects will happen sequentially on Host!
+\item Backported to 4.4.1
+\end{itemize}
+
+\begin{code}
+using Complicated = Kokkos::View<T*, SomeMemorySpace>;
+auto allocation_args = view_alloc("v", SequentialHostInit);
+View<Complicated**, HostAccessibleSpace> v(allocation_args, 2, 3);
+// copy assign elements
+v(0,0) = Complicated("w00", 4);
+v(1,0) = Complicated("w10", 5);
+v(0,1) = Complicated("w01", 6);
+// v.~View() handles properly elements destruction
+\end{code}
+
+\vspace{10pt}
+\textbf{Requirements for generic "Complicated" types:}
+\begin{itemize}
+\item \texttt{T} is default constructible and destructible on host
+\item \texttt{HostAccessibleSpace} is host accessible (e.g. \texttt{SharedSpace} or \texttt{HostSpace})
+\end{itemize}
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{clang-tidy conformity}
+
+\begin{frame}[fragile]{Improving clang-tidy Conformity}
+\begin{itemize}
+    \item Total of 90 \texttt{bugprone-*} tests
+    \item 32 of those reported problems
+    \item 24 of those addressed so far
+    \item We acted upon 8 out of those 24, while suppressing 16.
+    \item Mostly found uncritical problems with the biggest find being a use-after-move in \texttt{Kokkos::unique} and some potential overflows detected.
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Improving clang-tidy Conformity}
+%\begin{columns}
+%\begin{column}{.25\textwidth}
+%\begin{itemize}
+%    \item Mostly found uncritical problems with the biggest find being a use-after-move in \texttt{Kokkos::unique} and some potential overflows detected.
+%\end{itemize}
+%\end{column}
+%\begin{column}{.75\textwidth}
+\begin{center}
+\begin{tikzpicture}
+    \pie[
+    text=legend, 
+    color={green!50, yellow!50, red!50, blue!50}, sum=90]
+    {58/no issue, 16/suppressed or refactored, 8/actual bug, 8/unresolved}
+\end{tikzpicture}
+\end{center}
+%\end{column}
+%\end{columns}
+\end{frame}
+
+\begin{frame}[fragile]{Improving clang-tidy Conformity}
+Real problems
+\begin{itemize}
+ \item \texttt{bugprone-use-after-move} in \texttt{Kokkos::unique}
+ \item \texttt{bugprone-unhandled-self-assignment} in \texttt{Kokkos::Array}
+ \item \texttt{bugprone-unhandled-exception-at-new} in \texttt{HPX} backend
+ \item \texttt{bugprone-implicit-widening-of-multiplication-result} in thread assignment for \texttt{HIP}
+ \item \texttt{bugprone-suspicious-memory-comparison} in \texttt{is\_zero\_byte}
+ \item \texttt{bugprone-crtp-constructor-accessibility} in Tuners.
+ \item \texttt{bugprone-reserved-identifier} in tests
+ \item \texttt{bugprone-switch-missing-default-case} in tests
+\end{itemize}
+\end{frame}
+\begin{frame}[fragile]{Improving clang-tidy Conformity}
+Suppressed
+\scriptsize
+\begin{columns}
+\begin{column}{0.45\textwidth}
+\begin{itemize}
+  \item \texttt{bg-unused-raii}
+  \item \texttt{bg-undefined-memory-manipulation}
+  \item \texttt{bg-unchecked-optional-access}
+  \item \texttt{bg-throw-keyword-missing}
+  \item \texttt{bg-suspicious-stringview-data-usage}
+  \item \texttt{bg-suspicious-string-compare}
+  \item \texttt{bg-sizeof-expression}
+  \item \texttt{bg-return-const-ref-from-parameter}
+ \end{itemize}
+ \end{column}
+ \begin{column}{0.55\textwidth}
+ \begin{itemize}
+  \item \texttt{bg-non-zero-enum-to-bool-conversion}
+  \item \texttt{bg-multi-level-implicit-pointer-conversion}
+  \item \texttt{bg-misplaced-widening-cast}
+  \item \texttt{bg-integer-division}
+  \item \texttt{bg-inc-dec-in-conditions}
+  \item \texttt{bg-forwarding-reference-overload}
+  \item \texttt{bg-empty-catch}
+  \item \texttt{bg-assignment-in-if-condition}
+\end{itemize}
+ \end{column}
+  \end{columns}
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Miscellaneous}
+\begin{frame}[fragile]{Miscellaneous}
+  \begin{itemize}
+    \item \texttt{Kokkos::printf}
+    \item \texttt{KOKKOS\_RELOCATABLE\_FUNCTION}
+    \item improved half-precision support (numeric traits, math functions)
+    \item \texttt{ScopedRegion} RAII wrapper class
+    \item \texttt{CTAD} for various classes
+    \item Bit manipulation functions (backport of C++20 standard library header \texttt{<bit>})
+    \item \texttt{Graph} improvements
+    \item Support building with Run-Time Type Information (RTTI) disabled
+    \item precondition violations on policies checking for convertibility of bounds to index type.
+\end{itemize}
+\end{frame}

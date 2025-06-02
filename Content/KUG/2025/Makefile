@@ -13,8 +13,5 @@ workaround-off:
 kug-2025:
 	pdflatex kug-2025.tex
 
-changes:
-	pdflatex changes.tex
-
 clean:
 	rm -r *.aux *.log *.nav *.out *.snm *.toc *.vrb

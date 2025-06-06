@@ -31,20 +31,20 @@ program example_axpy_view
   integer :: ii
 
   ! allocate fortran memory for array
-  write(*,*)'allocating fortran memory'
+  print *, 'allocating fortran memory'
   allocate(f_y(mm))
 
   ! initialize Kokkos
-  write(*,*)'initializing Kokkos'
+  print *, 'initializing Kokkos'
   call kokkos_initialize()
 
   ! allocate Views
-  write(*,*)'allocating Kokkos Views'
+  print *, 'allocating Kokkos Views'
   call kokkos_allocate_view( c_y, v_c_y, 'c_y', int(mm, c_size_t) )
   call kokkos_allocate_view( x, v_x, 'x', int(mm, c_size_t) )
 
   ! put some random numbers in the vectors
-  write(*,*)'setting up arrays'
+  print *, 'setting up arrays'
   call random_seed()
   call random_number(f_y)
   do ii = 1,mm
@@ -54,31 +54,31 @@ program example_axpy_view
   call random_number(alpha)
 
   ! perform an axpy in fortran
-  write(*,*)'performing an axpy in fortran'
+  print *, 'performing an axpy in fortran'
   do ii = 1, mm
     f_y(ii) = f_y(ii) + alpha * x(ii)
   end do
 
   ! call the fortran interface to the c_axpy routine
-  write(*,*)'performing an axpy with Kokkos'
+  print *, 'performing an axpy with Kokkos'
   call axpy_view(v_c_y, v_x, alpha)
 
   ! check to see if arrays are "the same"
   if ( norm2(f_y-c_y) < (1.0e-14)*norm2(f_y) ) then
-    write(*,*)'PASSED f_y and c_y the same after axpys'
+    print *, 'PASSED f_y and c_y the same after axpys'
   else
-    write(*,*)'FAILED f_y and c_y the same after axpys'
-    write(*,*)'norm2(f_y-c_y)',norm2(f_y-c_y)
-    write(*,*)'(1.0e-14)*norm2(f_y)',(1.0e-14)*norm2(f_y)
+    print *, 'FAILED f_y and c_y the same after axpys'
+    print *, 'norm2(f_y-c_y)',norm2(f_y-c_y)
+    print *, '(1.0e-14)*norm2(f_y)',(1.0e-14)*norm2(f_y)
   end if
 
   ! deallocate Views
-  write(*,*)'deallocate Kokkos views'
+  print *, 'deallocate Kokkos views'
   call kokkos_deallocate_view( c_y, v_c_y )
   call kokkos_deallocate_view( x, v_x )
 
   ! finalize Kokkos
-  write(*,*)'finalizing Kokkos'
+  print *, 'finalizing Kokkos'
   call kokkos_finalize()
 
 end program example_axpy_view

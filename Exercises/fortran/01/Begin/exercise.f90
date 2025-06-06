@@ -33,7 +33,7 @@ program example_axpy_view
   integer :: ii
 
   ! allocate fortran memory for array
-  write(*,*)'allocating fortran memory'
+  print *, 'allocating fortran memory'
   allocate(f_y(mm))
 
   ! EXERCISE: initialize Kokkos
@@ -43,7 +43,7 @@ program example_axpy_view
   allocate(x(mm))
 
   ! put some random numbers in the vectors
-  write(*,*)'setting up arrays'
+  print *, 'setting up arrays'
   call random_seed()
   call random_number(f_y)
   do ii = 1,mm
@@ -53,7 +53,7 @@ program example_axpy_view
   call random_number(alpha)
 
   ! perform an axpy in fortran
-  write(*,*)'performing an axpy in fortran'
+  print *, 'performing an axpy in fortran'
   do ii = 1, mm
     f_y(ii) = f_y(ii) + alpha * x(ii)
   end do
@@ -62,11 +62,11 @@ program example_axpy_view
 
   ! check to see if arrays are "the same"
   if ( norm2(f_y-c_y) < (1.0e-14)*norm2(f_y) ) then
-    write(*,*)'PASSED f_y and c_y the same after axpys'
+    print *, 'PASSED f_y and c_y the same after axpys'
   else
-    write(*,*)'FAILED f_y and c_y the same after axpys'
-    write(*,*)'norm2(f_y-c_y)',norm2(f_y-c_y)
-    write(*,*)'(1.0e-14)*norm2(f_y)',(1.0e-14)*norm2(f_y)
+    print *, 'FAILED f_y and c_y the same after axpys'
+    print *, 'norm2(f_y-c_y)',norm2(f_y-c_y)
+    print *, '(1.0e-14)*norm2(f_y)',(1.0e-14)*norm2(f_y)
   end if
 
   ! EXERCISE: deallocate Views

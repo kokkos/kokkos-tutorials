@@ -25,8 +25,6 @@ module axpy_f_mod
         ! Bind the Fortran subroutine f_axpy_view with the C function c_axpy_view
         subroutine f_axpy_view( y, x, alpha ) &
           & bind(c, name='c_axpy_view')
-          use, intrinsic :: iso_c_binding
-          use :: flcl_mod
           type(c_ptr), intent(in) :: y
           type(c_ptr), intent(in) :: x
           real(c_double), intent(in) :: alpha
@@ -36,9 +34,6 @@ module axpy_f_mod
       contains
 
         subroutine axpy_view( y, x, alpha )
-          use, intrinsic :: iso_c_binding
-          use :: flcl_mod
-          implicit none
           ! y and x are one dimensional View of real 64
           type(view_r64_1d_t), intent(inout) :: y
           type(view_r64_1d_t), intent(in) :: x

@@ -1,0 +1,5 @@
+cmake_minimum_required(VERSION 3.16)
+project(KokkosTutorialMultiGPUCuda)
+
+add_subdirectory(Begin)
+add_subdirectory(Solution)

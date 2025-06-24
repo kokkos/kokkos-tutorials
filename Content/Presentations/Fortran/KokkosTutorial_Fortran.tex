@@ -44,9 +44,9 @@
 
 \begin{frame}{Starting a program}
   \begin{itemize}
-    \item Similar to MPI, Kokkos need to be initialized using
-      \texttt{kokkos\_initialize()} and finalized using \texttt{kokkos\_finalize()}
-    \item The \texttt{kokkos\_initialize()} subroutine initializes Kokkos and
+    \item Similar to MPI, Kokkos need to be initialized calling
+      \texttt{kokkos\_initialize} and finalized calling \texttt{kokkos\_finalize}
+    \item The \texttt{kokkos\_initialize} subroutine initializes Kokkos and
       reads command line arguments. It should be called after
       \texttt{MPI\_Initialize}
     \item \texttt{kokkos\_print\_configure("output.txt")} prints the
@@ -90,8 +90,9 @@ end program my_kokkos_code
     \item The memory space defines where the memory is allocated
     \item Supported memory spaces: \texttt{Kokkos::HostSpace},
       \texttt{Kokkos::CudaManagedSpace}, and \texttt{Kokkos::HIPManagedSpace}
-    \item The memory space is set when the \texttt{Kokkos-Fortran-Interop} is
-      configured
+    \item The memory space is determined during the configuration of the
+      \texttt{Kokkos-Fortran-Interop} library, based on the memory space
+      configuration of Kokkos.
   \end{itemize}
 \end{frame}
 
@@ -147,8 +148,7 @@ call kokkos_deallocate_view(c_y, v_c_y)
 \begin{frame}[containsverbatim]{Kokkos::DualView}
   \begin{minted}{fortran}
 use, intrinsic :: iso_c_binding
-use :: flcl_mod, only : dualview_r64_1d_t, kokkos_allocate_dualview,
-    kokkos_deallocate_dualview
+use :: flcl_mod
 
 real(real64), pointer, dimension(:) :: c_y
 type(dualview_r64_1d_t) :: v_c_y
@@ -175,6 +175,7 @@ call kokkos_deallocate_dualview(c_y, v_c_y)
   \begin{minted}{fortran}
 use, intrinsic :: iso_c_binding
 use :: flcl_mod
+use :: my_init_mod
 
 real(real64), pointer, dimension(:) :: c_y
 type(view_r64_1d_t) :: v_c_y
@@ -183,7 +184,7 @@ integer :: mm = 5000
 call kokkos_allocate_view(c_y, v_c_y, 'c_y', &
                           int(mm, c_size_t))
 
-call init_view(v_c_y)
+call my_init(v_c_y)
 
 call kokkos_deallocate_view(c_y, v_c_y)
   \end{minted}
@@ -191,7 +192,7 @@ call kokkos_deallocate_view(c_y, v_c_y)
 
 \begin{frame}[containsverbatim]{Initialize View}
   \begin{minted}{fortran}
-module init_f_mod
+module my_init_mod
     use, intrinsic :: iso_c_binding
     use, intrinsic :: iso_fortran_env
     use :: flcl_mod
@@ -210,17 +211,15 @@ module init_f_mod
   \begin{minted}{fortran}
       contains
 
-        subroutine init_view( y )
-          use, intrinsic :: iso_c_binding
-          use :: flcl_mod
+        subroutine my_init( y )
           implicit none
           type(view_r64_1d_t), intent(inout) :: y
 
           call my_f_init(y%ptr())
 
-        end subroutine init_view
+        end subroutine my_init
   
-end module init_f_mod
+end module my_init_mod
   \end{minted}
 \end{frame}
 

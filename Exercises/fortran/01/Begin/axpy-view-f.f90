@@ -25,6 +25,8 @@ module axpy_f_mod
         ! Bind the Fortran subroutine f_axpy_view with the C function c_axpy_view
         subroutine f_axpy_view( y, x, alpha ) &
           & bind(c, name='c_axpy_view')
+          import
+          implicit none
           type(c_ptr), intent(in) :: y
           type(c_ptr), intent(in) :: x
           real(c_double), intent(in) :: alpha

@@ -44,8 +44,8 @@
 
 \begin{frame}{Starting a program}
   \begin{itemize}
-    \item Similar to MPI, Kokkos need to be initialized calling
-      \texttt{kokkos\_initialize} and finalized calling \texttt{kokkos\_finalize}
+    \item Similar to MPI, Kokkos needs to be initialized by calling
+      \texttt{kokkos\_initialize} and finalized by calling \texttt{kokkos\_finalize}
     \item The \texttt{kokkos\_initialize} subroutine initializes Kokkos and
       reads command line arguments. It should be called after
       \texttt{MPI\_Initialize}
@@ -91,7 +91,7 @@ end program my_kokkos_code
     \item Supported memory spaces: \texttt{Kokkos::HostSpace},
       \texttt{Kokkos::CudaManagedSpace}, and \texttt{Kokkos::HIPManagedSpace}
     \item The memory space is determined during the configuration of the
-      \texttt{Kokkos-Fortran-Interop} library, based on the memory space
+      Kokkos-Fortran-Interop library, based on the memory space
       configuration of Kokkos.
   \end{itemize}
 \end{frame}
@@ -114,6 +114,7 @@ end program my_kokkos_code
 \begin{frame}[containsverbatim]{Kokkos::View}
   \begin{minted}{fortran}
 use, intrinsic :: iso_c_binding
+use, intrinsic :: iso_fortran_env
 use :: flcl_mod
 
 ! Kokkos View only accessible from C++
@@ -134,10 +135,10 @@ call kokkos_deallocate_view(c_y, v_c_y)
 \begin{frame}{Kokkos::DualView}
   \begin{itemize}
     \item \texttt{Kokkos::DualView} are similar to \texttt{Kokkos::View} but
-      they are composed of two \texttt{Kokkos::View}, one on the host and one on
+      they are composed of two \texttt{Kokkos::View}s, one on the host and one on
       the device.
     \item It is the user's responsibility to synchronize the data
-    \item The synchronization must done in C++
+    \item The synchronization must be done in C++
     \item Supported memory spaces: \texttt{Kokkos::HostSpace},
       \texttt{Kokkos::Cuda}, \texttt{Kokkos::HIP}, and \texttt{Kokkos::SYCL}
     \item \texttt{Kokkos::DualView} cannot be accessed directly from Fortran instead
@@ -148,6 +149,7 @@ call kokkos_deallocate_view(c_y, v_c_y)
 \begin{frame}[containsverbatim]{Kokkos::DualView}
   \begin{minted}{fortran}
 use, intrinsic :: iso_c_binding
+use, intrinsic :: iso_fortran_env
 use :: flcl_mod
 
 real(real64), pointer, dimension(:) :: c_y
@@ -174,6 +176,7 @@ call kokkos_deallocate_dualview(c_y, v_c_y)
 \begin{frame}[containsverbatim]{Initialize View}
   \begin{minted}{fortran}
 use, intrinsic :: iso_c_binding
+use, intrinsic :: iso_fortran_env
 use :: flcl_mod
 use :: my_init_mod
 
@@ -201,6 +204,7 @@ module my_init_mod
       interface
         subroutine my_f_init( y ) &
           & bind(c, name='my_c_init')
+          import
           type(c_ptr), intent(in) :: y
         end subroutine my_f_init
       end interface
@@ -212,11 +216,8 @@ module my_init_mod
       contains
 
         subroutine my_init( y )
-          implicit none
           type(view_r64_1d_t), intent(inout) :: y
-
           call my_f_init(y%ptr())
-
         end subroutine my_init
   
 end module my_init_mod
@@ -232,10 +233,9 @@ using view_type = flcl::view_r64_1d_t;
 extern "C" {
   void my_c_init(view_type **v_y) {
     view_type y = **v_y;
-    Kokkos::parallel_for("init", y.extent(0), 
-        KOKKOS_LAMBDA(int idx) {
-      y(idx) += idx;
-    });
+    Kokkos::parallel_for(
+        "init", y.extent(0), 
+        KOKKOS_LAMBDA(int idx) {y(idx) += idx;});
     Kokkos::fence();
   }
 }

@@ -7,7 +7,7 @@
 \title{The Kokkos Lectures}
 
 %BAD misuse of author field
-\author{Module 6: Fortran/Python interoperability, MPI and PGAS}
+\author{Module 6: Python interoperability, MPI and PGAS}
 
 %\author{
 %  Jeff Miles \inst{1},
@@ -102,8 +102,7 @@
 \begin{frame}{Module 6: Learning objectives}
   \begin{block}{Language Interoperability}
     \begin{itemize}
-    \item Writing hybrid Fortran applications
-    \item And, writing hybrid Python applications with Kokkos
+    \item Writing hybrid Python applications with Kokkos
   \end{itemize}
   \end{block}
 
@@ -123,7 +122,6 @@
   \end{block}
 \end{frame}
 
-\input{../sections/Section_FortranInterOp}
 \input{../sections/Section_PythonInterOp}
 \input{../sections/Section_MPI}
 \input{../sections/Section_PGAS}
@@ -147,16 +145,6 @@
 \end{frame}
 
 \begin{frame}[fragile]{Module 6 Summary}
-\textbf{Fortran Language Compatibility Layer}
-\begin{itemize}
-  \item Initialize Kokkos from Fortran via \texttt{kokkos\_initialize} and \texttt{kokkos\_finalize}
-  \item \texttt{nd\_array\_t} is a representation of a \texttt{Kokkos::View}
-  \item Create \texttt{nd\_array\_t} from a Fortran array via \texttt{to\_nd\_array}
-  \item Allocate \texttt{Kokkos::DualView} in Fortran with \texttt{kokkos\_allocate\_dualview}
-\end{itemize}
-
-
-  \vspace{10pt}
   \textbf{The Python Interop}
   \begin{itemize}
     \item Initialize and Finalize Kokkos from Python

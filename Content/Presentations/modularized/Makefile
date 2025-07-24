@@ -32,8 +32,10 @@ module7:
 	pdflatex KokkosTutorial_07_Tools.tex
 module8:
 	pdflatex KokkosTutorial_08_KokkosKernels.tex
+module9:
+	pdflatex -shell-escape KokkosTutorial_09_Fortran.tex
 
-all: module1 module2 module3 module4 module5 module6 module7 module8
+all: module1 module2 module3 module4 module5 module6 module7 module8 module9
 
 clean:
 	rm -r *.aux *.log *.nav *.out *.snm *.toc *.vrb

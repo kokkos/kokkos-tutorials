@@ -26,7 +26,7 @@ endif ()
 # the default directory is inside the source tree.
 # This might break if the default in source directory is called from multiple cmake instances at the same time.
 
-set(KokkosTutorials_KOKKOS_SOURCE_DIR "dep/kokkos" CACHE PATH "Description for KokkosTutorials_KOKKOS_SOURCE_DIR")
+set(KokkosTutorials_KOKKOS_SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}/dep/kokkos" CACHE PATH "Description for KokkosTutorials_KOKKOS_SOURCE_DIR")
 
 find_package(Kokkos CONFIG)
 

@@ -41,8 +41,8 @@ else ()
         include(FetchContent)
         FetchContent_Declare(
                 Kokkos
-                URL      https://github.com/kokkos/kokkos/releases/download/4.5.01/kokkos-4.5.01.tar.gz
-                URL_HASH SHA256=52d003ffbbe05f30c89966e4009c017efb1662b02b2b73190670d3418719564c
+                URL      https://github.com/kokkos/kokkos/releases/download/4.6.02/kokkos-4.6.02.tar.gz
+                URL_HASH SHA256=baf1ebbe67abe2bbb8bb6aed81b4247d53ae98ab8475e516d9c87e87fa2422ce
                 SOURCE_DIR ${KokkosTutorials_KOKKOS_SOURCE_DIR}
                 DOWNLOAD_EXTRACT_TIMESTAMP ON
         )

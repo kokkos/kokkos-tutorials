@@ -93,3 +93,9 @@ cmake --build build_dir
 
 For specific use-cases, like when an internet connection is not available, the `KokkosTutorials_KOKKOS_SOURCE_DIR` can
 be used to point to a local Kokkos source directory.
+For example,
+
+```shell
+cmake -B build_dir -DKokkos_ENABLE_THREADS=ON  -DCMAKE_DISABLE_FIND_PACKAGE_Kokkos=ON \
+ -DKokkosTutorials_KOKKOS_SOURCE_DIR=<PATH_TO_KOKKOS_SOURCE>
+```

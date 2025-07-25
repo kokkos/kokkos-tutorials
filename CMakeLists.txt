@@ -18,7 +18,6 @@ add_subdirectory(Exercises/team_scratch_memory)
 add_subdirectory(Exercises/simd)
 # FIXME update the code
 # add_subdirectory(Exercises/simd_warp)
-# add_subdirectory(Exercises/tasking)
 
 add_subdirectory(Exercises/advanced_reductions)
 add_subdirectory(Exercises/instances)

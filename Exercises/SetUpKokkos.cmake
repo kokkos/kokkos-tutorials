@@ -26,7 +26,7 @@ endif ()
 # the default directory is inside the source tree.
 # This might break if the default in source directory is called from multiple cmake instances at the same time.
 
-set(KokkosTutorials_KOKKOS_SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}/dep/kokkos" CACHE PATH "Description for KokkosTutorials_KOKKOS_SOURCE_DIR")
+set(KokkosTutorials_KOKKOS_SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}/dep/kokkos" CACHE PATH "Where Kokkos sources are located")
 
 find_package(Kokkos CONFIG)
 
@@ -34,8 +34,10 @@ if (Kokkos_FOUND)
     message(STATUS "Found Kokkos: ${Kokkos_DIR} (version \"${Kokkos_VERSION}\")")
 else ()
     if (EXISTS ${KokkosTutorials_KOKKOS_SOURCE_DIR})
+        message(STATUS "Using Kokkos from ${KokkosTutorials_KOKKOS_SOURCE_DIR}")
         add_subdirectory(${KokkosTutorials_KOKKOS_SOURCE_DIR} Kokkos)
     else ()
+        message(STATUS "Downloading Kokkos to ${KokkosTutorials_KOKKOS_SOURCE_DIR}")
         include(FetchContent)
         FetchContent_Declare(
                 Kokkos

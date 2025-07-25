@@ -21,7 +21,6 @@ add_subdirectory(Exercises/simd)
 # add_subdirectory(Exercises/tasking)
 
 add_subdirectory(Exercises/advanced_reductions)
-add_subdirectory(Exercises/fortran-kokkosinterface)  # TODO, Add a check for fortran
 add_subdirectory(Exercises/instances)
 add_subdirectory(Exercises/multi_gpu_cuda)
 add_subdirectory(Exercises/parallel_scan)

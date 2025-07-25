@@ -1,0 +1,105 @@
+%==========================================================================
+
+
+% Fix performance bug affecting atomic_fetch_{add,sub,min,max,and,or,xor} on integral types long and unsigned long with HIP #7816
+% Performance bug in RangePolicy: construct error message if and only if the precondition is violated #7809
+% Fix execution of ranges with more than 2B elements #7797
+% Fix clean target when embedding Kokkos in another project #7557
+% Build system: hint to ARCH_NATIVE if ARMv9 Grace arch is not explicitly supported by the compiler #7862
+% Fix Zen3 flag for NVHPC #7558
+% Use right arch for MI300A in makefiles #7786
+% graph: nodes must be stored by the graph #7619
+% Make sure lock arrays are on device before launching a graph #7685
+% Cuda: fix incorrect iteration in MDRangePolicy of rank > 4 for high iteration counts #7724
+% Cuda: ignore gcc assembler options in nvcc-wrapper #7492
+
+% simd: fix a bug in scalar min/max #7813
+% simd: fix a bug in non-masked reductions #7845
+% Fix compiling BasicView on MSVC #7751
+
+
+\begin{frame}[fragile]
+
+  {\Huge Bug Fixes}
+
+  \vspace{10pt}
+
+\end{frame}
+
+\begin{frame}[fragile]{General bug fixes}
+  \begin{itemize}
+      \item Fix execution of ranges with more than 2 billion elements
+      \item Graph:
+      \begin{itemize}
+        \item Fix graph node lifetime issues
+        \item Fix lock-based atomics failure when launching CUDA and HIP graphs
+      \end{itemize}
+      \item CUDA backend: Fix incorrect iteration in MDRangePolicy of rank $> 4$ for high iteration counts
+      \item SIMD:
+      \begin{itemize}
+        \item fix a bug in scalar min/max
+        \item fix a bug in non-masked reductions
+      \end{itemize}
+      \item View: fix MSVC compilation
+  \end{itemize}
+ \end{frame}
+
+\begin{frame}[fragile]{Build system fixes}
+  \begin{itemize}
+      \item Fix \texttt{clean} target when embedding Kokkos in another project
+      \item Stop generation if ARMv9 Grace arch is not explicitly supported by the compiler when \texttt{KOKKOS\_ARCH\_ARMV9\_GRACE} is specified
+      \begin{itemize}
+        \item Can still try and configure with \texttt{ARCH\_NATIVE}
+      \end{itemize}
+      \item Fix Zen3 flag for NVHPC
+      \item Use right arch for MI300A in makefiles
+      \item (CUDA) ignore gcc assembler options in \texttt{nvcc\_wrapper}
+  \end{itemize}
+ \end{frame}
+
+\begin{frame}[fragile]{Performance bugfixes}
+ \begin{itemize}
+     \item Fix performance bug affecting atomic\_fetch\_\{add,sub,min,max,and,or,xor\} on integral types long and unsigned long with HIP
+     \item Fix performance of \texttt{RangePolicy} where an error message is generated even if precondition not violated
+ \end{itemize}
+\end{frame}
+%==========================================================================
+
+% Examples
+
+% note: always keep the [fragile] for your frames!
+
+%\begin{frame}[fragile]{Example list}
+%  \begin{itemize}
+%      \item Item 1
+%      \item Item 2 with some \texttt{code}
+%      \begin{itemize}
+%        \item Sub-item 2.1
+%        \item Sub-item 2.2
+%      \end{itemize}
+%  \end{itemize}
+%\end{frame}
+
+%\begin{frame}[fragile]{Example code}
+%    \begin{code}[keywords={std}]
+%        #include <iostream>
+%        
+%        int main() {
+%            std::cout << "hello world\n";
+%        }
+%    \end{code}
+%\end{frame}
+
+%\begin{frame}[fragile]{Example table}
+%    \begin{center}
+%        \begin{tabular}{l|l}
+%            a & b \\\hline
+%            c & d
+%        \end{tabular}
+%    \end{center}
+%\end{frame}
+
+%==========================================================================
+
+
+%==========================================================================

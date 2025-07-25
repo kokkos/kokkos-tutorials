@@ -1,0 +1,151 @@
+%==========================================================================
+
+\begin{frame}[fragile]
+
+  {\Huge Feature highlights}
+
+  \vspace{10pt}
+
+\end{frame}
+
+%==========================================================================
+
+% Examples
+
+% note: always keep the [fragile] for your frames!
+
+%\begin{frame}[fragile]{Example list}
+%  \begin{itemize}
+%      \item Item 1
+%      \item Item 2 with some \texttt{code}
+%      \begin{itemize}
+%        \item Sub-item 2.1
+%        \item Sub-item 2.2
+%      \end{itemize}
+%  \end{itemize}
+%\end{frame}
+
+%\begin{frame}[fragile]{Example code}
+%    \begin{code}[keywords={std}]
+%        #include <iostream>
+%        
+%        int main() {
+%            std::cout << "hello world\n";
+%        }
+%    \end{code}
+%\end{frame}
+
+%\begin{frame}[fragile]{Example table}
+%    \begin{center}
+%        \begin{tabular}{l|l}
+%            a & b \\\hline
+%            c & d
+%        \end{tabular}
+%    \end{center}
+%\end{frame}
+
+%==========================================================================
+
+% \begin{frame}[fragile]\label{sec:new_features}
+
+  % {\Huge Kokkos::Graph features}
+
+  % \vspace{10pt}
+
+% \end{frame}
+
+\begin{frame}[fragile]{Kokkos::Graph recap}
+ \begin{itemize}
+     \item describes asynchronous workloads organised as a direct acyclic graph (DAG)
+     \item executed using \texttt{submit()}, possibly many times, observing dependencies
+      \begin{code}[keywords={auto}]
+auto graph = Kokkos::create_graph([&](auto root) {
+    auto node_A = root.then_parallel_for("A", ...policy..., ...functor...);
+    auto node_B = node_A.then_parallel_for("B", ...policy..., ...functor...);
+    auto node_C = node_A.then_parallel_for("C", ...policy..., ...functor...);
+
+    auto node_D = Kokkos::when_all(node_B, node_C).
+                  then_parallel_for("D", ...policy..., ...functor...);
+});
+
+graph.instantiate();
+
+graph.submit();
+      \end{code}
+ \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Kokkos::Graph new features}
+ \begin{itemize}
+  \item \texttt{then} node: executes a callable on device
+  \item Single call of the functor per \texttt{submit()}
+   \item Executed in the \texttt{ExecutionSpace} the graph is submitted to
+     \begin{code}[keywords={auto}]
+auto graph = Kokkos::create_graph([&](auto root) {
+    auto node_A = root.then_parallel_for("A", ...policy..., ...functor...);
+    auto node_B = node_A.then("B", ...functor...);
+});   
+     \end{code}
+   \item Functor passed to \texttt{then} must be callable without arguments and marked with \texttt{KOKKOS\_FUNCTION}
+ \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Kokkos::Graph new features}
+ \begin{itemize}
+   \item Interoperability: create a \texttt{Kokkos::Graph} from a native Cuda/HIP/Sycl graph
+     \begin{code}[keywords={create_graph_from_native}]
+cudaGraph_t native_graph = nullptr;
+cudaGraphCreate(&native_graph, 0);
+
+auto graph_from_native =
+  Kokkos::Experimental::create_graph_from_native(exec, native_graph);
+     \end{code}
+    \item Experimental, does not yet allow adding nodes created using the native API to a \texttt{Kokkos::Graph}
+ \end{itemize}
+\end{frame}
+
+% \begin{frame}[fragile]\label{sec:new_features}
+
+  % {\Huge Multi-GPU for HIP Backend}
+
+  % \vspace{10pt}
+
+% \end{frame}
+
+\begin{frame}[fragile]{Multi-GPU for HIP Backend}
+  \begin{itemize}
+    \item Launch kernels on multiple devices from a single host process
+    \item Available for ROCm 5.6 and later
+    \item Requires direct use of HIP runtime API for creating and destroying streams
+    \item Experimental, still looking for feedback from new users
+    \item New documentation (for all backends)  
+      \begin{itemize} 
+        \item[] \url{https://kokkos.org/kokkos-core-wiki/API/core/MultiGPUSupport.html}
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Multi-GPU for HIP Backend}
+  \begin{code}[keywords={auto}]
+// Create streams on different devices
+hipStream_t streams[2];
+hipSetDevice(0); hipStreamCreate(&streams[0]);
+hipSetDevice(1); hipStreamCreate(&streams[1]);
+{
+  // Creating execution spaces 
+  Kokkos::HIP exec0(streams[0]), exec1(streams[1]);
+
+  // Allocating views
+  Kokkos::View<int*> v0(Kokkos::view_alloc("v0", exec0), N);
+  Kokkos::View<int*> v1(Kokkos::view_alloc("v1", exec1), M);
+
+  // Launch kernels (run concurrently)
+  Kokkos::parallel_for(Kokkos::RangePolicy(exec0, 0, N), functor0);
+  Kokkos::parallel_for(Kokkos::RangePolicy(exec1, 0, M), functor1);
+}
+// Destroy streams (after execution spaces are deleted)
+hipStreamDestroy(streams[0]); hipStreamDestroy(streams[1]);
+  \end{code}
+\end{frame}
+
+%==========================================================================

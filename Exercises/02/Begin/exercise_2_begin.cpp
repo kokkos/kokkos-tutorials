@@ -16,10 +16,11 @@
 
 // EXERCISE 2 Goal:
 //   Replace raw allocations with Kokkos Views.
-//     1. Define device views.
+//     1. Define views in shared space.
 //     2. Replace data access with view access operators.
 //
-//   Note: Kokkos::parallel_for() initializations were removed to initialize on host.
+//   Notes: * Kokkos::parallel_for() initializations were removed to initialize on host.
+//          * Kokkos::SharedSpace allocates memory that is automatically migratable between host and device.
 
 #include <limits>
 #include <cmath>
@@ -76,8 +77,8 @@ int main( int argc, char* argv[] )
   // EXERCISE: Create views of the right size.
 
   // 1. Device Views
-  // using ViewVectorType = Kokkos::View<double*>;
-  // using ViewMatrixType = Kokkos::View<double**>;
+  // using ViewVectorType = Kokkos::View<double*, Kokkos::SharedSpace>;
+  // using ViewMatrixType = Kokkos::View<double**, Kokkos::SharedSpace>;
   // ViewVectorType y( "y", N );
   // ViewVectorType x( "x", M );
   // ViewMatrixType A( "A", N, M );

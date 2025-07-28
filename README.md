@@ -87,7 +87,7 @@ test against an already installed Kokkos.
 
 ```shell
 # Download and build Kokkos and the tutorials, forcing the use of the internal Kokkos
-cmake -B build_dir -DCMAKE_DISABLE_FIND_PACKAGE_Kokkos=ON # -DKokkos_* options
+cmake -B build_dir -DCMAKE_DISABLE_FIND_PACKAGE_Kokkos=ON
 cmake --build build_dir
 ```
 

@@ -28,7 +28,7 @@ endif ()
 
 set(KokkosTutorials_KOKKOS_SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}/dep/kokkos" CACHE PATH "Where Kokkos sources are located")
 
-find_package(Kokkos CONFIG)
+find_package(Kokkos QUIET)
 
 if (Kokkos_FOUND)
     message(STATUS "Found Kokkos: ${Kokkos_DIR} (version \"${Kokkos_VERSION}\")")

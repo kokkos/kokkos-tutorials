@@ -46,5 +46,18 @@
 
 %==========================================================================
 
+% raw content from Tevis Morvany
+\begin{frame}[fragile]{General bug fixes}
+  \begin{itemize}
+    \item SIMD:
+    \begin{itemize}
+      \item Fix compile errors when calling math functions
+      \item Fix the behavior of the reduction functions
+    \end{itemize}
+    \item Fix a memory leak in the serial backend
+    \item Fix a memory leak when using kokkos tools
+    \item Fix a segfault issue with gcc 12.2, 12.3 and 12.4
+  \end{itemize}
+\end{frame}
 
 %==========================================================================

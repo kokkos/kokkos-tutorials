@@ -60,4 +60,14 @@
   \end{itemize}
 \end{frame}
 
+% raw content from Paul Zehner
+\begin{frame}[fragile]{Bugfixes}
+    \begin{itemize}
+        \item Fixed a bug in HIP and SYCL backends where a \texttt{MDRangePolicy} of rank 4 or more would be incorrectly iterated, leading to some iterations being evaluated more than once for large enough loops
+        \item Fixed passing concurrency from a current execution space instance instead of from a new execution space instance
+        \item Fixed a bug in HIP backend where \texttt{ConstantMemory} launch mechanism would sporadically fail due to \texttt{hipEventSynchronize} error
+        \item Fixed a bug in OpenMP Target and OpenACC backends where an out-of-bounds access would occur in \texttt{Random\_UniqueIndex} under certain circumstances
+    \end{itemize}
+\end{frame}
+
 %==========================================================================

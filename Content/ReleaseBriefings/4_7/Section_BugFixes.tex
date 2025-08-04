@@ -46,28 +46,51 @@
 
 %==========================================================================
 
-% raw content from Tevis Morvany
-\begin{frame}[fragile]{General bug fixes}
-  \begin{itemize}
-    \item SIMD:
+\begin{frame}[fragile]{General Bug Fixes}
     \begin{itemize}
-      \item Fix compile errors when calling math functions
-      \item Fix the behavior of the reduction functions
-    \end{itemize}
-    \item Fix a memory leak in the serial backend
-    \item Fix a memory leak when using kokkos tools
-    \item Fix a segfault issue with gcc 12.2, 12.3 and 12.4
-  \end{itemize}
-\end{frame}
+        \item Respect parallelism of provided execution space, rather than default instance % 7870
+        \item Fix subview view constructor to disallow non-strided view types for strided subviews % #8210
+        \item Fix a memory leak when using \texttt{--kokkos-tools-help} % 8074
+        \item Add missing fences for async Random init with unified memory % #8105
 
-% raw content from Paul Zehner
-\begin{frame}[fragile]{Bugfixes}
-    \begin{itemize}
-        \item Fixed a bug in HIP and SYCL backends where a \texttt{MDRangePolicy} of rank 4 or more would be incorrectly iterated, leading to some iterations being evaluated more than once for large enough loops
-        \item Fixed passing concurrency from a current execution space instance instead of from a new execution space instance
-        \item Fixed a bug in HIP backend where \texttt{ConstantMemory} launch mechanism would sporadically fail due to \texttt{hipEventSynchronize} error
-        \item Fixed a bug in OpenMP Target and OpenACC backends where an out-of-bounds access would occur in \texttt{Random\_UniqueIndex} under certain circumstances
     \end{itemize}
 \end{frame}
 
 %==========================================================================
+
+\begin{frame}[fragile]{General Bug Fixes}
+  \begin{itemize}
+    \item SIMD:
+    \begin{itemize}
+      \item Fix compile errors with \texttt{Kokkos\_ARCH\_NATVE=ON} % 7912
+      \item Fix fallback simd masked reductions using incorrect identity elements % 8115
+    \end{itemize}
+    \item Compilers:
+    \begin{itemize}
+      \item Fix a segfault issue with gcc 12.2, 12.3 and 12.4 % 8223
+      \item Fix compiling with compilers that provide an mdspan implementation % #8234
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Backend Bug Fixes}
+    \begin{itemize}
+        \item HPX: fix to constrain hpx\_thread\_buffer size used with TeamPolicy setup % #8147
+        \item HIP and SYCL:
+        \begin{itemize}
+          \item A \texttt{MDRangePolicy} of rank 4 or more would be incorrectly iterated, leading to some iterations being evaluated more than once for large enough loops % 7880
+        \end{itemize}
+        \item HIP:
+        \begin{itemize}
+          \item \texttt{ConstantMemory} launch mechanism would sporadically fail due to \texttt{hipEventSynchronize} error % 8094
+          \item Fix launch of intermediate size functors in graph % #8188
+        \end{itemize}
+        \item Serial: memory leak in internal instance data % 8042
+        \item OpenMP Target and OpenACC: An out-of-bounds access would occur in \texttt{Random\_UniqueIndex} under certain circumstances % 8077
+    \end{itemize}
+\end{frame}
+
+
+

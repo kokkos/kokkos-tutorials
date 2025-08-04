@@ -1,0 +1,28 @@
+%==========================================================================
+
+\begin{frame}[fragile]
+
+  {\Huge Deprecations and other breaking changes}
+
+  \vspace{10pt}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Deprecations and Incompatibilities}
+  Incompatibilities
+  \begin{itemize}
+    \item Raise IntelLLVM minimum for SYCL to 2024.2.1
+    \item Disallow Kokkos\_ENABLE\_DEBUG\_DUALVIEW\_MODIFY\_CHECK=OFF
+  \end{itemize}
+  \vfill
+  Deprecations
+  \begin{itemize}
+    \item Deprecate KOKKOS\_MEMORY\_ALIGNMENT[\_THRESHOLD] macros
+    \item Deprecate Kokkos::MemoryManaged as alias for default memory traits
+    \item Deprecate KOKKOS\_NONTEMPORAL\_PREFETCH\_{LOAD,STORE} macros
+  \end{itemize}
+\end{frame}
+
+%==========================================================================

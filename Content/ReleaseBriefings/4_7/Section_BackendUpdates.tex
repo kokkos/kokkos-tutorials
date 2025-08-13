@@ -74,3 +74,12 @@
 % - Compute bound is doing 16 time the work of Memory Bound
 
 %==========================================================================
+
+\begin{frame}[fragile]{OpenMPTarget}
+  \begin{itemize}
+      \item Remove support for non-llvm compilers as part of the strategy to only support LLVM compilers in the backend.
+      \item LLVM compilers support extensions to OpenMP directives on GPU that allow \textit{grid} style kernel launches making it more suitable for GPUs and avoiding the overhead of OpenMP's fork-join model.
+  \end{itemize}
+\end{frame}
+
+%==========================================================================

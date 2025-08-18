@@ -18,25 +18,24 @@
  \begin{itemize}
      \item Support for AMD Zen 5, SiFive RISC-V Y74MC and ARMv8.4 CPU architectures
      \begin{itemize}
-       \item new~\emph{KOKKOS\_ARCH\_AMD\_ZEN5} 
-       \item new~\emph{KOKKOS\_ARCH\_RISCV\_U74MC}
-       \item new~\emph{KOKKOS\_ARCH\_ARMV84/SVE}
+       \item new \texttt{KOKKOS\_ARCH\_AMD\_ZEN5} 
+       \item new \texttt{KOKKOS\_ARCH\_RISCV\_U74MC}
      \end{itemize}
      \item {Resolving performance regression with atomic views for HIP and SYCL}
      \begin{itemize}
-       \item Atomic\_\emph{op}\_fetch now always use vendor APIs for atomics (e.g. \emph{sycl\_atomic\_ref})
+       \item \texttt{atomic\_op\_fetch} now always use vendor APIs for atomics (e.g. \texttt{sycl\_atomic\_ref})
      \end{itemize}
-     \item Passing label ~\emph{by reference} in all Kokkos Tools APIs (improving performance)
+     \item Passing label~\emph{by reference} in all Kokkos Tools APIs (improving performance)
  \end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]{APIs and Behaviours}
  \begin{itemize}
-  \item Exit early at initialize with --kokkos-help
+   \item Exit early at initialize with \texttt{--kokkos-help}
     \begin{itemize}
-      \item Calling "\emph{binary} \emph{{--}kokkos-help}" now causes normal termination
-    \end{itemize}
-  \item Enable structured binding of return values for \emph{Kokkos::Experimental::partition\_space}
+      \item Calling ``\texttt{binary --kokkos-help}" now causes normal termination
+   \end{itemize}  
+   \item Enable structured binding of return values for \texttt{partition\_space}
         \begin{code}[keywords={std}]
           // We now support expressions like this
           auto [exec0, exec1] = 
@@ -44,33 +43,33 @@
         \end{code}
     \item Avoid static variables and functions in header
     \begin{itemize}
-      \item  Ensures compatibility with C+20 modules
+      \item  Ensures compatibility with C++20 modules
       \end{itemize}
-    \item Add \emph{constexpr} specifier to operator== and operator!= for Kokkos::complex
+    \item Add \texttt{constexpr} specifier to \texttt{operator==} and \texttt{operator!=} for \texttt{Kokkos::complex}
+    \item Add constructors for \texttt{Random\_XorShift*\_Pool} with execution space argument
+      \begin{itemize}
+      \item Allows construction of instances with non-blocking initialization
+    \end{itemize}
 
  \end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]{APIs and Behaviours (Continued)}
  \begin{itemize}
-     \item Add Kokkos::SIMD::SVE support for 128-bit and 256-bit SVE 
+     \item Add \texttt{Kokkos::SIMD::SVE} support for 128-bit and 256-bit SVE 
      \begin{itemize}
       \item Adds support for \emph{Scalable Vector Extensions} for Kokkos SIMD types on ARM V8.4-compatible CPUs
-      \item Enabled with~\emph{KOKKOS\_ARCH\_NATIVE}, ~\emph{KOKKOS\_ARCH\_ARM\_SVE} and
- ~\emph{KOKKOS\_ARCH\_ARMV9\_GRACE}
+      \item Enabled with~\texttt{KOKKOS\_ARCH\_NATIVE}, ~\texttt{KOKKOS\_ARCH\_ARM\_SVE} and
+ ~\texttt{KOKKOS\_ARCH\_ARMV9\_GRACE}
      \end{itemize}
-     \item Implement nextafter for fp16
+     \item Implement \texttt{Kokkos::nextafter} for fp16 types
         \begin{code}[keywords={std}]
           // We now support this:
           using half_t = Kokkos::Experimental::half_t;
           half_t a = 1.0, t = 2.0;
           half_t b = Kokkos::nextafter(a, t);
         \end{code}
-     \item Add constructors for Random\_XorShift*\_Pool with execution space argument
-      \begin{itemize}
-      \item Allows construction of instances with non-blocking initialization
-    \end{itemize}
-     \item Removes~\emph{[[nodiscard]]} attributes from the Kokkos SIMD interface
+        \item Removes~\texttt{[[nodiscard]]} attributes from the Kokkos SIMD interface to align with C++26
  \end{itemize}
 \end{frame}
 

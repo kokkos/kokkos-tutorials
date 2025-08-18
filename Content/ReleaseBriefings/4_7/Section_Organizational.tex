@@ -5,49 +5,76 @@
 
   {\Huge Organizational}
 
-  \vspace{10pt}
+  \vspace{15pt}
 
-  \textbf{Content:}
   \begin{itemize}
-    \item 
+    \item Targeting C++20 for Kokkos 5.0
+    \item Minimum Requirements for Kokkos 5.0
+    \item Mailing Lists
   \end{itemize}
 
 \end{frame}
 
 %==========================================================================
 
-% Examples
+\begin{frame}[fragile]{Kokkos 5 and ISO C++20}
+\begin{center}
+\textbf{Kokkos 5 is comming November-December 2025}
 
-% note: always keep the [fragile] for your frames!
+\vspace{0.5cm}
+\textbf{This will require C++20!}
+\end{center}
 
-%\begin{frame}[fragile]{Example list}
-%  \begin{itemize}
-%      \item Item 1
-%      \item Item 2 with some \texttt{code}
-%      \begin{itemize}
-%        \item Sub-item 2.1
-%        \item Sub-item 2.2
-%      \end{itemize}
-%  \end{itemize}
-%\end{frame}
+\textit{Start preparing now:}
+\begin{itemize}
+  \item{Check availability of compilers on your systems}
+  \item{Test with C++20 enabled: start with a CPU build}
+  \item{Minimum Compiler requirements will change}
+\end{itemize}
 
-%\begin{frame}[fragile]{Example code}
-%    \begin{code}[keywords={std}]
-%        #include <iostream>
-%        
-%        int main() {
-%            std::cout << "hello world\n";
-%        }
-%    \end{code}
-%\end{frame}
+\vspace{0.5cm}
+There will be a release 4.8 before Kokkos 5.0
 
-%\begin{frame}[fragile]{Example table}
-%    \begin{center}
-%        \begin{tabular}{l|l}
-%            a & b \\\hline
-%            c & d
-%        \end{tabular}
-%    \end{center}
-%\end{frame}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Kokkos 5 minimum requirements}
+
+\begin{table}[]
+\begin{tabular}{lll}
+\multicolumn{1}{r}{} & Kokkos 4.x & Kokkos 5.0 \\ \hline
+GCC                  & 8.2.0      & 10.4.0     \\
+Clang (CPU)          & 8.0.0      & 14.0.0     \\
+Clang (CUDA)         & 10.0.0     & 14.0.0     \\
+Clang (OpenMPTarget) & 15.0.0     & 15.0.0     \\
+IntelLLVM (CPU)      & 2021.1.1   & 2022.0.0   \\
+IntelLLVM (SYCL)     & 2023.0.0   & 2024.2.1   \\
+NVCC                 & 11.0       & 12.0.0     \\
+NVC++                & 22.3       & 22.3       \\
+ROCM                 & 5.2.0      & 5.2.0      \\
+MSVC                 & 19.29      & 19.30      \\
+ARM/Clang            & 20.1       & 20.1       \\ \hline
+\end{tabular}
+\end{table}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Kokkos Mailing Lists}
+
+\vspace{0.5cm}
+\begin{center}
+Sign up for the Kokkos mailing list to stay up-to-date with the latest Kokkos news.
+\end{center}
+
+\vspace{0.5cm}
+
+\begin{center}
+\url{https://kokkos.org/community/mailing-lists/}
+\end{center}
+
+\end{frame}
 
 %==========================================================================

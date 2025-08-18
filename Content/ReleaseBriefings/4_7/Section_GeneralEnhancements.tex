@@ -37,7 +37,7 @@
    \end{itemize}  
    \item Enable structured binding of return values for \texttt{partition\_space}
         \begin{code}[keywords={std}]
-          // We now support expressions like this
+          /* NEW! */
           auto [exec0, exec1] = 
                   Experimental::partition_space(ExecSpace, 1, 1);
         \end{code}
@@ -64,7 +64,7 @@
      \end{itemize}
      \item Implement \texttt{Kokkos::nextafter} for fp16 types
         \begin{code}[keywords={std}]
-          // We now support this:
+          /* NEW! */
           using half_t = Kokkos::Experimental::half_t;
           half_t a = 1.0, t = 2.0;
           half_t b = Kokkos::nextafter(a, t);
@@ -76,10 +76,96 @@
 
 \begin{frame}[fragile]{Updates on Kokkos Graphs}
  \begin{itemize}
+     \item Reminder: \emph{Kokkos Graph} is an abstraction of computation represented as a DAG
+     \item Located in~\emph{Kokkos::Experimental}
+      \item Example of a diamond-shaped compute graph supported
+      \begin{code}[keywords={std}]
+      auto graph = Kokkos::create_graph([&](auto root) {
+      auto nodeA = root.then_parallel_for("workloadA",policy,functor);
+      auto nodeB = nodeA.then_parallel_for("workloadB",policy,functor);
+      auto nodeC = nodeA.then_parallel_for("workloadC",policy,functor);
+      auto nodeD = Kokkos::when_all(nodeB, nodeC).
+        then_parallel_for("workloadD",policy,functor);});
+      graph.instantiate();
+      graph.submit();
+      \end{code}
+     \item Restricted to Kokkos parallel patterns!
+ \end{itemize}
+\end{frame}
+
+
+\begin{frame}[fragile]{Updates on Kokkos Graphs (Capture)}
+ \begin{itemize}
      \item Add support for graph capture (Cuda, HIP and SYCL)
-     \item Enforce unit launch bound for graph then node
-     \item Add then\_host to graph
-     \item Allow building Kokkos::Experimental::Graph object directly
+     \begin{itemize}
+     \item Graph capture allows to add a graph node containing device code or library
+     \item Supported backends: HIP, CUDA, SYCL (\emph{*\_capture})
+  \end{itemize}
+     \item Example: Capture of a cuBLAS call:
+        \begin{code}[keywords={std}]
+    auto graph = Kokkos::Experimental::create_graph([&](const auto& root){
+      auto handle = create_cublas_handle();
+       /* NEW! */
+      root.cuda_capture(exec,
+      [=](const Kokkos::Cuda& exec_){
+        /* Body of lambda using CUDA */
+        cublasSetStream(handle.get(),exec_.cuda_stream()));
+        cublasDgemv( handle.get(),CUBLAS_OP_N,...);
+      });
+    });
+    graph.instantiate(); 
+    graph.submit(exec);
+      \end{code}
+     
+ \end{itemize}
+\end{frame}
+
+
+\begin{frame}[fragile]{Updates on Kokkos Graphs (then\_host)}
+ \begin{itemize}
+     \item Add support for host-side graph nodes via the \emph{then\_host(...)} function
+     \begin{itemize}
+     \item Adding a host-node creates a new CPU execution node and adds it to the graph
+     \item Registers a host-callback (and fences device exec space on execution)
+  \end{itemize}
+ \item Example: Using a host-side graph node
+        \begin{code}[keywords={std}]
+    const counter_t counter(Kokkos::view_alloc("counter", exec));
+    ASSERT_EQ(counter.use_count(), 1);
+      auto graph = Kokkos::Experimental::create_graph(exec, 
+        [&](const auto& root) {
+          root.then ("NodeA",exec,functor_d_t{{counter}})
+          /* NEW!*/
+          .then_host("NodeB",     functor_h_t{{counter}}) 
+          .then     ("NodeC",exec,functor_d_t{{counter}});
+      });
+      ASSERT_EQ(counter.use_count(), 4);
+      \end{code}
+  \begin{itemize}
+  \item Note:\emph{exec} can access host memory
+  \end{itemize}
+ \end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{Updates on Kokkos Graphs (other)}
+ \begin{itemize}
+    \item Allow building Kokkos::Experimental::Graph object directly
+    \begin{itemize}
+    \item Allows default-constructed Kokkos::Experimental::Graph 
+    \item Graph has a new \emph{root\_node()} public member function (returns the graph's root node)
+    \item Example use:
+     \begin{code}[keywords={std}]
+      /* NEW! */
+      Kokkos::Experimental::Graph graph{exec};
+      graph.root_node().then_parallel_for(1, func{});
+      graph.submit(exec);
+        \end{code}
+     \end{itemize}
+  \item Enforce unit launch bound for graph \emph{then-node}
+  \begin{itemize}
+    \item Now we explicitly use an execution policy with Kokkos::LaunchBounds<1> to execute a \emph{then} graph node
+  \end{itemize}
  \end{itemize}
 \end{frame}
 

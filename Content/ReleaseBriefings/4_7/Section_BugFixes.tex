@@ -48,13 +48,20 @@
 
 \begin{frame}[fragile]{General Bug Fixes}
     \begin{itemize}
-        \item Respect parallelism of provided execution space, rather than default instance % 7870
-        \item Fix subview view constructor to disallow non-strided view types for strided subviews % #8210
-        \item Fix a memory leak when using \texttt{--kokkos-tools-help} % 8074
-        \item Add missing fences for async Random init with unified memory % #8105
-
+      \item Fix a memory leak from an early exit when using \texttt{--kokkos-tools-help} % 8074
+      \item Add missing fences for async Random init with unified memory % #8105
+      \item Fix subview view constructor to disallow non-strided view types for strided subviews % #8210
     \end{itemize}
 \end{frame}
+
+%==========================================================================
+
+%\begin{frame}[fragile]{General Bug Fixes}
+
+% Fix subview view constructor to disallow non-strided view types for strided subviews % #8210
+% Need an example
+
+%\end{frame}
 
 %==========================================================================
 
@@ -67,8 +74,8 @@
     \end{itemize}
     \item Compilers:
     \begin{itemize}
-      \item Fix a segfault issue with gcc 12.2, 12.3 and 12.4 % 8223
-      \item Fix compiling with compilers that provide an mdspan implementation % #8234
+      \item Apply a workaround for a segfault issue in \texttt{SharedAllocationTracker} with gcc 12.2, 12.3 and 12.4 % 8223
+      \item Fix compiling with C++23 supported compilers that provide an mdspan implementation % #8234
     \end{itemize}
   \end{itemize}
 \end{frame}

@@ -50,7 +50,14 @@
     \begin{itemize}
       \item Fix a memory leak from an early exit when using \texttt{--kokkos-tools-help} % 8074
       \item Add missing fences for async Random init with unified memory % #8105
-      \item Fix subview view constructor to disallow non-strided view types for strided subviews % #8210
+      \item More robust checks on subview constructor
+        \begin{code}[keywords={std}]
+View<T**, LayoutLeft> a(N,N);
+
+// Previously allowed, but data should have strided access.
+View<T*, LayoutLeft> sub_a(a, 1, ALL); // Runtime Error
+        \end{code}
+
     \end{itemize}
 \end{frame}
 

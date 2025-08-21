@@ -49,8 +49,8 @@
 \begin{frame}[fragile]{General Bug Fixes}
     \begin{itemize}
       \item Fix a memory leak from an early exit when using \texttt{--kokkos-tools-help} % 8074
-      \item Add missing fences for async Random init with unified memory % #8105
-      \item More robust checks on subview constructor
+      \item Add missing fences for async Random init with unified memory % 8105
+      \item More robust checks on subview constructor % #8210
         \begin{code}[keywords={std}]
 View<T**, LayoutLeft> a(N,N);
 
@@ -60,15 +60,6 @@ View<T*, LayoutLeft> sub_a(a, 1, ALL); // Runtime Error
 
     \end{itemize}
 \end{frame}
-
-%==========================================================================
-
-%\begin{frame}[fragile]{General Bug Fixes}
-
-% Fix subview view constructor to disallow non-strided view types for strided subviews % #8210
-% Need an example
-
-%\end{frame}
 
 %==========================================================================
 

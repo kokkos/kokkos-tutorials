@@ -1,0 +1,48 @@
+%==========================================================================
+
+\begin{frame}[fragile]
+
+  {\Huge Build Systems Updates}
+
+  \vspace{10pt}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{General Build System Upates}
+    \begin{itemize}
+        \item Require GCC 10.4 for C++20 builds to avoid an ISO C++20 bug %8130
+        \item Error out for  \texttt{BUILD\_SHARED\_LIBS} and \texttt{RELOCATABLE\_DEVICE\_CODE}. \\  The vendors don't support it, we just check for it now % #8196
+        \item Support more \texttt{nvcc} arguments with \texttt{nvcc\_wrapper}: \\ \texttt{--ftz}, \texttt{--prec-div}, and \texttt{--prec-sqrt} %7930
+        \item Add NVIDIA Blackwell architecture support to the makefiles \\  \textbf{Makefiles are officially deprecated} %8055
+
+    \end{itemize}
+\end{frame}
+
+%==========================================================================
+\begin{frame}[fragile]{Compiler and linker flag check}
+  \centering
+  \textbf{We now check the compiler and linker flags at configure time with the given CXX compiler} %7891
+    \begin{itemize}
+        \item Uses CMake's compiler and linker checks
+        \item Uses \texttt{CMAKE\_CXX\_FLAGS} and the flags Kokkos sets
+        \item Not used when \texttt{kokkos\_launch\_compiler} script is used
+        \item If you suspect a false positive please tell us
+    \end{itemize}
+\end{frame}
+
+%==========================================================================
+
+%\begin{frame}[fragile]{Build C++20 module}
+%  \centering
+%  \textbf{We are working on supplying C++20 modules} %8132
+%    \begin{itemize}
+%      \item For now only available for \texttt{StdAlgorithms}
+%      \item Enable with \texttt{Kokkos\_ENABLE\_EXPERIMENTAL\_CXX20\_MODULES}
+%      \item We test it with \texttt{clang-19}
+%      \item Ongoing integration, more code already in \texttt{develop}
+%    \end{itemize}
+%\end{frame}
+
+%==========================================================================

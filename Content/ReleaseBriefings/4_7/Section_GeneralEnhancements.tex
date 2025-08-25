@@ -17,50 +17,48 @@
 \begin{frame}[fragile]{Architecture Support and Performance}
  \begin{itemize}
      \item Support for AMD Zen 5, SiFive RISC-V Y74MC and ARMv8.4 CPU architectures
-     \begin{itemize}
-       \item new \texttt{KOKKOS\_ARCH\_AMD\_ZEN5} 
-       \item new \texttt{KOKKOS\_ARCH\_RISCV\_U74MC}
-     \end{itemize}
-     \item {Resolving performance regression with atomic views for HIP and SYCL}
-     \begin{itemize}
-       \item \texttt{atomic\_op\_fetch} now always use vendor APIs for atomics (e.g. \texttt{sycl\_atomic\_ref})
-     \end{itemize}
-     \item Passing label~\emph{by reference} in all Kokkos Tools APIs (improving performance)
+   \begin{itemize}
+       \item Enable with \texttt{-DKokkos\_ARCH\_AMD\_ZEN5} 
+       \item Enable with \texttt{-DKokkos\_ARCH\_RISCV\_U74MC}
+   \end{itemize}
+  \item Exit early at initialize with \texttt{--kokkos-help}
+    \begin{itemize}
+      \item Calling ``\texttt{executable --kokkos-help}" now causes normal termination
+   \end{itemize}  
+  \item Symbol visibility fix-ups to support C++20 modules
+    \begin{itemize}
+      \item Avoid static variables and functions in header
+    \end{itemize}
+  \item Add \texttt{constexpr} specifier to \texttt{operator==} and \texttt{operator!=} for \texttt{Kokkos::complex}
  \end{itemize}
 \end{frame}
 
+%==========================================================================
+
 \begin{frame}[fragile]{APIs and Behaviours}
  \begin{itemize}
-   \item Exit early at initialize with \texttt{--kokkos-help}
-    \begin{itemize}
-      \item Calling ``\texttt{binary --kokkos-help}" now causes normal termination
-   \end{itemize}  
+  \item Add constructors for \texttt{Random\_XorShift*\_Pool} with execution space argument
+      \begin{itemize}
+      \item Allows construction of instances with non-blocking initialization
+    \end{itemize}
    \item Enable structured binding of return values for \texttt{partition\_space}
         \begin{code}[keywords={std}]
           /* NEW! */
           auto [exec0, exec1] = 
                   Experimental::partition_space(ExecSpace, 1, 1);
         \end{code}
-    \item Avoid static variables and functions in header
-    \begin{itemize}
-      \item  Ensures compatibility with C++20 modules
-      \end{itemize}
-    \item Add \texttt{constexpr} specifier to \texttt{operator==} and \texttt{operator!=} for \texttt{Kokkos::complex}
-    \item Add constructors for \texttt{Random\_XorShift*\_Pool} with execution space argument
-      \begin{itemize}
-      \item Allows construction of instances with non-blocking initialization
-    \end{itemize}
-
+    
  \end{itemize}
 \end{frame}
+
+%==========================================================================
 
 \begin{frame}[fragile]{APIs and Behaviours (Continued)}
  \begin{itemize}
      \item Add \texttt{Kokkos::SIMD::SVE} support for 128-bit and 256-bit SVE 
      \begin{itemize}
       \item Adds support for \emph{Scalable Vector Extensions} for Kokkos SIMD types on ARM V8.4-compatible CPUs
-      \item Enabled with~\texttt{KOKKOS\_ARCH\_NATIVE}, ~\texttt{KOKKOS\_ARCH\_ARM\_SVE} and
- ~\texttt{KOKKOS\_ARCH\_ARMV9\_GRACE}
+      \item Enabled with~\texttt{-DKokkos\_ARCH\_NATIVE}, ~\texttt{-DKokkos\_ARCH\_ARM\_SVE} and~\texttt{-DKokkos\_ARCH\_ARMV9\_GRACE}
      \end{itemize}
      \item Implement \texttt{Kokkos::nextafter} for fp16 types
         \begin{code}[keywords={std}]
@@ -73,101 +71,8 @@
  \end{itemize}
 \end{frame}
 
+%==========================================================================
 
-\begin{frame}[fragile]{Updates on Kokkos Graphs}
- \begin{itemize}
-     \item Reminder: \emph{Kokkos Graph} is an abstraction of computation represented as a DAG
-     \item Located in~\emph{Kokkos::Experimental}
-      \item Example of a diamond-shaped compute graph supported
-      \begin{code}[keywords={std}]
-      auto graph = Kokkos::create_graph([&](auto root) {
-      auto nodeA = root.then_parallel_for("workloadA",policy,functor);
-      auto nodeB = nodeA.then_parallel_for("workloadB",policy,functor);
-      auto nodeC = nodeA.then_parallel_for("workloadC",policy,functor);
-      auto nodeD = Kokkos::when_all(nodeB, nodeC).
-        then_parallel_for("workloadD",policy,functor);});
-      graph.instantiate();
-      graph.submit();
-      \end{code}
-     \item Restricted to Kokkos parallel patterns!
- \end{itemize}
-\end{frame}
-
-
-\begin{frame}[fragile]{Updates on Kokkos Graphs (Capture)}
- \begin{itemize}
-     \item Add support for graph capture (Cuda, HIP and SYCL)
-     \begin{itemize}
-     \item Graph capture allows to add a graph node containing device code or library
-     \item Supported backends: HIP, CUDA, SYCL (\emph{*\_capture})
-  \end{itemize}
-     \item Example: Capture of a cuBLAS call:
-        \begin{code}[keywords={std}]
-    auto graph = Kokkos::Experimental::create_graph([&](const auto& root){
-      auto handle = create_cublas_handle();
-       /* NEW! */
-      root.cuda_capture(exec,
-      [=](const Kokkos::Cuda& exec_){
-        /* Body of lambda using CUDA */
-        cublasSetStream(handle.get(),exec_.cuda_stream()));
-        cublasDgemv( handle.get(),CUBLAS_OP_N,...);
-      });
-    });
-    graph.instantiate(); 
-    graph.submit(exec);
-      \end{code}
-     
- \end{itemize}
-\end{frame}
-
-
-\begin{frame}[fragile]{Updates on Kokkos Graphs (then\_host)}
- \begin{itemize}
-     \item Add support for host-side graph nodes via the \emph{then\_host(...)} function
-     \begin{itemize}
-     \item Adding a host-node creates a new CPU execution node and adds it to the graph
-     \item Registers a host-callback (and fences device exec space on execution)
-  \end{itemize}
- \item Example: Using a host-side graph node
-        \begin{code}[keywords={std}]
-    const counter_t counter(Kokkos::view_alloc("counter", exec));
-    ASSERT_EQ(counter.use_count(), 1);
-      auto graph = Kokkos::Experimental::create_graph(exec, 
-        [&](const auto& root) {
-          root.then ("NodeA",exec,functor_d_t{{counter}})
-          /* NEW!*/
-          .then_host("NodeB",     functor_h_t{{counter}}) 
-          .then     ("NodeC",exec,functor_d_t{{counter}});
-      });
-      ASSERT_EQ(counter.use_count(), 4);
-      \end{code}
-  \begin{itemize}
-  \item Note:\emph{exec} can access host memory
-  \end{itemize}
- \end{itemize}
-
-\end{frame}
-
-\begin{frame}[fragile]{Updates on Kokkos Graphs (other)}
- \begin{itemize}
-    \item Allow building Kokkos::Experimental::Graph object directly
-    \begin{itemize}
-    \item Allows default-constructed Kokkos::Experimental::Graph 
-    \item Graph has a new \emph{root\_node()} public member function (returns the graph's root node)
-    \item Example use:
-     \begin{code}[keywords={std}]
-      /* NEW! */
-      Kokkos::Experimental::Graph graph{exec};
-      graph.root_node().then_parallel_for(1, func{});
-      graph.submit(exec);
-        \end{code}
-     \end{itemize}
-  \item Enforce unit launch bound for graph \emph{then-node}
-  \begin{itemize}
-    \item Now we explicitly use an execution policy with Kokkos::LaunchBounds<1> to execute a \emph{then} graph node
-  \end{itemize}
- \end{itemize}
-\end{frame}
 
 
 %\begin{frame}[fragile]{Example code}

@@ -31,7 +31,7 @@
 
 %==========================================================================
 
-\begin{frame}[fragile]{Improve half float performance for CUDA and SYCL backends}
+\begin{frame}[fragile]{Improve half-float performance for CUDA and SYCL backends}
   \begin{itemize}
     \item CUDA AND SYCL: Directly use the available fp16 mathematical function instead of casting back and forth to fp32
   \end{itemize}
@@ -72,6 +72,18 @@
 % tmp = init(i);
 % res(i) = sqrt(cos(tmp) + sin(tmp));
 % - Compute bound is doing 16 time the work of Memory Bound
+
+%==========================================================================
+
+\begin{frame}[fragile]{Other Performance Improvements}
+  \begin{itemize}
+  \item {Improving performance with atomic views for HIP and SYCL}
+     \begin{itemize}
+       \item \texttt{atomic\_op\_fetch} now always use vendor APIs for atomics (e.g. \texttt{sycl\_atomic\_ref})
+     \end{itemize}
+     \item Passing label~\emph{by reference} in all Kokkos Tools APIs (improving performance)
+  \end{itemize}
+\end{frame}
 
 %==========================================================================
 

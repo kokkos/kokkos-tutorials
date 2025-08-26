@@ -49,7 +49,7 @@
      \item Reminder: \emph{Kokkos Graph} is an abstraction of computation represented as a DAG
      \item Located in~\emph{Kokkos::Experimental}
       \item Example of a diamond-shaped compute graph supported
-      \begin{code}[keywords={std}]
+      \begin{code}[keywords={std,class,template,auto}]
       auto graph = Kokkos::create_graph([&](auto root) {
       auto nodeA = root.then_parallel_for("workloadA",policy,functor);
       auto nodeB = nodeA.then_parallel_for("workloadB",policy,functor);
@@ -75,7 +75,7 @@
       \item Calls internally \texttt{*StreamBeginCapture},\texttt{*StreamEndCapture}
     \end{itemize}
      \item Example: Using cuBLAS
-        \begin{code}[keywords={std}]
+        \begin{code}[keywords={std,class,template,auto}]
     auto graph = Kokkos::Experimental::create_graph([&](const auto& root){
       auto handle = create_cublas_handle();
        /* NEW! */
@@ -103,12 +103,11 @@
       \item Calls internally \texttt{*GraphAddHostNode}
     \end{itemize}
  \item Example: Using a host-side graph node
-        \begin{code}[keywords={std}]
-    ...
+        \begin{code}[keywords={std,class,template,auto}]
     template<>
     class functor<Kokkos::DefaultExecutionSpace>{ /* Device code */ };
     template<>
-    class functor<Kokkos::HostSpace> { /* Host code*/ };
+    class functor<Kokkos::HostSpace> { /* Host code*/ };    
     auto graph = Kokkos::Experimental::create_graph(exec, 
         [&](const auto& root) {
           root.then ("NodeA",exec,functor<Kokkos::DefaultExecutionSpace>{})
@@ -126,11 +125,10 @@
 
 \begin{frame}[fragile]{Updates on Kokkos Graphs (then\_host)}
  \begin{itemize}
- \item Example: Using a host-side graph node (continued)
-        \begin{code}[keywords={std}]
+ \item Example: Using a host-side graph node to allocate data
+        \begin{code}[keywords={std,class,template,auto}]
     using view_t = View<int*,Kokkos::MemoryTraits<Unmanaged>>
     view_t v;
-    ...
     template<>
     class functor<HostSpace> {
       view_t v;
@@ -139,11 +137,13 @@
     template<>
     class functor<Kokkos::DefaultExecutionSpace>{ /* Device code */ };
     auto graph = Kokkos::Experimental::create_graph(exec, 
-        [&](const auto& root) {
-          root.then_host ("allocate",functor<Kokkos::HostSpace>{v})
-          /* NEW! */
-          .then_parallel_for("compute",10,functor<Kokkos::DefaultExecutionSpace>{v});
-    });       
+      [&](const auto& root) {
+        /* NEW! */
+        root.then_host ("allocate",functor<Kokkos::HostSpace>{v})
+        .then_parallel_for("compute",10,
+                       functor<Kokkos::DefaultExecutionSpace>{v});
+    });  
+    ...     
       \end{code}
  \end{itemize}
 \end{frame}

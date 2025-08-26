@@ -10,19 +10,39 @@
 
 %==========================================================================
 
-\begin{frame}[fragile]{Deprecations and Incompatibilities}
-  Incompatibilities
+\begin{frame}[fragile]{Incompatibilities}
+
+  \textbf{SYCL Backend}
   \begin{itemize}
-    \item Raise IntelLLVM minimum for SYCL to 2024.2.1
-    \item Disallow Kokkos\_ENABLE\_DEBUG\_DUALVIEW\_MODIFY\_CHECK=OFF
+      \item The minimum required \textbf{IntelLLVM} version has been raised from \textbf{2023.0.0} to \textbf{2024.2.1}.
+      This change aligns with the Intel HPC Toolkit used for CI testing and
+      resolves critical issues with sorting algorithms.
   \end{itemize}
-  \vfill
-  Deprecations
+  \textbf{DualView Debugging}
   \begin{itemize}
-    \item Deprecate KOKKOS\_MEMORY\_ALIGNMENT[\_THRESHOLD] macros
-    \item Deprecate Kokkos::MemoryManaged as alias for default memory traits
-    \item Deprecate KOKKOS\_NONTEMPORAL\_PREFETCH\_{LOAD,STORE} macros
+    \item The option \texttt{Kokkos\_ENABLE\_DEBUG\_DUALVIEW\_MODIFY\_CHECK} has
+        been deprecated and is now \textbf{always enabled}. Previously, its default
+        value was dependent on the \texttt{Kokkos\_ENABLE\_DEBUG} option.
+    \item \textbf{Rationale:} Enabling this check provides valuable debug information
+        for \texttt{DualView::modify[\_\{device,host\}]} calls without a
+        significant performance penalty. It also simplifies the configuration
+        process for users by reducing the number of available build options.
   \end{itemize}
 \end{frame}
 
 %==========================================================================
+
+\begin{frame}[fragile]{Deprecations}
+  \begin{itemize}
+    \item Deprecate \texttt{KOKKOS\_MEMORY\_ALIGNMENT[\_THRESHOLD]} macros
+    \item Deprecate \texttt{KOKKOS\_NONTEMPORAL\_PREFETCH\_\{LOAD,STORE\}} macros
+    \item Deprecate \texttt{Kokkos::MemoryManaged} as alias for default memory traits
+\begin{code}[keywords={MemoryManaged}]
+using MemoryManaged KOKKOS_DEPRECATED = Kokkos::MemoryTraits<>;
+//                                      ^^^^^^^^^^^^^^^^^^^^^^
+//                                      added default template argument
+//                                      to avoid spelling out the integer
+//                                      value of the empty bitmask
+\end{code}
+  \end{itemize}
+\end{frame}

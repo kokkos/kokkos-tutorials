@@ -59,8 +59,8 @@
       graph.instantiate();
       graph.submit();
       \end{code}
-     \item Restricted to Kokkos parallel patterns and device code
-     \item We have two new features addressing this restriction
+     \item Supports Kokkos patterns (\texttt{then\_parallel\_*}, \texttt{then})
+     \item We have two new features to support more use-cases (subgraphs via stream-capture and host-nodes)
  \end{itemize}
 \end{frame}
 
@@ -69,11 +69,12 @@
 
 \begin{frame}[fragile]{Updates on Kokkos Graphs (Capture)}
  \begin{itemize}
-     \item Add support for graph capture (Cuda, HIP and SYCL)
-     \begin{itemize}
-     \item Graph capture allows to add a graph node containing device code or call to a device library
-  \end{itemize}
-     \item Example: Capture of a cuBLAS call:
+     \item Adds support for subgraphs created using stream-capture via \texttt{*\_capture(...)}
+     \begin{itemize}      
+      \item Useful to include native code and libraries
+      \item Calls internally \texttt{*StreamBeginCapture},\texttt{*StreamEndCapture}
+    \end{itemize}
+     \item Example: Using cuBLAS
         \begin{code}[keywords={std}]
     auto graph = Kokkos::Experimental::create_graph([&](const auto& root){
       auto handle = create_cublas_handle();
@@ -94,31 +95,29 @@
 
 %==========================================================================
 
-
 \begin{frame}[fragile]{Updates on Kokkos Graphs (then\_host)}
  \begin{itemize}
-     \item Add support for host-side graph nodes via the \emph{then\_host(...)} function
-     \begin{itemize}
-     \item Adding a host-node creates a new CPU execution node and adds it to the graph
-     \item Registers a host-callback (and fences device exec space on execution)
-  \end{itemize}
+     \item Adds support for host-side graph nodes    
+    \begin{itemize}
+      \item New API: \texttt{then\_host(...)}
+      \item Calls internally \texttt{*GraphAddHostNode}
+    \end{itemize}
  \item Example: Using a host-side graph node
         \begin{code}[keywords={std}]
-    class functor_d_t { tbd};
-    class functor_h_t { tbd };
-    ASSERT_EQ(counter.use_count(), 1);
-      auto graph = Kokkos::Experimental::create_graph(exec, 
+    ...
+    template<>
+    class functor<DefaultExecutionSpace>{ /* Device code */ };
+    template<>
+    class functor<HostSpace> { /* Host code*/ };
+    auto graph = Kokkos::Experimental::create_graph(exec, 
         [&](const auto& root) {
-          root.then ("NodeA",exec,functor_d_t{)
-          /* NEW!*/
-          .then_host("NodeB",     functor_h_t{}) 
-          .then     ("NodeC",exec,functor_d_t{});
-      });      
+          root.then ("NodeA",exec,functor<DefaultExecutionSpace>{})
+          /* NEW! */
+          .then_host("NodeB",functor<HostSpace>{});
+    });      
       \end{code}
-  \begin{itemize}
-  \item Note:\emph{exec} can access host memory
-  \item We explicitly use an execution policy with Kokkos::LaunchBounds<1> to execute a \emph{then} graph node
-  \end{itemize}
+  
+  \item We explicitly use an execution policy with Kokkos::LaunchBounds$\langle 1\rangle$ to execute a \emph{then} graph node
  \end{itemize}
 \end{frame}
 
@@ -139,6 +138,12 @@
         \end{code}
      \end{itemize}
  \end{itemize}
+   \begin{block}{Note}
+ \begin{itemize}
+   \item The Kokkos Graph API is \texttt{Experimental}
+   \item We would appreciate your feedback!
+ \end{itemize}
+  \end{block}
 \end{frame}
 
 

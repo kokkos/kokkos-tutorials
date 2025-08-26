@@ -106,18 +106,45 @@
         \begin{code}[keywords={std}]
     ...
     template<>
-    class functor<DefaultExecutionSpace>{ /* Device code */ };
+    class functor<Kokkos::DefaultExecutionSpace>{ /* Device code */ };
     template<>
-    class functor<HostSpace> { /* Host code*/ };
+    class functor<Kokkos::HostSpace> { /* Host code*/ };
     auto graph = Kokkos::Experimental::create_graph(exec, 
         [&](const auto& root) {
-          root.then ("NodeA",exec,functor<DefaultExecutionSpace>{})
+          root.then ("NodeA",exec,functor<Kokkos::DefaultExecutionSpace>{})
           /* NEW! */
-          .then_host("NodeB",functor<HostSpace>{});
+          .then_host("NodeB",functor<Kokkos::HostSpace>{});
     });      
       \end{code}
   
   \item We explicitly use an execution policy with Kokkos::LaunchBounds$\langle 1\rangle$ to execute a \emph{then} graph node
+ \end{itemize}
+\end{frame}
+
+
+%==========================================================================
+
+\begin{frame}[fragile]{Updates on Kokkos Graphs (then\_host)}
+ \begin{itemize}
+ \item Example: Using a host-side graph node (continued)
+        \begin{code}[keywords={std}]
+    using view_t = View<int*,Kokkos::MemoryTraits<Unmanaged>>
+    view_t v;
+    ...
+    template<>
+    class functor<HostSpace> {
+      view_t v;
+      void operator()() const { v = view_t(Kokkos::view_alloc("v"),10);}
+    };
+    template<>
+    class functor<Kokkos::DefaultExecutionSpace>{ /* Device code */ };
+    auto graph = Kokkos::Experimental::create_graph(exec, 
+        [&](const auto& root) {
+          root.then_host ("allocate",functor<Kokkos::HostSpace>{v})
+          /* NEW! */
+          .then_parallel_for("compute",10,functor<Kokkos::DefaultExecutionSpace>{v});
+    });       
+      \end{code}
  \end{itemize}
 \end{frame}
 

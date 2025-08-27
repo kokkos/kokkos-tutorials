@@ -48,7 +48,6 @@ Release 4.7 will be the last release before Kokkos 5.0, supported until July 202
 GCC                  & 8.2.0      & 10.4.0     \\
 Clang (CPU)          & 8.0.0      & 14.0.0     \\
 Clang (CUDA)         & 10.0.0     & 14.0.0     \\
-Clang (OpenMPTarget) & 15.0.0     & 15.0.0     \\
 IntelLLVM (CPU)      & 2021.1.1   & 2022.0.0   \\
 IntelLLVM (SYCL)     & 2023.0.0   & 2024.2.1   \\
 NVCC                 & 11.0       & 12.2.0     \\
@@ -59,6 +58,26 @@ ARM/Clang            & 20.1       & 20.1       \\ \hline
 \end{tabular}
 \end{table}
 
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Deprecated Code 4}
+
+\textbf{Deprecated Code 4 will be off by default and started to be removed!}
+
+\begin{itemize}
+\item In Kokkos 5.0 \texttt{Kokkos\_ENABLE\_DEPRECATED\_CODE\_4=OFF} is the default!
+\item Some deprecated feature will be removed completely immediately.
+\item Features where we expect users still needing time, will stick around for a couple more minor releases. 
+\end{itemize}
+
+\begin{center}
+\textit{Start preparing now with:} \texttt{Kokkos\_ENABLE\_DEPRECATED\_CODE\_4=OFF}
+
+\vspace{1cm}
+\textbf{Remember: raw Makefile support will be removed!}
+\end{center}
 \end{frame}
 
 %==========================================================================
@@ -92,7 +111,7 @@ Kokkos is a Linux Foundation project with a trademark!
 \end{itemize}
 
 \begin{center}
-The Kokkos trademark does NOT prevent you from using the word "Kokkos" in your slides, papers and websites!
+\textit{The Kokkos trademark does NOT prevent you from using the word "Kokkos" in your slides, papers and websites!}
 \end{center}
 
 \end{frame}
@@ -108,6 +127,7 @@ The Kokkos trademark does NOT prevent you from using the word "Kokkos" in your s
 \item{We want you to publish on ideas to improve Kokkos!}
 \end{itemize}
 
+\vspace{1cm}
 \textbf{Don'ts}
 
 \begin{itemize}

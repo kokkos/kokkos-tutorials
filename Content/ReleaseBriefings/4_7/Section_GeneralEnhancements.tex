@@ -69,6 +69,7 @@ auto [exec0, exec1] = Experimental::partition_space(ExecSpace, 1, 1);
      \begin{itemize}
       \item Adds support for \emph{Scalable Vector Extensions} for Kokkos SIMD types on ARM V8.4-compatible CPUs
       \item Enabled with~\texttt{-DKokkos\_ARCH\_NATIVE}, ~\texttt{-DKokkos\_ARCH\_ARM\_SVE} and~\texttt{-DKokkos\_ARCH\_ARMV9\_GRACE}
+      \item Contributed by Minh Quan Ho from SiPearl
      \end{itemize}
      \item Implement \texttt{Kokkos::nextafter} for fp16 types
 \begin{code}[keywords={nextafter}]

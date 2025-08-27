@@ -1,0 +1,8 @@
+Exercises/dep
+*.o
+*.host
+*.cuda
+KokkosCore_config.h
+KokkosCore_config.tmp
+*.a
+

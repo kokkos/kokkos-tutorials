@@ -1,0 +1,101 @@
+%==========================================================================
+
+\begin{frame}[fragile]
+
+  {\Huge Bug Fixes}
+
+  \vspace{10pt}
+
+\end{frame}
+
+%==========================================================================
+
+% Examples
+
+% note: always keep the [fragile] for your frames!
+
+%\begin{frame}[fragile]{Example list}
+%  \begin{itemize}
+%      \item Item 1
+%      \item Item 2 with some \texttt{code}
+%      \begin{itemize}
+%        \item Sub-item 2.1
+%        \item Sub-item 2.2
+%      \end{itemize}
+%  \end{itemize}
+%\end{frame}
+
+%\begin{frame}[fragile]{Example code}
+%    \begin{code}[keywords={std}]
+%        #include <iostream>
+%        
+%        int main() {
+%            std::cout << "hello world\n";
+%        }
+%    \end{code}
+%\end{frame}
+
+%\begin{frame}[fragile]{Example table}
+%    \begin{center}
+%        \begin{tabular}{l|l}
+%            a & b \\\hline
+%            c & d
+%        \end{tabular}
+%    \end{center}
+%\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{General Bug Fixes}
+    \begin{itemize}
+      \item Fix a memory leak from an early exit when using \texttt{--kokkos-tools-help} % 8074
+      \item Add missing fences for async Random init with unified memory % 8105
+      \item More robust checks on subview constructor % #8210
+        \begin{code}[keywords={std}]
+View<T**, LayoutLeft> a(N,N);
+
+// Previously allowed, but data should have strided access.
+View<T*, LayoutLeft> sub_a(a, 1, ALL); // Runtime Error
+        \end{code}
+
+    \end{itemize}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{General Bug Fixes}
+  \begin{itemize}
+    \item SIMD:
+    \begin{itemize}
+      \item Fix compile errors with \texttt{Kokkos\_ARCH\_NATVE=ON} % 7912
+      \item Fix fallback simd masked reductions using incorrect identity elements % 8115
+    \end{itemize}
+    \item Compilers:
+    \begin{itemize}
+      \item Apply a workaround for a segfault issue in \texttt{SharedAllocationTracker} with gcc 12.2, 12.3 and 12.4 % 8223
+      \item Fix compiling with C++23 supported compilers that provide an mdspan implementation % #8234
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Backend Bug Fixes}
+    \begin{itemize}
+        \item HPX: fix to constrain hpx\_thread\_buffer size used with TeamPolicy setup % #8147
+        \item HIP and SYCL:
+        \begin{itemize}
+          \item A \texttt{MDRangePolicy} of rank 4 or more would be incorrectly iterated, leading to some iterations being evaluated more than once for large enough loops % 7880
+        \end{itemize}
+        \item HIP:
+        \begin{itemize}
+          \item \texttt{ConstantMemory} launch mechanism would sporadically fail due to \texttt{hipEventSynchronize} error % 8094
+          \item Fix launch of intermediate size functors in graph % #8188
+        \end{itemize}
+        \item Serial: memory leak in internal instance data % 8042
+        \item OpenMP Target and OpenACC: An out-of-bounds access would occur in \texttt{Random\_UniqueIndex} under certain circumstances % 8077
+    \end{itemize}
+\end{frame}
+
+
+

@@ -18,8 +18,8 @@
  \begin{itemize}
      \item Support for AMD Zen 5, SiFive RISC-V Y74MC and ARMv8.4 CPU architectures
    \begin{itemize}
-       \item Enable with \texttt{-DKokkos\_ARCH\_AMD\_ZEN5} 
-       \item Enable with \texttt{-DKokkos\_ARCH\_RISCV\_U74MC}
+       \item Enable with \texttt{-DKokkos\_ARCH\_AMD\_ZEN5=ON} 
+       \item Enable with \texttt{-DKokkos\_ARCH\_RISCV\_U74MC=ON}
    \end{itemize}
   \item Exit early at initialize with \texttt{--kokkos-help}
     \begin{itemize}
@@ -42,16 +42,15 @@
       \item Allows construction of instances with non-blocking initialization
     \end{itemize}
    \item Enable structured binding of return values for \texttt{partition\_space}
-        \begin{code}[keywords={std}]
-          /* OLD */
-          auto my_vector = 
-                  Experimental::partition_space(ExecSpace, 1, 1);
-          auto exec0 = my_vector.at(0);
-          ...
-          /* NEW! */
-          auto [exec0, exec1] = 
-                  Experimental::partition_space(ExecSpace, 1, 1);
-        \end{code}
+\begin{code}[keywords={partition_space}]
+/* OLD */
+auto my_vector =  Experimental::partition_space(ExecSpace, 1, 1);
+auto exec0 = my_vector.at(0);
+auto exec1 = my_vector.at(1);
+...
+/* NEW! */
+auto [exec0, exec1] = Experimental::partition_space(ExecSpace, 1, 1);
+\end{code}
     \begin{itemize}
       \item Allows to "unpack" the elements of the expression into individually named variables
       \item Eliminates the need to index into a std::array or std::vector and assigning an execution space instance to a variable.
@@ -69,12 +68,10 @@
       \item Enabled with~\texttt{-DKokkos\_ARCH\_NATIVE}, ~\texttt{-DKokkos\_ARCH\_ARM\_SVE} and~\texttt{-DKokkos\_ARCH\_ARMV9\_GRACE}
      \end{itemize}
      \item Implement \texttt{Kokkos::nextafter} for fp16 types
-        \begin{code}[keywords={std}]
-          /* NEW! */
-          using half_t = Kokkos::Experimental::half_t;
-          half_t a = 1.0, t = 2.0;
-          half_t b = Kokkos::nextafter(a, t);
-        \end{code}
+\begin{code}[keywords={nextafter}]
+Experimental::half_t a = 1, t = 2;
+Experimental::half_t b = nextafter(a, t);
+\end{code}
         \item Removes~\texttt{[[nodiscard]]} attributes from the Kokkos SIMD interface to align with C++26
  \end{itemize}
 \end{frame}

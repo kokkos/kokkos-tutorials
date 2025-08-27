@@ -38,11 +38,11 @@
     \item Deprecate \texttt{KOKKOS\_NONTEMPORAL\_PREFETCH\_\{LOAD,STORE\}} macros
     \item Deprecate \texttt{Kokkos::MemoryManaged} as alias for default memory traits
 \begin{code}[keywords={MemoryManaged}]
-using MemoryManaged KOKKOS_DEPRECATED = Kokkos::MemoryTraits<>;
-//                                      ^^^^^^^^^^^^^^^^^^^^^^
-//                                      added default template argument
-//                                      to avoid spelling out the integer
-//                                      value of the empty bitmask
+using MemoryManaged [[deprecated]] = Kokkos::MemoryTraits<>;
+//                                   ^^^^^^^^^^^^^^^^^^^^^^
+//                                   added default template argument
+//                                   to avoid spelling out the integer
+//                                   value of the empty bitmask
 \end{code}
   \end{itemize}
 \end{frame}

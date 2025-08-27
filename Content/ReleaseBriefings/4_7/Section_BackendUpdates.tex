@@ -77,7 +77,7 @@
 
 \begin{frame}[fragile]{Other Performance Improvements}
   \begin{itemize}
-  \item {Improving performance with atomic views for HIP and SYCL}
+  \item {Improving atomic performance for \texttt{op\_fetch}}
      \begin{itemize}
       \item \texttt{atomic\_op\_fetch} was not specialized as diligently as \texttt{atomic\_fetch\_op} to leverage hardware support or vendor APIs and was falling back to the compare-and-swap implementation
       \item \texttt{atomic\_op\_fetch} is now being expressed in terms of "\texttt{op} applied to the result of \texttt{atomic\_fetch\_op}" which means we get systematically more benefit from the specialization we had written

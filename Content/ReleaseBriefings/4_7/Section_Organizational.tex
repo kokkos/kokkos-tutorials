@@ -47,17 +47,23 @@ Release 4.7 will be the last release before Kokkos 5.0, supported until July 202
 \multicolumn{1}{r}{} & Kokkos 4.x & Kokkos 5.0 \\ \hline
 GCC                  & 8.2.0      & 10.4.0     \\
 Clang (CPU)          & 8.0.0      & 14.0.0     \\
-Clang (CUDA)         & 10.0.0     & 14.0.0     \\
+Clang (CUDA)         & 10.0.0     & 16.0.0     \\
 IntelLLVM (CPU)      & 2021.1.1   & 2022.0.0   \\
 IntelLLVM (SYCL)     & 2023.0.0   & 2024.2.1   \\
 NVCC                 & 11.0       & 12.2.0     \\
 NVC++                & 22.3       & 22.3       \\
 ROCM                 & 5.2.0      & 6.2.0      \\
 MSVC                 & 19.29      & 19.30      \\
-ARM/Clang            & 20.1       & 20.1       \\ \hline
 \end{tabular}
 \end{table}
 
+\textit{\footnotesize Note: Clang (CUDA) will require CUDA 11.8 as underlying runtime.}
+
+\textit{\footnotesize Note: MSVC is only actually tested with the latest version.}
+
+\begin{center}
+\url{https://kokkos.org/kokkos-core-wiki/get-started/requirements.html}
+\end{center}
 \end{frame}
 
 %==========================================================================
@@ -68,7 +74,7 @@ ARM/Clang            & 20.1       & 20.1       \\ \hline
 
 \begin{itemize}
 \item In Kokkos 5.0 \texttt{Kokkos\_ENABLE\_DEPRECATED\_CODE\_4=OFF} is the default!
-\item Some deprecated feature will be removed completely immediately.
+\item Some deprecated feature will immediately be removed.
 \item Features where we expect users still needing time, will stick around for a couple more minor releases. 
 \end{itemize}
 

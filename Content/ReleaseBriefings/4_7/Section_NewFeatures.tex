@@ -130,9 +130,9 @@
     using view_t = View<int*,Kokkos::MemoryTraits<Unmanaged>>
     view_t v;
     template<>
-    class functor<HostSpace> {
-      view_t v;
-      void operator()() const { v = view_t(Kokkos::view_alloc("v"),10);}
+    class functor<Kokkos::HostSpace> {
+      view_t _v;
+      void operator()() const { _v = view_t(Kokkos::view_alloc("v",...),10);}
     };
     template<>
     class functor<Kokkos::DefaultExecutionSpace>{ /* Device code */ };

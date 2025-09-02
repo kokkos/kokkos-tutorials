@@ -104,9 +104,9 @@ void makeSparseMatrix (
       val = val_type("val", nnz);
 
       // Wrap the above three arrays in unmanaged Views, so we can use deep_copy.
-      typename ptr_type::HostMirror::const_type  ptrIn( ptrRaw , numRows+1 );
-      typename ind_type::HostMirror::const_type  indIn( indRaw , nnz );
-      typename val_type::HostMirror::const_type  valIn( valRaw , nnz );
+      typename ptr_type::host_mirror_type::const_type  ptrIn( ptrRaw , numRows+1 );
+      typename ind_type::host_mirror_type::const_type  indIn( indRaw , nnz );
+      typename val_type::host_mirror_type::const_type  valIn( valRaw , nnz );
 
       Kokkos::deep_copy (ptr, ptrIn);
       Kokkos::deep_copy (ind, indIn);
@@ -232,8 +232,8 @@ int main( int argc, char* argv[] )
     AccumulatorVectorType dot_ret ("dot_ret");
 
     // Create host mirrors of device views.
-    ViewVectorType::HostMirror h_xx = Kokkos::create_mirror_view( xx );
-    AccumulatorVectorType::HostMirror h_dot_ret = Kokkos::create_mirror_view( dot_ret );
+    auto h_xx = Kokkos::create_mirror_view( xx );
+    auto h_dot_ret = Kokkos::create_mirror_view( dot_ret );
 
     // Initialize h_xx with random numbers in [0, 1]
     for(int i=0; i<xx.span(); i++) {

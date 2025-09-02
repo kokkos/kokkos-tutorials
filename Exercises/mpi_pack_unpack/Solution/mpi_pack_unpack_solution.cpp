@@ -62,9 +62,9 @@ struct RunPackCommUnpackTest {
 
   // Send and receive buffers for device and host
   Kokkos::View<double*,BufferMemorySpace> send_buffer;
-  typename Kokkos::View<double*,BufferMemorySpace>::HostMirror send_buffer_h;
+  Kokkos::View<double*,BufferMemorySpace>::host_mirror_type send_buffer_h;
   Kokkos::View<double*,BufferMemorySpace> recv_buffer;
-  typename Kokkos::View<double*,BufferMemorySpace>::HostMirror recv_buffer_h;
+  Kokkos::View<double*,BufferMemorySpace>::host_mirror_type recv_buffer_h;
 
   // ExecutionSpace to run the pack/unpack kernel on
   using exec_space = typename DataMemorySpace::execution_space;

@@ -126,9 +126,9 @@ void makeSparseMatrix (
       val = val_type("val", nnz);
 
       // Wrap the above three arrays in unmanaged Views, so we can use deep_copy.
-      typename ptr_type::HostMirror::const_type  ptrIn( ptrRaw , numRows+1 );
-      typename ind_type::HostMirror::const_type  indIn( indRaw , nnz );
-      typename val_type::HostMirror::const_type  valIn( valRaw , nnz );
+      typename ptr_type::host_mirror_type::const_type  ptrIn( ptrRaw , numRows+1 );
+      typename ind_type::host_mirror_type::const_type  indIn( indRaw , nnz );
+      typename val_type::host_mirror_type::const_type  valIn( valRaw , nnz );
 
       Kokkos::deep_copy (ptr, ptrIn);
       Kokkos::deep_copy (ind, indIn);

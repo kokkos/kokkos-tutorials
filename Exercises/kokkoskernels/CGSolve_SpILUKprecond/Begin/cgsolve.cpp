@@ -319,7 +319,7 @@ int main( int argc, char* argv[] )
     ViewVectorType z    ( "z",     N );
     ViewVectorType Linvr( "Linvr", N );
 
-    ViewVectorType::HostMirror h_xx = Kokkos::create_mirror_view( xx );
+    auto h_xx = Kokkos::create_mirror_view( xx );
 
     // Initialize xx vector on host
     for(int i=0; i<xx.span(); i++) h_xx.data()[i] = (double)rand() / RAND_MAX;

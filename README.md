@@ -27,20 +27,22 @@ Tutorials in the **Intro-Full** directory cover
 
 # Building the Tutorials
 
-All the tutorial folders can be built using CMake.
+All the tutorials are built using CMake.
 
-## CMake
+## CMake Quickstart
 
-CMake can build against an installed Kokkos library or download one automatically using `FetchContent`.
-
-Without any Kokkos already installed, from an exercise directory, one can run the following:
+From the top level directory or from any exercise directory, you can build the tutorials using CMake:
 
 ```shell
-cmake -B build_dir # -DKokkos_* options
+cmake -B build_dir
 cmake --build build_dir
 ```
 
-Kokkos options are described in [CMake options](https://kokkos.org/kokkos-core-wiki/keywords.html).
+Additional options can be passed to CMake to configure the build, such as the backend to use, the architecture to target, etc.
+
+## Examples
+
+Here are some examples of building the exercises with CMake:
 
 For example, OpenMP CPU exercises can be built as:
 ```shell
@@ -61,6 +63,39 @@ cmake -B build_cuda -DKokkos_ENABLE_CUDA=ON
 cmake --build build_cuda
 ```
 
+For an AMD GPU with autodetection of the GPU architecture:
+
+```shell
+cmake -B build_hip -DKokkos_ENABLE_HIP=ON
+cmake --build build_hip
+```
+
+Kokkos setup is covered by the [quickstart guide](https://kokkos.org/kokkos-core-wiki/get-started/quick-start.html) and an exhaustive list of Kokkos options is detailed in the [CMake keywords documentation](https://kokkos.org/kokkos-core-wiki/get-started/configuration-guide.html).
+
+## Advanced CMake Usage
+
+CMake can build against an existing Kokkos installation or download the source files automatically using `FetchContent`.
+
 To pass an already installed Kokkos library, you can use classical CMake variables,
 such as `Kokkos_ROOT`, or `CMAKE_PREFIX_PATH`.
 
+A specific CMake option, `CMAKE_DISABLE_FIND_PACKAGE_Kokkos`, can be used to force the use of the internal Kokkos
+library, discarding any already installed Kokkos.
+
+An opposite option, `CMAKE_REQUIRE_FIND_PACKAGE_Kokkos` can prevent Kokkos from being downloaded and is useful to
+test against an already installed Kokkos.
+
+```shell
+# Download and build Kokkos and the tutorials, forcing the use of the internal Kokkos
+cmake -B build_dir -DCMAKE_DISABLE_FIND_PACKAGE_Kokkos=ON
+cmake --build build_dir
+```
+
+For specific use-cases, like when an internet connection is not available, the `KokkosTutorials_KOKKOS_SOURCE_DIR` can
+be used to point to a local Kokkos source directory.
+For example,
+
+```shell
+cmake -B build_dir -DKokkos_ENABLE_THREADS=ON  -DCMAKE_DISABLE_FIND_PACKAGE_Kokkos=ON \
+ -DKokkosTutorials_KOKKOS_SOURCE_DIR=<PATH_TO_KOKKOS_SOURCE>
+```

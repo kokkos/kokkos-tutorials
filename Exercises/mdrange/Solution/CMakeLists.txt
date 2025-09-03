@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.16)
 project(KokkosTutorialMdRange)
-include(../../common.cmake)
 
-add_executable(mdrange_exercise exercise_mdrange_solution.cpp)
-target_link_libraries(mdrange_exercise Kokkos::kokkos)
+# Add a custom module path for find_package(Kokkos)
+include(../../SetUpKokkos.cmake)
 
-
+add_executable(mdrange_Solution exercise_mdrange_solution.cpp)
+target_link_libraries(mdrange_Solution Kokkos::kokkos)

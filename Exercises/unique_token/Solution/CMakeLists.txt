@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.16)
 project(KokkosTutorialUniqueToken)
-include(../../common.cmake)
 
-add_executable(uniquetoken unique_token.cpp)
-target_link_libraries(uniquetoken Kokkos::kokkos)
+# Add a custom module path for find_package(Kokkos)
+include(../../SetUpKokkos.cmake)
 
-
+add_executable(uniquetoken_solution unique_token.cpp)
+target_link_libraries(uniquetoken_solution Kokkos::kokkos)

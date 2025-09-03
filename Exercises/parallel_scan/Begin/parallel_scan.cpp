@@ -27,7 +27,8 @@ int main(int argc, char *argv[]) {
     int n = 10;
     Kokkos::View<double *> view("view", n);
 
-    Kokkos::parallel_scan(n, Factorial{view});
+    // EXERCISE Uncomment when Factorial is implemented
+    // Kokkos::parallel_scan(n, Factorial{view});
 
     auto host_view =
         Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, view);

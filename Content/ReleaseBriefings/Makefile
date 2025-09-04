@@ -38,7 +38,7 @@ release-46:
 	latexmk release-46
 
 release-47:
-	pdflatex release-47.tex
+	latexmk release-47
 
 clean:
 	latexmk -c

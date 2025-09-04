@@ -113,7 +113,7 @@ parallel_for("VectorLoop",TeamPolicy<>(0,N/V,V),
 	\end{itemize}
 
   \begin{code}[linebackgroundcolor={},keywords={for,int}]
-  using simd_t = Kokkos::Experimental::simd<double, Kokkos::Experimental::simd_abi::native>;
+  using simd_t = Kokkos::Experimental::simd<double>;
   View<simd_t*> b = ...
   View<simd_t**> a = ...
   int V = simd_t::size();
@@ -124,49 +124,48 @@ parallel_for("VectorLoop",TeamPolicy<>(0,N/V,V),
   \end{code}
 \end{frame}
 
-\begin{frame}[fragile]{C++23? SIMD}
-	The ISO C++ standard has a \emph{Technical Specification} for \texttt{simd} (in \emph{parallelism v2}):
+\begin{frame}[fragile]{C++26 SIMD}
+	The ISO C++ standard has data-parallel types (\texttt{SIMD}) (in \emph{C++26}):
 
   \begin{code}[linebackgroundcolor={},keywords={template,class,public,using}]
 template< class T, class Abi >
-class simd {
+class basic_simd {
 public:
   using value_type = T;
-  using reference = /* impl defined */;
-  using abi_type = Abi;
-  static constexpr size_t size();
-  void copy_from(T const*, aligned_tag);
-  void copy_to(T*, aligned_tag) const;
-  T& operator[] (size_t);
-  //Element wise operators
+  using abi_type   = Abi;
+  using mask_type  = basic_simd_mask<sizeof(T), Abi>;
+
+  static constexpr integral_constant<simd-size-type, ...> size {};
+  constexpr T operator[] (simd-size-type) const;
+  // Element-wise operators
 };
 
-// Element Wise non-member operators
+// Element-wise non-member functions
 
   \end{code}
 
 \end{frame}
 
-\begin{frame}[fragile]{C++23? SIMD ABI}
+\begin{frame}[fragile]{C++26 SIMD ABI}
 One interesting innovation here is the \texttt{Abi} parameter allowing for different, hardware specific, implementations.
 
 	\vspace{8pt}
 
-The most important in the proposal are:
+The most important components of \texttt{basic\_simd} are:
 \begin{itemize}
-	\item{\textbf{scalar}: single element type.}
-	\item{\textbf{native}: best fit for hardware.}
-        \item{\textbf{fixed\_size$<$N$>$}: stores N elements. NOT YET IN KOKKOS.}
+	\item{\textbf{scalar\_abi}: single element type.}
+	\item{\textbf{native\_abi}: best fit for hardware.}
+	\item{\textbf{fixed\_size$<$N$>$}: the width of the simd type.}
 \end{itemize}
 
 \pause
 	\vspace{8pt}
 
-	But \texttt{std::simd} is not in the standard yet, and doesn't support GPUs ...
+	But \texttt{std::simd} doesn't support GPUs ...
 
 	\pause
 	\vspace{8pt}
-	It also has other problems making it insufficient for our codes ...
+	It also has other problems making it insufficient for our codes...
 \end{frame}
 
 \begin{frame}[fragile]{Kokkos SIMD}
@@ -184,27 +183,25 @@ The most important in the proposal are:
 \end{frame}
 
 \begin{frame}[fragile]{Kokkos SIMD}
-  As with the C++23 SIMD type it takes Scalar argument and ABI
+  As with the C++26 SIMD type, it takes a data type and ABI
   \begin{code}
-     template<class Scalar, class ABI>
-     simd;
+     template <class T, class Abi>
+     class basic_simd;
   \end{code}
 
-  Two supported ABIs are:
+  Supported ABIs are:
   \begin{itemize}
-     \item \texttt{simd\_abi::native}: whatever is best for the scalar type on the architecture
-     \item \texttt{simd\_abi::scalar}: a single element
+    \item \texttt{simd\_abi::scalar}: a single element
+    \item \texttt{simd\_abi::$[$native\_$]$fixed\_size<N>}: a specific data-parallel type available on the architecture (e.g. \texttt{avx512\_fixed\_size})
   \end{itemize}
 
-  Aliasing with Scalar Views is possible (but careful with Layout and length!)
+  But for convenience, a simplified alias for \texttt{basic\_simd} is available:
   \begin{code}
-using simd_t = simd<double, simd::simd_abi::native>;
-View<simd_t*> a("A",N);
-View<double*> a_s(static_cast<double*>(a.data()),N*simd_t::size());
-     
-View<double*> b("B",M);
-View<simd_t*> b_v(static_cast<simd_t*>(b.data()),M/simd_t::size());
+    template <class T, int N = /* native_simd_width */>
+    using simd = basic_simd<...>;
   \end{code}
+
+  This abstracts ABI and allows using the optimal native data-parallel width on the architecture
 
 \end{frame}
 
@@ -214,26 +211,24 @@ View<simd_t*> b_v(static_cast<simd_t*>(b.data()),M/simd_t::size());
   \begin{small}
   \begin{itemize}
 \item Location: \ExerciseDirectory{simd/Begin}
-\item Include the \texttt{simd.hpp} header.
-\item Change the data type of the views to use \texttt{simd$<$double, simd\_abi:native$>$}.
+\item Include the \texttt{Kokkos\_SIMD.hpp} header.
+\item Change the data type of the views to use \texttt{simd$<$double$>$}.
 \item Create an unmanaged \texttt{View$<$double*$>$} of \texttt{results} using the \texttt{data()} function for the final reduction.  
 \end{itemize}
   \end{small}
 
 \begin{code}
-   # Compile for CPU
-   make -j KOKKOS_DEVICES=OpenMP
-   # Compile for GPU
-   make -j KOKKOS_DEVICES=Cuda
-   # Run on GPU
-   ./simd.cuda
+  # Configure, build, and run
+    cmake -Bbuilddir -DKokkos_ARCH_NATIVE=ON
+    cmake --build builddir
+    ./builddir/SIMD
 \end{code}
 
 	\vspace{-3pt}
 \ul{\textbf{Things to try:}}
   \begin{small}
   \begin{itemize}
-  \item Vary problem size (-N ...; -K ...)
+  \item Vary problem size (-N ...; -M ...)
   \item Compare behavior of scalar vs vectorized on CPU and GPU
   \end{itemize}
   \end{small}
@@ -382,7 +377,7 @@ for(int i=0; i<N; i++) {
 }
 
 // Becomes
-using simd_t = simd<double,simd_abi::native>;
+using simd_t      = simd<double>;
 using simd_mask_t = simd_t::mask_type;
    
 for(int i=0; i<N/V; i++) {

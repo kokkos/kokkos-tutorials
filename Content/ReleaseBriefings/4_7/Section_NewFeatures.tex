@@ -1,0 +1,215 @@
+%==========================================================================
+
+\begin{frame}[fragile]
+
+  {\Huge Feature highlights}
+
+  \vspace{10pt}
+
+\end{frame}
+
+\begin{frame}[fragile]{MDSpan-based View Implementation}
+  % what
+  \begin{itemize}
+    \item This release contains an extensive refactoring of \texttt{Kokkos::View}
+    \item View was refactored to use the \texttt{mdspan}, a C++23 addition to the standard library
+    \begin{itemize}
+      \item \texttt{mdspan} is backported to C++17/C++20, and our implementation can be found at \url{github.com/kokkos/mdspan/}
+    \end{itemize}
+    \item The goal of this refactor was to provide better library interoperability, more API flexibility, and reduced maintenance burden
+    \item In principle, this update should be fully transparent; i.e. your existing code should work as it did before and we've done extensive testing to ensure this
+    \end{itemize}
+% motivation
+% example
+% What does this mean for apps
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{MDSpan-based View Implementation}
+  \begin{itemize}
+  \item What does this mean for applications?
+  \begin{itemize}
+    \item We use the same customization points as mdspan now, including accessors and layout mappings
+    \item This is also how we are working on support for Sacado with the new view implementation
+    \begin{itemize}
+      \item We don't have to special-case as much for Sacado inside of Kokkos anymore
+      \item Full Sacado support coming in patch release
+    \end{itemize}
+    \item In the future, we may provide a mechanism for users to customize these. Would that be useful for people?
+  \end{itemize}
+  \end{itemize}
+\end{frame}
+
+%==========================================================================
+
+
+\begin{frame}[fragile]{Updates on Kokkos Graphs}
+ \begin{itemize}
+     \item Reminder: \emph{Kokkos Graph} is an abstraction of computation represented as a DAG
+     \item Located in~\emph{Kokkos::Experimental}
+      \item Example of a diamond-shaped compute graph supported
+      \begin{code}[keywords={std,class,template,auto}]
+      auto graph = Kokkos::create_graph([&](auto root) {
+      auto nodeA = root.then_parallel_for("workloadA",policy,functor);
+      auto nodeB = nodeA.then_parallel_for("workloadB",policy,functor);
+      auto nodeC = nodeA.then_parallel_for("workloadC",policy,functor);
+      auto nodeD = Kokkos::when_all(nodeB, nodeC).
+        then_parallel_for("workloadD",policy,functor);});
+      graph.instantiate();
+      graph.submit();
+      \end{code}
+     \item Supports Kokkos patterns (\texttt{then\_parallel\_*}, \texttt{then})
+     \item We have two new features to support more use-cases (subgraphs via stream-capture and host-nodes)
+ \end{itemize}
+\end{frame}
+
+%==========================================================================
+
+
+\begin{frame}[fragile]{Updates on Kokkos Graphs (Capture)}
+ \begin{itemize}
+     \item Adds support for subgraphs created using stream-capture via \texttt{*\_capture(...)}
+     \begin{itemize}      
+      \item Useful to include native code and libraries
+      \item Calls internally \texttt{*StreamBeginCapture},\texttt{*StreamEndCapture}
+    \end{itemize}
+     \item Example: Using cuBLAS
+        \begin{code}[keywords={std,class,template,auto}]
+    auto graph = Kokkos::Experimental::create_graph([&](const auto& root){
+      auto handle = create_cublas_handle();
+       /* NEW! */
+      root.cuda_capture(exec,
+      [=](const Kokkos::Cuda& exec_){
+        /* Body of lambda using CUDA */
+        cublasSetStream(handle.get(),exec_.cuda_stream()));
+        cublasDgemv( handle.get(),CUBLAS_OP_N,...);
+      });
+    });
+    graph.instantiate(); 
+    graph.submit(exec);
+      \end{code}
+    \item Supported backends: HIP, CUDA, SYCL (\emph{*\_capture})
+ \end{itemize}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Updates on Kokkos Graphs (then\_host)}
+ \begin{itemize}
+     \item Adds support for host-side graph nodes    
+    \begin{itemize}
+      \item New API: \texttt{then\_host(...)}
+      \item Calls internally \texttt{*GraphAddHostNode}
+    \end{itemize}
+ \item Example: Using a host-side graph node
+        \begin{code}[keywords={std,class,template,auto}]
+    template<>
+    class functor<Kokkos::DefaultExecutionSpace>{ /* Device code */ };
+    template<>
+    class functor<Kokkos::HostSpace> { /* Host code*/ };    
+    auto graph = Kokkos::Experimental::create_graph(exec, 
+        [&](const auto& root) {
+          root.then ("NodeA",exec,functor<Kokkos::DefaultExecutionSpace>{})
+          /* NEW! */
+          .then_host("NodeB",functor<Kokkos::HostSpace>{});
+    });      
+      \end{code}
+  
+  \item We explicitly use an execution policy with Kokkos::LaunchBounds$\langle 1\rangle$ to execute a \emph{then} graph node
+ \end{itemize}
+\end{frame}
+
+
+%==========================================================================
+
+\begin{frame}[fragile]{Updates on Kokkos Graphs (then\_host)}
+ \begin{itemize}
+ \item Example: Using a host-side graph node to allocate data
+        \begin{code}[keywords={std,class,template,auto}]
+    using view_t = View<int*,Kokkos::MemoryTraits<Unmanaged>>
+    view_t v;
+    template<>
+    class functor<Kokkos::HostSpace> {
+      view_t _v;
+      void operator()() const { _v = view_t(Kokkos::view_alloc("v",...),10);}
+    };
+    template<>
+    class functor<Kokkos::DefaultExecutionSpace>{ /* Device code */ };
+    auto graph = Kokkos::Experimental::create_graph(exec, 
+      [&](const auto& root) {
+        /* NEW! */
+        root.then_host ("allocate",functor<Kokkos::HostSpace>{v})
+        .then_parallel_for("compute",10,
+                       functor<Kokkos::DefaultExecutionSpace>{v});
+    });  
+    ...     
+      \end{code}
+ \end{itemize}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Updates on Kokkos Graphs (other)}
+ \begin{itemize}
+    \item Allow building Kokkos::Experimental::Graph object directly
+    \begin{itemize}
+    \item Allows default-constructed Kokkos::Experimental::Graph 
+    \item Graph has a new \emph{root\_node()} public member function (returns the graph's root node)
+    \item Example use:
+     \begin{code}[keywords={std}]
+      /* NEW! */
+      Kokkos::Experimental::Graph graph{exec};
+      graph.root_node().then_parallel_for(1, func{});
+      graph.submit(exec);
+        \end{code}
+     \end{itemize}
+ \end{itemize}
+   \begin{block}{Note}
+ \begin{itemize}
+   \item The Kokkos Graph API is \texttt{Experimental}
+   \item We would appreciate your feedback!
+ \end{itemize}
+  \end{block}
+\end{frame}
+
+
+%==========================================================================
+
+% Examples
+
+% note: always keep the [fragile] for your frames!
+
+%\begin{frame}[fragile]{Example list}
+%  \begin{itemize}
+%      \item Item 1
+%      \item Item 2 with some \texttt{code}
+%      \begin{itemize}
+%        \item Sub-item 2.1
+%        \item Sub-item 2.2
+%      \end{itemize}
+%  \end{itemize}
+%\end{frame}
+
+%\begin{frame}[fragile]{Example code}
+%    \begin{code}[keywords={std}]
+%        #include <iostream>
+%
+%        int main() {
+%            std::cout << "hello world\n";
+%        }
+%    \end{code}
+%\end{frame}
+
+%\begin{frame}[fragile]{Example table}
+%    \begin{center}
+%        \begin{tabular}{l|l}
+%            a & b \\\hline
+%            c & d
+%        \end{tabular}
+%    \end{center}
+%\end{frame}
+
+%==========================================================================
+
+

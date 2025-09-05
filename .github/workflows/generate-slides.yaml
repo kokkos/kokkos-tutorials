@@ -24,6 +24,7 @@ jobs:
         make
         latexmk
         lmodern
+        python3-pygments
         texlive
         texlive-latex-extra
         texlive-plain-generic

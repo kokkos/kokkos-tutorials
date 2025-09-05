@@ -29,38 +29,19 @@ jobs:
         texlive-latex-extra
         texlive-plain-generic
 
-    - uses: actions/checkout@v4
-    - uses: dorny/paths-filter@v3
-      id: filter
-      with:
-        filters: |
-          presentations:
-            - 'Content/Presentations/**'
-          release-briefings:
-            - 'Content/ReleaseBriefings/**'
+    - name: Checkout source
+      uses: actions/checkout@v4
 
-    - name: Build Presentations slides
-      if: ${{ steps.filter.outputs.presentations == 'true' }}
+    - name: Build slides
       run: >
-        cd Content/Presentations &&
+        cd Content/${{ matrix.which }} &&
         make
 
-    - name: Upload Presentations PDFs as artifacts
-      if: ${{ steps.filter.outputs.presentations == 'true' }}
+    - name: Upload PDFs as artifacts
+      id: deployment
       uses: actions/upload-artifact@v4.6.1
       with:
-        name: PresentationsSlides
-        path: Content/Presentations/modularized/*.pdf
-
-    - name: Build Release Briefings slides
-      if: ${{ steps.filter.outputs.release-briefings == 'true' }}
-      run: >
-        cd Content/ReleaseBriefings &&
-        make
-
-    - name: Upload Release Briefings PDFs as artifacts
-      if: ${{ steps.filter.outputs.release-briefings == 'true' }}
-      uses: actions/upload-artifact@v4.6.1
-      with:
-        name: ReleaseBriefingsSlides
-        path: Content/ReleaseBriefings/*.pdf
+        name: Slides${{ matrix.which }}
+        path: |
+          Content/${{ matrix.which }}/release-*.pdf
+          Content/${{ matrix.which }}/modularized/*.pdf

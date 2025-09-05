@@ -11,34 +11,34 @@ workaround-off:
 	rm KokkosTutorial_PreTitle.tex.bak
 
 release-36:
-	pdflatex release-36.tex
+	latexmk release-36
 
 release-37:
-	pdflatex release-37.tex
+	latexmk release-37
 
 release-40:
-	pdflatex release-40.tex
+	latexmk release-40
 
 release-41:
-	pdflatex release-41.tex
+	latexmk release-41
 
 release-42:
-	pdflatex release-42.tex
+	latexmk release-42
 
 release-43:
-	pdflatex release-43.tex
+	latexmk release-43
 
 release-44:
-	pdflatex release-44.tex
+	latexmk release-44
 
 release-45:
-	pdflatex release-45.tex
+	latexmk release-45
 
 release-46:
-	pdflatex release-46.tex
+	latexmk release-46
 
 release-47:
-	pdflatex release-47.tex
+	latexmk release-47
 
 clean:
-	rm -r *.aux *.log *.nav *.out *.snm *.toc *.vrb
+	latexmk -c

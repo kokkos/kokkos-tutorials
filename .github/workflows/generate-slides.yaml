@@ -2,6 +2,9 @@ name: Generate slides from source
 
 on:
   push:
+    paths:
+      - 'Content/Presentations/**'
+      - 'Content/ReleaseBriefings/**'
   pull_request:
     branches: [ "main" ]
 
@@ -20,6 +23,9 @@ jobs:
         DEBIAN_FRONTEND=noninteractive
         sudo apt-get install -y --no-install-recommends
         make
+        latexmk
+        lmodern
+        python3-pygments
         texlive
         texlive-latex-extra
         texlive-plain-generic

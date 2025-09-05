@@ -7,12 +7,13 @@ on:
       - 'Content/ReleaseBriefings/**'
   pull_request:
     branches: [ "main" ]
-    paths:
-      - 'Content/Presentations/**'
-      - 'Content/ReleaseBriefings/**'
 
 jobs:
   build:
+    strategy:
+      matrix:
+        which: [Presentations, ReleaseBriefings]
+
     runs-on: ubuntu-latest
 
     steps:

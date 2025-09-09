@@ -763,6 +763,19 @@ int main(int argc, char* argv[]) {
 
 %==========================================================================
 
+\begin{frame}[fragile]
+We are using AWS instances sponsored by AWS \& HPSF.
+
+\begin{itemize}
+\item Claim an IP by putting your name next to one here: https://bit.ly/kokkos-vms
+\item Download the linked ssh key and set its permissions: \texttt{chmod 400 kokkos-tutorials.pem}
+\item Log into them with ssh: \texttt{ssh -i kokkos-tutorial.pem ec2-user@54.91.69.160 -o PubkeyAcceptedAlgorithms=+ssh-rsa}
+\item Clone Kokkos Tutorials: \texttt{git clone https://github.com/kokkos/kokkos-tutorials}
+\end{itemize}
+\end{frame}
+
+%==========================================================================
+
 
 \begin{frame}[fragile]{Exercise \#1: Inner Product, Flat Parallelism on the CPU}
 

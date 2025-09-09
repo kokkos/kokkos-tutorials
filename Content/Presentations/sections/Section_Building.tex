@@ -22,10 +22,9 @@
 
   \textbf{Learning objectives:}
   \begin{itemize}
-    \item{Install Kokkos via CMake}
-    \item{Build Kokkos inline via CMake}
-    \item{Using Spack}
-    \item{Build Kokkos inline via GNU Makefiles}
+    \item{Integrate Kokkos into your project}
+    \item{Build from source}
+    \item{Package managers}
   \end{itemize}
 
 %  \vspace{-20pt}
@@ -40,10 +39,9 @@
 \begin{frame}[fragile]{Options for Building Kokkos}
 
 \begin{itemize}
-\item \textbf{Install Kokkos via CMake:} For large projects with multiple dependencies installing Kokkos via CMake and then building against it is the best option.
-\item \textbf{Build Kokkos inline via CMake:} This is an option suited for applications which have few dependencies (and no one depending on them) and want to build Kokkos inline with their application.
+\item \textbf{Install Kokkos and find it as extenal package:} For large projects with multiple dependencies installing Kokkos via CMake and then building against it is the best option.
+\item \textbf{Build Kokkos embedded in your project:} This is an option suited for applications which have few dependencies (and no one depending on them) and want to build Kokkos inline with their application.
 \item \textbf{Using Spack:} For projects which largely rely on components provided by the Spack package manager.
-\item \textbf{Build Kokkos inline via GNU Makefiles:} The option for projects which don't want to use CMake. Only inline builds are supported via Makefiles though. Often this works well for small applications, with few if any dependencies. 
 \end{itemize}
 \end{frame}
 
@@ -52,34 +50,213 @@
 \item In the spirit of C++ for \emph{code} performance portability, modern CMake aims for \emph{build system} portability
 \item Projects that depend on Kokkos should be agnostic to the exact build configuration of Kokkos
 \item No CUDA details in C++! No CUDA details in CMake!
-\item Single build system call in your project should configure all compiler/linker flags:
+\item Kokkos provides a \texttt{Kokkos::kokkos} target.
+  \begin{itemize}
+  \item Include directories
+  \item Link libraries
+  \item Compiler options
+  \item Etc
+  \end{itemize}
+ 
+\item Single command in your project should configure all compiler/linker flags:
 
 \begin{shell}
 add_library(myLib goTeamVenture.cpp)
 target_link_libraries(myLib PUBLIC Kokkos::kokkos)
 \end{shell}
-\item Kokkos configure options are enabled/disabled via CMake as:
-\begin{shell}
-  cmake -DKokkos_XYZ=ON
-\end{shell}
 \end{itemize}
 \end{frame}
 
-\begin{frame}[fragile]{CMake Backend Options}
+\begin{frame}[fragile]
+\frametitle{External Kokkos (recommended for most use cases)}
+
+\begin{minted}[fontsize=\scriptsize]{cmake}
+cmake_minimum_required(VERSION 3.22)
+project(MyProject CXX)
+
+find_package(Kokkos 4.2 REQUIRED CONFIG) # Find Kokkos version 4.2 or later
+
+add_executable(HelloKokkos HelloKokkos.cpp)
+target_link_libraries(HelloKokkos PRIVATE Kokkos::kokkos)
+\end{minted}
+
+\vspace{2eM}
+\textbf{How do I control cmake's search procedure?}
+
+\vspace{1eM}
+\begin{minted}[fontsize=\scriptsize]{bash}
+cmake -DKokkos_ROOT=/path/to/kokkos
+\end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Embedded Kokkos}
+
+\textbf{Option 1: via Git Submodules and \mintinline{cmake}{add_subdirectory()}}
+\begin{minted}[fontsize=\scriptsize]{bash}
+git submodule add -b 4.5.01 https://github.com/kokkos/kokkos.git tpls/kokkos
+git commit -m 'Adding Kokkos v4.5.1 as a submodule'
+\end{minted}
+\begin{minted}[fontsize=\scriptsize]{cmake}
+add_subdirectory(tpls/kokkos)
+target_link_libraries(MyTarget PRIVATE Kokkos::kokkos)
+\end{minted}
+
+\vspace{2eM}
+
+\textbf{Option 2: via \texttt{FetchContent}}
+\begin{minted}[fontsize=\tiny]{cmake}
+include(FetchContent)
+FetchContent_Declare(
+    Kokkos
+    URL      https://github.com/kokkos/kokkos/releases/download/4.5.01/kokkos-4.5.01.tar.gz
+    URL_HASH SHA256=52d003ffbbe05f30c89966e4009c017efb1662b02b2b73190670d3418719564c
+)
+FetchContent_MakeAvailable(Kokkos)
+target_link_libraries(MyTarget PRIVATE Kokkos::kokkos)
+\end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Supporting Both External and Embedded Kokkos}
+
+\begin{minted}[fontsize=\scriptsize]{cmake}
+find_package(Kokkos CONFIG) # Try to find Kokkos externally
+if(Kokkos_FOUND)
+    message(STATUS "Found external Kokkos")
+else()
+    message(STATUS "Kokkos not found. Using embedded Kokkos.")
+    # or FetchContent if you prefer
+    add_subdirectory(tpls/kokkos)
+endif()
+target_link_libraries(MyTarget PRIVATE Kokkos::kokkos)
+\end{minted}
+
+\pause
+
+\vspace{1eM}
+\textbf{How do I control the Kokkos integration?}
+
+\pause
+
+\vspace{1eM}
+\textbf{External}
+\begin{minted}[fontsize=\scriptsize]{bash}
+cmake -DCMAKE_REQUIRE_FIND_PACKAGE_Kokkos=ON -DKokkos_ROOT=/path/to/kokkos
+\end{minted}
+
+\vspace{1eM}
+\textbf{Embedded}
+\begin{minted}[fontsize=\scriptsize]{bash}
+cmake -DCMAKE_DISABLE_FIND_PACKAGE_Kokkos=ON
+\end{minted}
+
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Kokkos package introspection (advanced)}
+
+Assert that the (experimental) relaxed constexpr support is enabled
+% eensure that calling \texttt{\_\_device\_\_ constexpr} functions from a host function and \texttt{\_\_host\_\_ constexpr} funtions from a device function is allowed.
+\begin{minted}[fontsize=\scriptsize]{cmake}
+if(Kokkos_ENABLE_CUDA)
+    kokkos_check(OPTIONS CUDA_CONSTEXPR)
+    # fatal error if not enabled
+endif()
+\end{minted}
+
+\vspace{1eM}
+Query whether generation of relocatable device code is enabled
+\begin{minted}[fontsize=\scriptsize]{cmake}
+kokkos_check(
+    OPTIONS CUDA_RELOCATABLE_DEVICE_CODE
+    RESULT_VARIABLE KOKKOS_HAS_CUDA_RDC
+)
+if(NOT KOKKOS_HAS_CUDA_RDC)
+    # ...
+\end{minted}
+
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Building Kokkos from source}
+\textbf{Getting the Kokkos Source Code}
+
+\scriptsize
+
+\vspace{1eM}
+\textbf{Option 1: Downloading a Release Archive (Recommended)}
+
+Go to the \href{https://github.com/kokkos/kokkos/releases}{Kokkos releases} page and find the latest release (or a specific version you need).
+\begin{minted}[fontsize=\tiny]{bash}
+curl -sLO https://github.com/kokkos/kokkos/releases/download/4.6.01/kokkos-4.6.01.tar.gz
+curl -sLO https://github.com/kokkos/kokkos/releases/download/4.6.01/kokkos-4.6.01-SHA-256.txt
+grep kokkos-4.6.01.tar.gz kokkos-4.6.01-SHA-256.txt | shasum -c
+# the output should be "kokkos-4.6.01.tar.gz: OK" or similar
+# if the checksum doesn’t match, do not use the archive
+tar -xzvf kokkos-4.6.01.tar.gz
+\end{minted}
+
+\vspace{1eM}
+\textbf{Option 2: Cloning the Git Repository (For Development Versions)}
+
+If you need the latest features or want to contribute to Kokkos, you can clone the Git repository.
+\begin{minted}[fontsize=\scriptsize]{bash}
+git clone https://github.com/kokkos/kokkos.git
+cd kokkos
+# checkout a release tag
+git checkout 4.6.01
+\end{minted}
+
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Building Kokkos from source}
+\textbf{Configuring Kokkos}
+
+\begin{minted}[fontsize=\scriptsize]{bash}
+cmake -B builddir [<options...>]
+\end{minted}
+
+\scriptsize
+\textbf{Common CMake options:}
 \begin{itemize}
-\item Numerous backends can be activated 
-  \begin{itemize}
-    \item Only one GPU, one parallel CPU, and Serial at the same time!
-  \end{itemize}
-\item \inlineshell{-DKokkos_ENABLE_CUDA=ON}
-\item \inlineshell{-DKokkos_ENABLE_HIP=ON}
-\item \inlineshell{-DKokkos_ENABLE_SYCL=ON}
-\item \inlineshell{-DKokkos_ENABLE_OPENMP=ON}
-\begin{uncoverenv}<2->
-\item Verify execution spaces in CMake Output, e.g. CUDA
+\item \mintinline{bash}{-DCMAKE_CXX_COMPILER=<compiler>} for example \texttt{hipcc} for AMD GPUs, \texttt{icpx} for Intel GPUs, \texttt{nvcc\_wrapper} for NVIDIA GPUs
+\item \mintinline{bash}{-DCMAKE_CXX_STANDARD=<standard>} default is \texttt{17} for Kokkos 4.X, \texttt{20} in 5.0
+\item \mintinline{bash}{-DCMAKE_BUILD_TYPE=<type>} choose from \texttt{Debug}, \texttt{Release}, \texttt{RelWithDebInfo} (default), and \texttt{MinSizeRel}
+\item \mintinline{bash}{-DCMAKE_INSTALL_PREFIX=<prefix>}
+\end{itemize}
+
+\textbf{Important Kokkos-specific options:}
+\begin{itemize}
+\item \mintinline{bash}{-DKokkos_ENABLE_<BACKEND>=ON}
+\item \mintinline{bash}{-DKokkos_ARCH_<ARCHITECTURE>=ON}
+\item \mintinline{bash}{-DKokkos_ENABLE_DEPRECATED_CODE_4=ON}
+\item \mintinline{bash}{-DKokkos_ENABLE_DEPRECATION_WARNINGS=ON}
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Building Kokkos from source}
+
+\scriptsize
+
+\textbf{Refer to \url{https://kokkos.org} $>$Documentation$>$Get Started$>$Configuration Guide}
+
+
+\vspace{1eM}
+\textbf{Backends}
+\begin{itemize}
+\item You can only enable one "device" backend at a time (e.g., \texttt{CUDA}, \texttt{HIP}, or \texttt{SYCL})
+\item Only one "host parallel" backend at a time (e.g., \texttt{OPENMP} or \texttt{THREADS})
+\item A host backend is always required
+\item If no host backend is explicitly enabled, the \texttt{SERIAL} backend will be used.
+\end{itemize}
+
 \begin{shell}[linebackground={
-  \btLstHL{4}{orange!30}
-}]
+  \btLstHL{4}{orange!30},},
+  basicstyle=\tiny\ttfamily,]
 -- The project name is: Kokkos
 ...
 -- Execution Spaces:
@@ -87,218 +264,46 @@ target_link_libraries(myLib PUBLIC Kokkos::kokkos)
 --     Host Parallel: NONE
 --       Host Serial: SERIAL
 \end{shell}
-\end{uncoverenv}
-\end{itemize}
-\end{frame}
 
-\begin{frame}[fragile]{CMake Architecture Options}
+\textbf{Architectures}
 \begin{itemize}
-\item Device backends \emph{require} architecture be specified (CUDA , OpenMPTarget, and HIP)
-\begin{itemize}
-  \item \inlineshell{-DKokkos_ARCH_VOLTA70=ON}
-  \item \inlineshell{-DKokkos_ARCH_AMD_GFX90A=ON}: MI250X
+\item Device architecture is required, Kokkos will try to autodetect it at configuration time if you don't specify anything
+\item Host architecture is optional, none by default, you may be able to use \mintinline{bash}{-DKokkos_ARCH_NATIVE=ON}
 \end{itemize}
-\item Host backends \emph{recommend} architecture be specified to enable architecture-specific optimizations
-\begin{itemize}
-  \item \inlineshell{-DKokkos_ARCH_HSW=ON}: Haswell
-  \item  \inlineshell{-DKokkos_ARCH_ZEN2=ON}: Ryzen (2nd gen)
-\end{itemize}
-\item Architecture flags will automatically propagate to your project via transitive CMake properties
-\begin{uncoverenv}<2->
-\item Verify architectures in CMake Output, e.g. Volta 7.0
 \begin{shell}[linebackground={
-  \btLstHL{4}{orange!30}
-}]
+  \btLstHL{4}{orange!30},},
+  basicstyle=\tiny\ttfamily,]
 -- The project name is: Kokkos
 ...
 -- Architectures:
---  VOLTA70
+--  HOPPER90
 \end{shell}
-\end{uncoverenv}
-
-\end{itemize}
-\end{frame}
-
-
-\begin{frame}[fragile]{CMake And CUDA}
-\begin{itemize}
-\item Kokkos is a \emph{C++} performance portability layer, but CUDA is usually built as a separate language with \inlineshell{nvcc}.
-\item \inlineshell{nvcc} doesn't accept all C++ compiler flags
-\item Kokkos' solution for now is to provide  \inlineshell{nvcc_wrapper} that converts \inlineshell{nvcc} into a full C++ compiler.
-\uncover<2-> { \item Set CMake C++ compiler to \inlineshell{nvcc_wrapper} }
-\uncover<3-> { \item CMake will report compiler as host C++ compiler }
-\end{itemize}
-
-\begin{uncoverenv}<2->
-\begin{shell}[linebackground={%
-    \btLstHL<2>{2}{orange!30}%
-}]
-> cmake ${KOKKOS_SRC}
-  -DCMAKE_CXX_COMPILER=${KOKKOS_SRC}/bin/nvcc_wrapper
-  -DKokkos_ENABLE_CUDA=ON
-\end{shell}
-\end{uncoverenv}
-
-\begin{uncoverenv}<3->
-\begin{shell}[linebackground={
-   \btLstHL<3>{1}{green!30}%
-   \btLstHL<4>{2}{orange!30}
-}]
--- The CXX compiler identification is GNU 8.2.0
--- Check for working CXX compiler: bin/nvcc_wrapper
-\end{shell}
-\end{uncoverenv}
-
-\begin{uncoverenv}<4->
-\begin{itemize}
-  \item Or simply use clang++ as your compiler...
-\end{itemize}
-\end{uncoverenv}
 
 \end{frame}
 
-\begin{frame}[fragile]{CMake And HIP}
+\begin{frame}[fragile]
+\frametitle{Building Kokkos from source}
+\textbf{Build}
 
-\textbf{Enable HIP backend}
-Configure with:
-\begin{lstlisting}[language=bash]
--DKokkos_ENABLE_HIP=ON
-\end{lstlisting}
+After configuring, build Kokkos using:
+\begin{minted}[fontsize=\footnotesize]{bash}
+cmake --build builddir [-j<N>]
+\end{minted}
 
-\textbf{Compiler}
- Need to explicitly set \texttt{hipcc} or \texttt{amdclang++} as C++ compiler:
-\begin{lstlisting}[language=bash]
--DCMAKE_CXX_COMPILER=hipcc
-\end{lstlisting}
+This compiles Kokkos. You can add \texttt{-j<N>} to use multiple cores for faster compilation (replace \texttt{<N>} with the number of cores).
 
-\textbf{Architecture flags}
-Chose one from:
-\begin{lstlisting}[language=bash]
--DKokkos_ARCH_AMD_GFX908=ON # for AMD Radeon Instinct MI100
--DKokkos_ARCH_AMD_GFX90A=ON # for AMD Radeon Instinct MI200 series
-\end{lstlisting}
+\vspace{1eM}
+\textbf{Install}
 
-\end{frame}
+To install Kokkos (header files and libraries), use:
+\begin{minted}[fontsize=\footnotesize]{bash}
+cmake --install builddir [--prefix <prefix>]
+\end{minted}
 
-\begin{frame}[fragile]{CMake And SYCL}
-
-\textbf{Enable SYCL backend}
-Configure with:
-\begin{lstlisting}[language=bash]
--DKokkos_ENABLE_SYCL=ON
-\end{lstlisting}
-
-\textbf{Compiler}
- Need to explicitly set \texttt{icpx} as C++ compiler:
-\begin{lstlisting}[language=bash]
--DCMAKE_CXX_COMPILER=icpx
-\end{lstlisting}
-
-\textbf{Architecture flags}
-Chose one from:
-\begin{lstlisting}[language=bash]
--DKokkos_ARCH_INTEL_GEN=ON # JIT compiler
--DKokkos_ARCH_INTEL_PVC=ON # for GPU Max 1550/Ponte Vecchio
-\end{lstlisting}
+The \texttt{--prefix <prefix>} option specifies the installation directory. If omitted, Kokkos will be installed to a default location, often \texttt{/usr/local} (not recommended).
 
 \end{frame}
 
-\begin{frame}[fragile]{CMake And OpenMPTarget}
-\begin{itemize}
-\item Similar configuration as CUDA/HIP backends, but use:
-\begin{shell}
-cmake -DKokkos_ENABLE_OPENMPTARGET=ON
-\end{shell}
-\item Still requires target device architecture to be given:
-\begin{shell}
-cmake -DKokkos_ARCH_VOLTA70=ON
-\end{shell}
-\item Currently very sensitive to exact compiler/STL combination
-\begin{itemize}
-\item Clang15+
-\item GCC9 Toolchain
-\item See \url{scripts/docker/Dockerfile.openmptarget} for recipe
-\end{itemize}
-\item C++17 is required
-\item Working on Spack packages to handle complex version dependencies
-\end{itemize}
-\end{frame}
-
-\begin{frame}[fragile]{Building Against an Installed Kokkos (i)}
-
-Find exported Kokkos configuration (include dirs, libraries to link against, compile options, etc.)
-and generate my project's build system accordingly.
-
-\textbf{Basic starting point}
-Create a \texttt{CMakeLists.txt} file.
-\begin{lstlisting}[language=bash]
-cmake_minimum_required(VERSION 3.16)
-project(myProject CXX) # C++ needed to build my project
-
-find_package(Kokkos REQUIRED) # fail if Kokkos not found
-
-# build my executable from the specified source code
-add_executable(myExe source.cpp)
-# declare dependency on Kokkos
-target_link_libraries(myExe PRIVATE Kokkos::kokkos)
-\end{lstlisting}
-
-\textbf{Working with a library}
-\begin{lstlisting}[language=bash]
-find_package(Kokkos 4.0 REQUIRED) # request Kokkos minimum version
-add_library(myLib ${SOURCES})
-target_link_libraries(myLib PUBLIC Kokkos::kokkos)
-\end{lstlisting}
-
-\end{frame}
-
-\begin{frame}[fragile]{Building Against an Installed Kokkos (ii)}
-
-\textbf{Finding Kokkos} Add Kokkos installation prefix to the list of directories searched by CMake:
-\begin{lstlisting}[language=bash]
-cmake .. -DKokkos_ROOT=<prefix> -DCMAKE_CXX_COMPILER=<...>
-\end{lstlisting}
-
-\textbf{Kokkos package introspection}
-Assert that support for \texttt{\_\_host\_\_}, \texttt{\_\_device\_\_} annotations in lambdas declaration is enabled
-\begin{lstlisting}[language=bash]
-# (optional) assume my project uses lambdas
-if(Kokkos_ENABLE_CUDA)
-  # fatal error if not enabled
-  kokkos_check(OPTIONS CUDA_ENABLE_LAMBDA)
-endif()
-\end{lstlisting}
-or query that generation of relocatable device code is enabled
-\begin{lstlisting}[language=bash]
-kokkos_check(
-  DEVICES CUDA
-  OPTIONS CUDA_RELOCATABLE_DEVICE_CODE
-  RESULT_VARIABLE KOKKOS_HAS_CUDA_RDC)
-if(KOKKOS_HAS_CUDA_RDC)
-  ...
-\end{lstlisting}
-
-\end{frame}
-
-
-\begin{frame}[fragile]{CMake Building Kokkos Inline}
-Build Kokkos as part of your own project (as opposed to finding a pre-installed Kokkos)
-\begin{lstlisting}[language=bash]
-add_subdirectory(<kokkos source dir>)
-
-# identical as when finding an installed Kokkos package
-add_executable(myExe ${SOURCES})
-target_link_libraries(myExe PRIVATE Kokkos::kokkos)
-\end{lstlisting}
-
-Pass Kokkos options along with app-specific options at configuration time
-\begin{lstlisting}[language=bash]
-cmake .. -DCMAKE_CXX_COMPILER=<kokkos dir>/bin/nvcc_wrapper \
-  -DKokkos_ENABLE_CUDA=ON -DKokkos_ENABLE_CUDA_LAMBDA=ON \
-  -DmyApp_ENABLE_FOO=ON -DmyApp_ENABLE_BAR=ON
-\end{lstlisting}
-
-\end{frame}
 
 \begin{frame}[fragile]{Kokkos via Spack: Command Line}
 \begin{itemize}
@@ -311,7 +316,7 @@ spack install kokkos@develop +openmp %gcc@8.3.0
 \begin{shell}
 packages:
    kokkos:
-    variants: +cuda +openmp +cuda_lambda +wrapper \
+    variants: +cuda +openmp \
               ^cuda@12.0 cuda_arch=70
     compiler: [gcc@8.3.0]
 \end{shell}
@@ -323,10 +328,10 @@ packages:
 \begin{frame}[fragile]{Kokkos via Spack: Package Files}
 \begin{itemize}
 \item Build rules created in a \inlineshell{package.py} file
-\item Step 1: Declare dependency on specific version of kokkos (3.x, master, or develop)
+\item Step 1: Declare dependency on specific version of kokkos (4.x or develop)
 \begin{shell}
 class myLib(CMakePackage):
-  depends_on('kokkos@3.2')
+  depends_on('kokkos@4.2')
 \end{shell}
 \item Step 2: Add build rule pointing to Spack-installed Kokkos and same C++ compiler Kokkos uses
 \begin{shell}
@@ -334,65 +339,12 @@ def cmake_args(self):
   options = []
   ...
   options.append('-DCMAKE_CXX_COMPILER={}'.format(
-     self.spec['kokkos'].kokkos_cxx)
-  options.append('-DKokkos_ROOT={}'.format(
-     self.spec['kokkos'].prefix)
+      self['kokkos'].kokkos_cxx)
   return options
 \end{shell}
-\item Full details can be found in Spack.md in Kokkos repo.
+\item More details on \url{https://kokkos.org} $>$Documentation$>$Get Started$>$Package Managers$>$Spack
 \end{itemize}
 \end{frame}
-
-\begin{frame}[fragile]{Building Kokkos Inline via GNU Makefiles}
-	\textbf{Building Kokkos inline with GNU Makefiles in three steps:}
-
-        \begin{itemize}
-	        \item Set Kokkos Options e.g. \texttt{KOKKOS\_DEVICES}, \texttt{KOKKOS\_ARCH}
-		\item Include \texttt{Makefile.kokkos}
-		\item Add \texttt{KOKKOS\_CXXFLAGS, KOKKOS\_LDFLAGS} etc. to build rules
-	\end{itemize}
-
-	\textbf{Most Important Settings:}
-
-	\begin{itemize}
-	   \item \texttt{KOKKOS\_DEVICES}: What backends to enabled. Comma separated list: \texttt{Serial,OpenMP,Cuda,HIP,OpenMPTarget}
-	   \item \texttt{KOKKOS\_ARCH}: Set architectures. Comma separated list: \texttt{HSW,Volta70,Power9,...}
-	\end{itemize}
-
-	\pause
-	\begin{block}{Order Matters!}
-	   Add default target, Kokkos settings, and CXXFLAGS before including Makefile.kokkos!
-	\end{block}
-\end{frame}
-
-\begin{frame}[fragile]{Example Makefile}
-\begin{tiny}
-\begin{shell}
-KOKKOS_PATH = ${HOME}/Kokkos/kokkos
-SRC = $(wildcard *.cpp)
-KOKKOS_DEVICES=OpenMP,Cuda
-KOKKOS_ARCH = SKX,Volta70
-
-default: test
-  echo "Start Build"
-
-CXX = clang++
-CXXFLAGS = -O3 -g
-LINK = ${CXX}
-
-OBJ = $(SRC:.cpp=.o)
-
-include $(KOKKOS_PATH)/Makefile.kokkos
-
-test: $(OBJ) $(KOKKOS_LINK_DEPENDS)
-  $(LINK) $(KOKKOS_LDFLAGS) $(OBJ) $(KOKKOS_LIBS) -o test
-
-%.o:%.cpp $(KOKKOS_CPP_DEPENDS)
-  $(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS)  -c $<
-\end{shell}
-\end{tiny}
-\end{frame}
-
 
 \begin{frame}{Section Summary}
 
@@ -400,7 +352,7 @@ test: $(OBJ) $(KOKKOS_LINK_DEPENDS)
     \item{Kokkos' primary build system is CMAKE.}
     \item{Kokkos options are transitively passed on, including many necessary compiler options.}
     \item{The Spack package manager does support Kokkos.}
-    \item{If you write an application, and have few if any dependencies, building Kokkos as part of your code is an option with both CMake and GNU Makefiles.}
+    \item{If you write an application, and have few if any dependencies, building Kokkos as part of your code is an option.}
   \end{itemize}
 
 \end{frame}

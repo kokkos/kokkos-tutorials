@@ -3,52 +3,143 @@
 \begin{frame}[fragile]
 
   {\Huge Feature highlights}
-
+  
   \vspace{10pt}
 
 \end{frame}
 
 %==========================================================================
 
-\begin{frame}[fragile]{Title}
-  % what
-  % motivation
-  % example
-  % What does this mean for apps
+\begin{frame}[fragile]{Minimum compiler requirements after requiring C++20}
+
+\begin{table}[]
+\begin{tabular}{lll}
+\multicolumn{1}{r}{} & Kokkos 4.x & Kokkos 5.0 \\ \hline
+GCC                  & 8.2.0      & 10.4.0     \\
+Clang (CPU)          & 8.0.0      & 14.0.0     \\
+Clang (CUDA)         & 10.0.0     & 15.0.0     \\
+Clang (OpenMPTarget) & 15.0.0     & 15.0.0     \\
+IntelLLVM (CPU)      & 2021.1.1   & 2022.0.0   \\
+IntelLLVM (SYCL)     & 2023.0.0   & 2024.2.1   \\
+NVCC                 & 11.0       & 12.2.0     \\
+NVC++                & 22.3       & 22.3       \\
+ROCM                 & 5.2.0      & 6.2.0      \\
+MSVC                 & 19.29      & 19.30      \\
+\end{tabular}
+\end{table}
+
+\textit{\footnotesize Note: Clang (CUDA) will require CUDA 11.8 as underlying runtime.}
+\textit{\footnotesize Note: MSVC is only actually tested with the latest version.}
+
+\centering
+\url{https://kokkos.org/kokkos-core-wiki/get-started/requirements.html}
 \end{frame}
 
-% Examples
+%==========================================================================
 
-% note: always keep the [fragile] for your frames!
+\begin{frame}[fragile]{MDSpan-based View Implementation}
+  % what
+  \begin{itemize}
+    \item This release contains an extensive refactoring of \texttt{Kokkos::View}
+    \item View was refactored to use the \texttt{mdspan}, a C++23 addition to the standard library
+    \begin{itemize}
+      \item \texttt{mdspan} is backported to C++17/C++20, and our implementation can be found at \url{github.com/kokkos/mdspan/}
+    \end{itemize}
+    \item The goal of this refactor was to provide better library interoperability, more API flexibility, and reduced maintenance burden
+    \item In principle, this update should be fully transparent; i.e. your existing code should work as it did before and we've done extensive testing to ensure this
+  \item What does this mean for applications?
+  \begin{itemize}
+    \item We use the same customization points as mdspan now, including accessors and layout mappings
+    \item In the future, we may provide a mechanism for users to customize these. Would that be useful for people?
+  \end{itemize}
+  \end{itemize}
+\end{frame}
 
-%\begin{frame}[fragile]{Example list}
-%  \begin{itemize}
-%      \item Item 1
-%      \item Item 2 with some \texttt{code}
-%      \begin{itemize}
-%        \item Sub-item 2.1
-%        \item Sub-item 2.2
-%      \end{itemize}
-%  \end{itemize}
-%\end{frame}
+%==========================================================================
 
-%\begin{frame}[fragile]{Example code}
-%    \begin{code}[keywords={std}]
-%        #include <iostream>
-%
-%        int main() {
-%            std::cout << "hello world\n";
-%        }
-%    \end{code}
-%\end{frame}
+\begin{frame}[fragile]{C++20 module support}
 
-%\begin{frame}[fragile]{Example table}
-%    \begin{center}
-%        \begin{tabular}{l|l}
-%            a & b \\\hline
-%            c & d
-%        \end{tabular}
-%    \end{center}
-%\end{frame}
+Kokkos 5 added support for C++20 modules
+\begin{itemize}
+\item Tested with clang-19 and expected to work with host backends
+\end{itemize}
+Available modules
+\begin{columns}
+\begin{column}{.5\linewidth}
+\begin{itemize}
+\item \texttt{kokkos.core}
+\item \texttt{kokkos.bitset}
+\item \texttt{kokkos.dual\_view}
+\item \texttt{kokkos.dyn\_rank\_view}
+\item \texttt{kokkos.dynamic\_view}
+\item \texttt{kokkos.error\_reporter}
+\item \texttt{kokkos.functional}
+\end{itemize}
+\end{column}
+\begin{column}{.5\linewidth}
+\begin{itemize}
+\item \texttt{kokkos.offset\_view}
+\item \texttt{kokkos.scatter\_view}
+\item \texttt{kokkos.unordered\_map}
+\item \texttt{kokkos.random}
+\item \texttt{kokkos.sort}
+\item \texttt{kokkos.std\_algorithms}
+\item \texttt{kokkos.simd}
+\end{itemize}
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}[fragile]{C++20 module support}
+See \url{https://github.com/kokkos/kokkos/tree/develop/example/build_cmake_installed_modules}
+\newline
+\begin{columns}
+\begin{column}{.5\linewidth}
+CMake
+\begin{code}
+# Enable default source code file scanning
+cmake_minimum_required(VERSION 3.28.2)
+project(Example CXX)
+find_package(Kokkos REQUIRED)
+add_executable(example cmake_example.cpp)
+# FIXME_MODULES Use Kokkos::kokkos again
+target_link_libraries(
+  example 
+  Kokkos::kokkoscore)
+\end{code}
+\end{column}
+\begin{column}{.5\linewidth}
+C++
+\begin{code}
+import kokkos.core;
+#include <Kokkos_Macros.hpp>
+
+int main(int argc, char* argv[]) {
+  Kokkos::initialize(argc, argv);
+  [...]
+  Kokkos::finalize();
+}
+\end{code}
+\end{column}
+\end{columns}
+\end{frame}
+%==========================================================================
+
+\begin{frame}[fragile]{Deprecated Code 4}
+
+\textbf{Deprecated Code 4 is turned off by default and started to be removed!}
+
+\begin{itemize}
+\item In Kokkos 5.0 \texttt{Kokkos\_ENABLE\_DEPRECATED\_CODE\_4=OFF} is the default!
+\item Some deprecated feature will immediately be removed.
+\item Features where we expect users still needing time, will stick around for a couple more minor releases.
+\end{itemize}
+
+Removed features
+\begin{itemize}
+\item Tasking
+\item Makefile support
+\end{itemize}
+\end{frame}
 
 %==========================================================================

@@ -10,38 +10,24 @@
 
 %==========================================================================
 
-% Examples
-
-% note: always keep the [fragile] for your frames!
-
-%\begin{frame}[fragile]{Example list}
-%  \begin{itemize}
-%      \item Item 1
-%      \item Item 2 with some \texttt{code}
-%      \begin{itemize}
-%        \item Sub-item 2.1
-%        \item Sub-item 2.2
-%      \end{itemize}
-%  \end{itemize}
-%\end{frame}
-
-%\begin{frame}[fragile]{Example code}
-%    \begin{code}[keywords={std}]
-%        #include <iostream>
-%
-%        int main() {
-%            std::cout << "hello world\n";
-%        }
-%    \end{code}
-%\end{frame}
-
-%\begin{frame}[fragile]{Example table}
-%    \begin{center}
-%        \begin{tabular}{l|l}
-%            a & b \\\hline
-%            c & d
-%        \end{tabular}
-%    \end{center}
-%\end{frame}
+\begin{frame}[fragile]{General Enhancements I}
+\begin{itemize}
+  \item Optimize \texttt{View} initialization with adaptive \texttt{memset}/\texttt{parallel\_for} selection in parallel Host backends 
+  \item Allow using \texttt{UnorderedMap} with \texttt{SequentialHostInit}
+  \item Add \texttt{simd} type conversions to \texttt{basic\_simd} types
+  \item Make \texttt{reduction\_identity<[b]half\_t>} member functions return \texttt{[b]half\_t} instead of \texttt{float}
+  \item Print the commit hash of the embedded dependencies at configure time and when calling \texttt{print\_configuration}
+\end{itemize}
+\end{frame}
+\begin{frame}[fragile]{General Enhancements II}
+\begin{itemize}
+  \item Desul atomics: Use Clang atomic min/max GCC-style builtins
+  \item Enable running tests on systems with only 2GB of device memory
+  \item Added \texttt{begin()}/\texttt{end()} methods to \texttt{Kokkos::Array}
+  \item Added missing \texttt{noexcept} specifier to some methods of \texttt{Kokkos::Array}
+  \item Updated \texttt{ErrorReporter}: adhere to Kokkos naming conventions and change \texttt{get\_reports} to return values 
+  \item Added explicit loop unrolling execution policy trait \texttt{Kokkos::Experimental::StaticBatchSize<N>>} (currently only effective in CUDA)
+\end{itemize}
+\end{frame}
 
 %==========================================================================

@@ -48,25 +48,25 @@
 
 \begin{frame}[fragile]{Bug Fixes: General}
 \begin{itemize}
-  \item Track modification for resize only if DualView is not using a single device %#8273
-  \item Fix MSVC floating-point value does not fit in required floating-point type warning from reduction\_identity %#8376
-  \item Properly delete Timer copy constructor and copy assignment operators %#8399
+  \item Track modification for resize only if \texttt{DualView} is not using a single device %#8273
+  \item Fix MSVC floating-point value does not fit in required floating-point type warning from \texttt{reduction\_identity} %#8376
+  \item Properly delete \texttt{Timer} copy constructor and copy assignment operators %#8399
   \item Fix RISC-V support (compiler check at configuration time and missing semicolons at compile time) %#8439
-  \item Corrected bit\_width return type to be int instead of T to align with the standard library %#8509
-  \item Work around a performance regression related to index computation in the mdspan-based View %#8476
+  \item Corrected \texttt{bit\_width} return type to be \texttt{int} instead of \texttt{T} to align with the standard library %#8509
+  \item Work around a performance regression related to index computation in the mdspan-based \texttt{View} %#8476
 \end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]{Bug Fixes: HIP \& CUDA}
 \begin{itemize}
   \item Launch work graph on the specified instance %#8576
-  \item Fix parallel\_reduce with LaunchBounds values smaller than 32 %#8452
+  \item Fix \texttt{parallel\_reduce} with \texttt{LaunchBounds} values smaller than 32 %#8452
 \end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]{Bug Fixes: OpenMP}
 \begin{itemize}
-  \item OpenMP: fix partitio\_space with low thread counts %#8488
+  \item Fix \texttt{partition\_space} with low thread counts %#8488
 \end{itemize}
 \end{frame}
 

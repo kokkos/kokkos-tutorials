@@ -18,10 +18,19 @@
     \item \texttt{std::memset} is used for small allocations to avoid parallel overhead
     \item Threshold is chosen based on benchmarking results
   \end{itemize}
-  \item Allow using \texttt{UnorderedMap} with \texttt{SequentialHostInit}
-  \item Add \texttt{simd} type conversions to \texttt{basic\_simd} types
-  \item Make \texttt{reduction\_identity<[b]half\_t>} member functions return \texttt{[b]half\_t} instead of \texttt{float}
-  \item Print the commit hash of the embedded dependencies at configure time and when calling \texttt{print\_configuration}
+
+  \item Extended \texttt{UnorderedMap} to support View as \texttt{value\_type}
+  \begin{itemize}
+    \item The \texttt{SequentialHostInit} tag can be used during construction for all value types
+    \item This tag is \textbf{mandatory} when \texttt{value\_type} is a \texttt{View}
+    \item Requires that \texttt{UnorderedMap} is allocated in host-accessible memory space
+  \end{itemize}
+  Example:
+  \begin{code}[keywords={using,int}]
+  using view_type = Kokkos::View<int*, ExecSpace>;
+  using map_type  = Kokkos::UnorderedMap<int, view_type, HostSpace>;
+  map_type umap(Kokkos::view_alloc(Kokkos::SequentialHostInit, ""), N);
+  \end{code}
 \end{itemize}
 \end{frame}
 
@@ -29,6 +38,9 @@
 
 \begin{frame}[fragile]{General Enhancements II}
 \begin{itemize}
+  \item Add \texttt{simd} type conversions to \texttt{basic\_simd} types
+  \item Make \texttt{reduction\_identity<[b]half\_t>} member functions return \texttt{[b]half\_t} instead of \texttt{float}
+  \item Print the commit hash of the embedded dependencies at configure time and when calling \texttt{print\_configuration}
   \item Desul atomics: Use Clang atomic min/max GCC-style builtins
   \item Enable running tests on systems with only 2GB of device memory
   \item Added \texttt{begin()}/\texttt{end()} methods to \texttt{Kokkos::Array}
@@ -45,6 +57,7 @@
     \item Allows users to specify a loop unrolling factor at compile time
     \item Only effective for \texttt{RangePolicy} in the CUDA backend for now
   \end{itemize}
+  Example usage:
   \begin{code}[keywords={using,auto}]
     // Define a batch size of 4
     using unroll_4 = Kokkos::Experimental::StaticBatchSize<4>;

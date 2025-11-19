@@ -2,7 +2,7 @@
 
 \begin{frame}[fragile]
 
-  {\Huge Build Systems Updates}
+  {\Huge Build System Updates}
 
   \vspace{10pt}
 
@@ -10,38 +10,36 @@
 
 %==========================================================================
 
-% Examples
-
-% note: always keep the [fragile] for your frames!
-
-%\begin{frame}[fragile]{Example list}
-%  \begin{itemize}
-%      \item Item 1
-%      \item Item 2 with some \texttt{code}
-%      \begin{itemize}
-%        \item Sub-item 2.1
-%        \item Sub-item 2.2
-%      \end{itemize}
-%  \end{itemize}
-%\end{frame}
-
-%\begin{frame}[fragile]{Example code}
-%    \begin{code}[keywords={std}]
-%        #include <iostream>
-%
-%        int main() {
-%            std::cout << "hello world\n";
-%        }
-%    \end{code}
-%\end{frame}
-
-%\begin{frame}[fragile]{Example table}
-%    \begin{center}
-%        \begin{tabular}{l|l}
-%            a & b \\\hline
-%            c & d
-%        \end{tabular}
-%    \end{center}
-%\end{frame}
+\begin{frame}[fragile]{Defaults and Requirements}
+  \begin{itemize}
+    \item New (unsurprising) defaults
+    \begin{itemize}
+      \item \texttt{Kokkos\_ENABLE\_DEPRECATED\_CODE\_4=OFF}
+      \item \texttt{Kokkos\_ENABLE\_DEPRECATED\_CODE\_5=ON}
+    \end{itemize}
+    \item CMake Requirements
+    \begin{itemize}
+      \item CMake 3.22 is the new miminum
+      \item CMake 2.25.2 is the minimum for \texttt{CUDA} language support
+    \end{itemize}
+  \end{itemize}
+\end{frame}
 
 %==========================================================================
+
+\begin{frame}[fragile]{Multilanguage and Windows support}
+  \begin{itemize}
+    \item Kokkos now offers support for multiple languages in one build
+    \begin{itemize}
+      \item Allow a single Kokkos to be used with the CMake languages \texttt{CXX} and \texttt{CUDA/HIP}.
+      \item Kokkos sets the flags for all languages that work with the selected backend.
+      \item Rules for \texttt{kokkos\_launch\_compiler} stay unchanged: Used for \texttt{CUDA} backend \textbf{without} \texttt{nvcc\_wrapper} as \texttt{CXX\_COMPILER}
+      \item Enable via \texttt{Kokkos\_ENABLE\_MULTIPLE\_CMAKE\_LANGUAGES=ON}
+    \end{itemize}
+    \item Support for shared library builds in Windows
+    \begin{itemize}
+      \item Kokkos now supports \texttt{BUILD\_SHARED\_LIBS=ON} in Windows builds
+      \item Includes \texttt{WINDOWS\_EXPORT\_ALL\_SYMBOLS=ON} for all Kokkos-core libraries
+    \end{itemize}
+  \end{itemize}
+\end{frame}

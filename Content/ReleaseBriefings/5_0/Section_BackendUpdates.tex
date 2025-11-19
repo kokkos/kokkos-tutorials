@@ -121,3 +121,37 @@
 \end{itemize}
 
 \end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]
+
+  {\Huge SYCL and OpenMPTarget}
+
+  \vspace{10pt}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Use unsigned integer type as \texttt{size\_type} in SYCL}
+
+\begin{itemize}
+  \item \texttt{SYCL} now uses an unsigned integer type as \texttt{size\_type}.
+    \item Now unsigned integer type across all backends.
+\end{itemize}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Allow \texttt{parallel\_scan} to start anywere in OpenMPTarget}
+
+\begin{itemize}
+  \item Previously \texttt{parallel\_scan} with a \texttt{RangePolicy} needed to start at index 0
+  \item Now any starting at index smaller than the end index is supported.
+\end{itemize}
+
+\end{frame}
+
+%==========================================================================

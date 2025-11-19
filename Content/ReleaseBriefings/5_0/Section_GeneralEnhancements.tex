@@ -26,8 +26,28 @@
   \item Added \texttt{begin()}/\texttt{end()} methods to \texttt{Kokkos::Array}
   \item Added missing \texttt{noexcept} specifier to some methods of \texttt{Kokkos::Array}
   \item Updated \texttt{ErrorReporter}: adhere to Kokkos naming conventions and change \texttt{get\_reports} to return values 
-  \item Added explicit loop unrolling execution policy trait \texttt{Kokkos::Experimental::StaticBatchSize<N>>} (currently only effective in CUDA)
 \end{itemize}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{API: StaticBatchSize}
+  \begin{itemize}
+  \item New execution policy trait: \texttt{Kokkos::Experimental::StaticBatchSize<N>}
+    \item Allows users to specify a loop unrolling factor at compile time
+    \item Only effective for \texttt{RangePolicy} in the CUDA backend for now
+    \item Example usage:
+    \begin{code}[keywords={using,auto}]
+    // Define a batch size of 4
+    using unroll_4 = Kokkos::Experimental::StaticBatchSize<4>;
+    // Use in RangePolicy
+    Kokkos::RangePolicy<ExecSpace, unroll_4> policy(0, N);
+    // Execute parallel_for with static batch size
+    Kokkos::parallel_for(policy, KOKKOS_LAMBDA(const int i) {
+      ...
+    });
+    \end{code}
+  \end{itemize}
 \end{frame}
 
 %==========================================================================

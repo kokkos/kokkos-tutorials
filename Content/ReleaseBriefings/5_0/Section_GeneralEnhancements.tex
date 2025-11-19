@@ -12,13 +12,21 @@
 
 \begin{frame}[fragile]{General Enhancements I}
 \begin{itemize}
-  \item Optimize \texttt{View} initialization with adaptive \texttt{memset}/\texttt{parallel\_for} selection in parallel Host backends 
+  \item Improved first-touch handling for \texttt{View} initialization in Host parallel backends
+  \begin{itemize}
+    \item Initialization is now done with \texttt{parallel\_for} for large allocations
+    \item \texttt{std::memset} is used for small allocations to avoid parallel overhead
+    \item Threshold is chosen based on benchmarking results
+  \end{itemize}
   \item Allow using \texttt{UnorderedMap} with \texttt{SequentialHostInit}
   \item Add \texttt{simd} type conversions to \texttt{basic\_simd} types
   \item Make \texttt{reduction\_identity<[b]half\_t>} member functions return \texttt{[b]half\_t} instead of \texttt{float}
   \item Print the commit hash of the embedded dependencies at configure time and when calling \texttt{print\_configuration}
 \end{itemize}
 \end{frame}
+
+%==========================================================================
+
 \begin{frame}[fragile]{General Enhancements II}
 \begin{itemize}
   \item Desul atomics: Use Clang atomic min/max GCC-style builtins
@@ -32,12 +40,13 @@
 %==========================================================================
 
 \begin{frame}[fragile]{API: StaticBatchSize}
+  New execution policy trait: \texttt{Kokkos::Experimental::StaticBatchSize<N>}
   \begin{itemize}
-  \item New execution policy trait: \texttt{Kokkos::Experimental::StaticBatchSize<N>}
     \item Allows users to specify a loop unrolling factor at compile time
     \item Only effective for \texttt{RangePolicy} in the CUDA backend for now
-    \item Example usage:
-    \begin{code}[keywords={using,auto}]
+  \end{itemize}
+  \item Example usage:
+  \begin{code}[keywords={using,auto}]
     // Define a batch size of 4
     using unroll_4 = Kokkos::Experimental::StaticBatchSize<4>;
     // Use in RangePolicy
@@ -46,8 +55,7 @@
     Kokkos::parallel_for(policy, KOKKOS_LAMBDA(const int i) {
       ...
     });
-    \end{code}
-  \end{itemize}
+  \end{code}
 \end{frame}
 
 %==========================================================================

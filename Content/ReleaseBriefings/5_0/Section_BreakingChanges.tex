@@ -12,15 +12,18 @@
 
 \begin{frame}[fragile]{Deprecations}
   \begin{itemize}
+    \item Deprecate \texttt{KOKKOS\_ATTRIBUTE\_NODISCARD} macro
+    \item Deprecate \texttt{{Owning,Observing}RawPtr} aliases
     \item Deprecate \texttt{Random\_XorShift\{64,1024\}\_Pool::init}
     \item Deprecate \texttt{basic\_simd::\{const\_\}where\_expression}
-    \item Deprecate \texttt{DynamicView::array\_type} in favor of \texttt{DynamicView::uniform\_type}
+    \item Deprecate support for using nested OpenMP parallel regions without nested OpenMP enabled
+    \item Deprecate creating Kokkos::OpenMP instances inside OpenMP parallel regions
   \end{itemize}
 \end{frame}
 
 %==========================================================================
 
-\begin{frame}[fragile]{Deprecations in \texttt{View}}
+\begin{frame}[fragile]{Deprecations in \texttt{Kokkos::View}}
   Various type alias deprecations and replacements in \texttt{View}
   \begin{itemize}
     \item \texttt{HostMirror} $\rightarrow$ \texttt{host\_mirror\_type}
@@ -28,27 +31,35 @@
     \item \texttt{const\_scalar\_array\_type} $\rightarrow$ \texttt{const\_data\_type}
     \item \texttt{non\_const\_scalar\_array\_type} $\rightarrow$ \texttt{non\_const\_data\_type}
     \item \texttt{array\_type} $\rightarrow$ \texttt{type}
+    \item \texttt{DynamicView::array\_type} $\rightarrow$ \texttt{DynamicView::uniform\_type}
   \end{itemize}
 \end{frame}
 
 %==========================================================================
 
-\begin{frame}[fragile]{Deprecations in \texttt{ErrorReporter}}
+\begin{frame}[fragile]{Deprecations in \texttt{Kokkos::ErrorReporter}}
+Various deprecations and replacements in \texttt{ErrorReporter}
   \begin{itemize}
-      \item Deprecate \texttt{getCapacity()} in favor of \texttt{capacity()}
-      \item Deprecate \texttt{getNumReports()} in favor of \texttt{num\_reports}
-      \item Deprecate \texttt{getNumReportAttempts()} in favor of \texttt{num\_report\_attempts()}
-      \item Deprecate \texttt{getReports(...)} in favor of \texttt{get\_reports()}
+      \item \texttt{getCapacity()} $\rightarrow$  \texttt{capacity()}
+      \item \texttt{getNumReports()} $\rightarrow$ \texttt{num\_reports}
+      \item \texttt{getNumReportAttempts()} $\rightarrow$  \texttt{num\_report\_attempts()}
+      \item \texttt{getReports()} $\rightarrow$  \texttt{get\_reports()}
 \begin{code}[keywords={ErrorReporter}]
   // before
   std::vector<int> reporters;
   std::vector<report_type> reports;
   error_reporter.getReports(reporters, reports);
 
-  // now
+  // now uses structured bindings
   auto [reporters, reports] = error_reporter.get_reports();
 \end{code}
   \end{itemize}
+
+\begin{block}{Remember}
+\begin{itemize}
+\item \texttt{Kokkos\_ENABLE\_DEPRECATED\_CODE\_4} \texttt{= ON} $\rightarrow$ \texttt{OFF}
+\end{itemize}
+\end{block}
 \end{frame}
 
 %==========================================================================

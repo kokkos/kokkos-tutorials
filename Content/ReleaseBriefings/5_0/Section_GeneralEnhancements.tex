@@ -45,7 +45,6 @@
     \item Allows users to specify a loop unrolling factor at compile time
     \item Only effective for \texttt{RangePolicy} in the CUDA backend for now
   \end{itemize}
-  \item Example usage:
   \begin{code}[keywords={using,auto}]
     // Define a batch size of 4
     using unroll_4 = Kokkos::Experimental::StaticBatchSize<4>;

@@ -208,3 +208,38 @@
 \end{frame}
 
 %==========================================================================
+
+\begin{frame}[fragile]
+
+  {\Huge HIP}
+
+  \vspace{10pt}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Improved performance and new architecture support}
+
+\begin{itemize}
+  \item Fix a performance regression introduced in 4.6 when using lightweight
+    kernel (\texttt{Experimental::WorkItemProperty::HintLightWeight}) in \texttt{parallel\_reduce}
+  \item Prefer smaller block sizes for \texttt{parallel\_for} whem
+    the requested parallelism is less than the available concurrency
+  \item Use atomic builtins for \texttt{atomic\_fetch\_{min/max}} with floating
+    point types instead of our own implementation
+  \item Add support for \texttt{Navi4} architecture (Radeon AI PRO R9700, Radeon
+    RX 9070 XT)
+\end{itemize}
+\end{frame}
+
+%==========================================================================
+\begin{frame}[fragile]{ROCm 7.1}
+\begin{itemize}
+  \item Avoid using ROCm 7.1 if possible: \textbf{you may get incorrect results}
+  \item On MI100 and MI200 series, use
+    \texttt{-DKokkos\_ENABLE\_IMPL\_HIP\_MALLOC\_ASYNC=OFF}
+  \item On MI300 series, we cannot compile the testsuite yet. Very likely that
+    you will also need to use \texttt{-DKokkos\_ENABLE\_IMPL\_HIP\_MALLOC\_ASYNC=OFF}
+\end{itemize}
+\end{frame}

@@ -10,7 +10,7 @@
 
 %==========================================================================
 
-\begin{frame}[fragile]{General Enhancements I}
+\begin{frame}[fragile]{View and UnorderedMap Enhancements}
 \begin{itemize}
   \item Improved first-touch handling for \texttt{View} initialization in Host parallel backends
   \begin{itemize}
@@ -36,15 +36,29 @@
 
 %==========================================================================
 
-\begin{frame}[fragile]{General Enhancements II}
+\begin{frame}[fragile]{General Enhancements I}
 \begin{itemize}
   \item Add support for type conversions between \texttt{simd} types
-  \item Make \texttt{reduction\_identity<[b]half\_t>} member functions return \texttt{[b]half\_t} instead of \texttt{float}
+  \item Make reduction identity of half-precision types return the correct type
+  \begin{itemize}
+    \item Return \texttt{[b]half\_t} instead of \texttt{float} for \texttt{reduction\_identity<...>} member functions
+    \item Concerns the functions: \texttt{sum()}, \texttt{prod()}, \texttt{min()}, and \texttt{max()}
+  \end{itemize}
+  \item Improve \texttt{Kokkos::Array} consistency and compatibility with STL \texttt{array}
+  \begin{itemize}
+    \item Add \texttt{[c]begin()} and \texttt{[c]end()} methods
+    \item Add missing \texttt{noexcept} specifier to some methods
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{General Enhancements II}
+\begin{itemize}
   \item Print the commit hash of the embedded dependencies at configure time and when calling \texttt{print\_configuration}
   \item Desul atomics: Use Clang atomic min/max GCC-style builtins
   \item Enable running tests on systems with only 2GB of device memory
-  \item Added \texttt{begin()}/\texttt{end()} methods to \texttt{Kokkos::Array}
-  \item Added missing \texttt{noexcept} specifier to some methods of \texttt{Kokkos::Array}
   \item Updated \texttt{ErrorReporter}: adhere to Kokkos naming conventions and change \texttt{get\_reports} to return values 
 \end{itemize}
 \end{frame}

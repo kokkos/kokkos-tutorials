@@ -28,7 +28,7 @@ MSVC                 & 19.29      & 19.30      \\
 \end{tabular}
 \end{table}
 
-\textit{\footnotesize Note: Clang (CUDA) will require CUDA 11.8 as underlying runtime.}
+\textit{\footnotesize Note: Clang (CUDA) will require CUDA 11.8 as underlying runtime.} \\
 \textit{\footnotesize Note: MSVC is only actually tested with the latest version.}
 
 \centering
@@ -41,7 +41,7 @@ MSVC                 & 19.29      & 19.30      \\
   % what
   \begin{itemize}
     \item This release contains an extensive refactoring of \texttt{Kokkos::View}
-    \item View was refactored to use the \texttt{mdspan}, a C++23 addition to the standard library
+    \item View was refactored to use \texttt{mdspan}, a C++23 addition to the standard library
     \begin{itemize}
       \item \texttt{mdspan} is backported to C++17/C++20, and our implementation can be found at \url{github.com/kokkos/mdspan/}
     \end{itemize}

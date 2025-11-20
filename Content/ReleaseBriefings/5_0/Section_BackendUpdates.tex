@@ -51,9 +51,9 @@
 \end{tikzpicture}
 \end{figure}
 \begin{itemize}
-  \item Atomics on $10^8$\texttt{Kokkos::complex<double>} \textbf{without} contention
+  \item Atomics on $10^8$ \texttt{Kokkos::complex<double>} \textbf{without} contention
 \begin{itemize}
-    \item Speedup $\approx 60x$ on H100 and $\approx 7$ on RTX5080.
+    \item Speedup $\approx 60$x on H100 and $\approx 7$x on RTX5080.
     \item Same performance for \texttt{int128} and \texttt{Kokkos::complex<double>}.
     \item Division more costly, thus less effect of atomic CAS.
 \end{itemize}
@@ -149,7 +149,7 @@
 
 \begin{itemize}
   \item Previously \texttt{parallel\_scan} with a \texttt{RangePolicy} needed to start at index 0
-  \item Now any starting at index smaller than the end index is supported.
+  \item Now any starting index smaller than the end index is supported.
 \end{itemize}
 
 \end{frame}
@@ -170,7 +170,7 @@
 
 \begin{itemize}
   \item Previously \texttt{parallel\_scan} with a \texttt{RangePolicy} needed to start at index 0
-  \item Now any starting at index smaller than the end index is supported.
+  \item Now any starting index smaller than the end index is supported.
 \end{itemize}
 
 \end{frame}

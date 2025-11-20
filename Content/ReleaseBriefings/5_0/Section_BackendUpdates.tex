@@ -155,3 +155,56 @@
 \end{frame}
 
 %==========================================================================
+
+\begin{frame}[fragile]
+
+  {\Huge OpenACC}
+
+  \vspace{10pt}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Allow \texttt{parallel\_scan} to start anywere in OpenACC}
+
+\begin{itemize}
+  \item Previously \texttt{parallel\_scan} with a \texttt{RangePolicy} needed to start at index 0
+  \item Now any starting at index smaller than the end index is supported.
+\end{itemize}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Support \texttt{Kokkos\_Random} algorithms API in OpenACC}
+
+\begin{itemize}
+  \item Adds the OpenACC backend support for the \texttt{Kokkos\_Random} algorithms API.
+  \item May be inefficient if the actual team size is different from the default team size.
+\end{itemize}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Support \texttt{partition\_space} API in OpenACC}
+
+\begin{itemize}
+  \item Adds the OpenACC backend support for the \texttt{partition\_space} API.
+  \item Execution Space instances created by \texttt{partition\_space} will use OpenACC async values in a reserved range (from 64 to 191), which are assigned in a round-robin manner. 
+\end{itemize}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Support custom scalar reduction in \texttt{kokkos\_reduce} with a \texttt{RangePolicy} in OpenACC}
+
+\begin{itemize}
+  \item Adds the OpenACC backend support for custom scalar reduction in \texttt{kokkos\_reduce} with a \texttt{RangePolicy}.
+  \item Supports both Built-In Reducers with custom scalar types and Custom Reducers with custom scalar types.
+\end{itemize}
+\end{frame}
+
+%==========================================================================

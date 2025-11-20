@@ -64,11 +64,11 @@ Various deprecations and replacements in \texttt{ErrorReporter}
 
 %==========================================================================
 
-\begin{frame}[fragile]{Dropped or Bumped-up Environment Aspects}
+\begin{frame}[fragile]{Removed options and Version bumps}
 Makefiles
 \begin{itemize}
-  \item Deprecated in 4.6. Now, dropped. %#8374
-  \item Less maintenance burden.CMake: good enough.
+  \item Deprecated in 4.6, dropped in 5.0. %#8374
+  \item Removes the burden of maintaining two build systems
 \end{itemize}
 Kepler architecture (Nvidia GPU)
 \begin{itemize}
@@ -77,35 +77,34 @@ Kepler architecture (Nvidia GPU)
 \end{itemize}
 Google Benchmark
 \begin{itemize}
-  \item Minimum v1.8.3 required.
-  \item To build for RISC-V targets via EasyBuild cross-compilers. %#8579
+  \item v1.8.3 is the new minimum. %#8579
 \end{itemize}
 \end{frame}
 
 %==========================================================================
 
-\begin{frame}[fragile]{Breaking changes for Kokkos users}
+\begin{frame}[fragile]{Breaking changes}
 Task-based parallelism
 \begin{itemize}
   \item Rarely used. Deprecated in 4.5. Now, dropped. %#8390
-  \item No more: \texttt{TaskSingle}, \texttt{task\_spawn}, \texttt{host\_spawn}, \texttt{BasicFuture} etc.
+  \item No more: \texttt{TaskSingle}, \texttt{task\_spawn}, \texttt{host\_spawn}, \texttt{BasicFuture}, etc.
 \end{itemize}
 Parallel dispatch: \texttt{parallel\_for/scan/reduce}
 \begin{itemize}
   \item Dispatch only within the Kokkos execution environment.
-  \item \texttt {Kokkos::abort()} if before \texttt{initialize()} or after \texttt{finalize()}. %#7675
+  \item Abort if used before \texttt{initialize()} or after \texttt{finalize()}. %#7675
 \end{itemize}
 Execution space chosen by default in \texttt{Kokkos::Graph::submit()}
 \begin{itemize}
   \item Used to be the execution space specified during \texttt{Graph} construction.
-  \item Now, \texttt{Kokkos::DefaultExecutionSpace} chosen. %#8365
-  \item Matches semantics of other parallel regions in Kokkos.
+  \item Now, defaults to \texttt{Kokkos::DefaultExecutionSpace}. %#8365
+  \item Matches semantics of other parallel constructs in Kokkos.
 \end{itemize}
 \end{frame}
 
 %==========================================================================
 
-\begin{frame}[fragile]{Breaking changes for Kokkos users}
+\begin{frame}[fragile]{Breaking changes}
 Default vector width deduced by \texttt{Kokkos::Experimental::simd<T>/simd\_mask<T>}
 \begin{itemize}
   \item From now, choose the largest SIMD vector width available for type \texttt{T}. %#8250

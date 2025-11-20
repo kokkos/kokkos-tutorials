@@ -224,7 +224,7 @@
 \begin{itemize}
   \item Fix a performance regression introduced in 4.6 when using lightweight
     kernel (\texttt{Experimental::WorkItemProperty::HintLightWeight}) in \texttt{parallel\_reduce}
-  \item Prefer smaller block sizes for \texttt{parallel\_for} whem
+  \item Prefer smaller block sizes for \texttt{parallel\_for} when
     the requested parallelism is less than the available concurrency
   \item Use atomic builtins for \texttt{atomic\_fetch\_{min/max}} with floating
     point types instead of our own implementation

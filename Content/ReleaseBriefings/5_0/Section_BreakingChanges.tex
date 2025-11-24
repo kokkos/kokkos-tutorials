@@ -75,17 +75,17 @@ Various deprecations and replacements in \texttt{ErrorReporter}
 %==========================================================================
 
 \begin{frame}[fragile]{Removed options and Version bumps}
-Makefiles
+\textbf{Makefiles}
 \begin{itemize}
   \item Deprecated in 4.6, dropped in 5.0. %#8374
   \item Removes the burden of maintaining two build systems
 \end{itemize}
-Kepler architecture (Nvidia GPU)
+\textbf{Kepler architecture (Nvidia GPU)}
 \begin{itemize}
   \item \texttt{sm\_3x} not supported since CUDA 12.
   \item Dropping support for \texttt{Kokkos\_ARCH\_KEPLER30/32/35/37}. %#8518
 \end{itemize}
-Google Benchmark
+\textbf{Google Benchmark}
 \begin{itemize}
   \item v1.8.3 is the new minimum. %#8579
 \end{itemize}
@@ -94,17 +94,17 @@ Google Benchmark
 %==========================================================================
 
 \begin{frame}[fragile]{Breaking changes}
-Task-based parallelism
+\textbf{Task-based parallelism}
 \begin{itemize}
   \item Rarely used. Deprecated in 4.5. Now, dropped. %#8390
   \item No more: \texttt{TaskSingle}, \texttt{task\_spawn}, \texttt{host\_spawn}, \texttt{BasicFuture}, etc.
 \end{itemize}
-Parallel dispatch: \texttt{parallel\_for/scan/reduce}
+\textbf{Parallel dispatch: \texttt{parallel\_for/scan/reduce}}
 \begin{itemize}
   \item Dispatch only within the Kokkos execution environment.
   \item Abort if used before \texttt{initialize()} or after \texttt{finalize()}. %#7675
 \end{itemize}
-Execution space chosen by default in \texttt{Kokkos::Graph::submit()}
+\textbf{Execution space chosen by default in \texttt{Kokkos::Graph::submit()}}
 \begin{itemize}
   \item Used to be the execution space specified during \texttt{Graph} construction.
   \item Now, defaults to \texttt{Kokkos::DefaultExecutionSpace}. %#8365
@@ -115,7 +115,7 @@ Execution space chosen by default in \texttt{Kokkos::Graph::submit()}
 %==========================================================================
 
 \begin{frame}[fragile]{Breaking changes}
-Default vector width deduced by \texttt{Kokkos::Experimental::simd<T>/simd\_mask<T>}
+\textbf{Default SIMD vector width}
 \begin{itemize}
   \item From now, choose the largest SIMD vector width available for type \texttt{T}. %#8250
   \item Example (with AVX512): \texttt{Kokkos::Experimental::simd<float>} maps to:
@@ -127,7 +127,7 @@ Default vector width deduced by \texttt{Kokkos::Experimental::simd<T>/simd\_mask
   \end{code}
   \item Specifying desired vector width still available: \texttt{Kokkos::Experimental::simd<float, 8>}
 \end{itemize}
-Memory trait alias \texttt{Kokkos::MemoryRandomAccess}
+\textbf{Memory trait alias \texttt{Kokkos::MemoryRandomAccess}}
 \begin{itemize}
   \item Also meant \texttt{Kokkos::Unmanaged} memory trait. Now, fixed. %#8368
   \item Older meaning supported via \texttt{Kokkos\_ENABLE\_DEPRECATED\_CODE\_4}.

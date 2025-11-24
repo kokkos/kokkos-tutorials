@@ -59,19 +59,19 @@
 
 \begin{frame}[fragile]{Bug Fixes: HIP \& CUDA}
 \begin{itemize}
-  \item Launch work graph on the specified instance %#8576
-  \item Fix \texttt{parallel\_reduce} with \texttt{LaunchBounds} values smaller than 32 %#8452
+  \item Launch work graph on the instance in the execution policy %#8576
+  \item Fix incorrect results from \texttt{parallel\_reduce} with \texttt{LaunchBounds} values smaller than 32 %#8452
 \end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]{Bug Fixes: OpenMP}
 \begin{itemize}
-  \item Fix \texttt{partition\_space} with low thread counts %#8488
+  \item Fix \texttt{partition\_space} abort when requesting more partitions than available threads %#8488
 \end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]{Bug Fixes: SIMD}
 \begin{itemize}
-  \item Fix a failure at configure time when SVE is enabled and the tests are disabled %#8661
+  \item Fix a configure-time failure when SVE is enabled and unit tests are disabled %#8661
 \end{itemize}
 \end{frame}

@@ -111,13 +111,14 @@
 \end{frame}
 
 
-\begin{frame}[fragile]{Use up to 32kb of constant memory on CUDA}
+\begin{frame}[fragile]{Leverage larger Kernel Argument}
 
 \begin{itemize}
-    \item Allows to launch kernels with up to 32kb of arguments in constant memory. Previously it was 4kb.
-    \item Effect visible for functors that use data in the 4kb to 32kb range. No effect on smaller or larger functors.
-    \item This can change the synchronization behavior for functors in this range as it reduces launch latency and runtime.
-    \item Only working with \texttt{nvcc} $>=12.2$ and $>=$ Volta.
+    \item Allows to launch kernels with up to 32kB of arguments for kernels. Previously it was 4kB.
+    \item Enables us to side-step the "Constant Cache" launch mechanism in Kokkos.
+    \item Effects functors in the 4kB to 32kB size range. No effect on smaller or larger functors.
+    \item This changes the synchronization behavior for functors in this range, due to elimination of an implicit necessary synchronization on constant cache buffer use.
+    \item Does not apply to using Clang as CUDA compiler, nor for GPUs older than Volta (i.e. Compute Capabilities lower than 7).
 \end{itemize}
 
 \end{frame}
@@ -126,7 +127,7 @@
 
 \begin{frame}[fragile]
 
-  {\Huge SYCL and OpenMPTarget}
+  {\Huge SYCL}
 
   \vspace{10pt}
 
@@ -145,6 +146,16 @@
 
 %==========================================================================
 
+\begin{frame}[fragile]
+
+  {\Huge OpenMPTarget}
+
+  \vspace{10pt}
+
+\end{frame}
+
+%==========================================================================
+
 \begin{frame}[fragile]{Allow \texttt{parallel\_scan} to start anywere in OpenMPTarget}
 
 \begin{itemize}
@@ -152,6 +163,21 @@
   \item Now any starting index smaller than the end index is supported.
 \end{itemize}
 
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Upcoming removal of OpenMPTarget}
+\begin{large}
+We decided to remove OpenMPTarget in an upcoming release!
+\end{large}
+
+\begin{itemize}
+\item Never reached feature parity.
+\item Lower performance than native backends (CUDA, HIP, SYCL)
+\item Practically no users.
+\item Little interest in support by any institution.
+\end{itemize}
 \end{frame}
 
 %==========================================================================

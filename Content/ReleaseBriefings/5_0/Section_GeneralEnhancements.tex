@@ -1,0 +1,87 @@
+%==========================================================================
+
+\begin{frame}[fragile]
+
+  {\Huge General Enhancements}
+
+  \vspace{10pt}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{View and UnorderedMap Enhancements}
+\begin{itemize}
+  \item Improved first-touch handling for \texttt{View} initialization in Host parallel backends
+  \begin{itemize}
+    \item Initialization is now done with \texttt{parallel\_for} for large allocations
+    \item \texttt{std::memset} is used for small allocations to avoid parallel overhead
+    \item Threshold is chosen based on benchmarking results
+  \end{itemize}
+
+  \item Extended \texttt{UnorderedMap} to support View as \texttt{value\_type}
+  \begin{itemize}
+    \item The \texttt{SequentialHostInit} tag can be used during construction for all value types
+    \item This tag is \textbf{mandatory} when \texttt{value\_type} is a \texttt{View}
+    \item Requires that \texttt{UnorderedMap} is allocated in host-accessible memory space
+  \end{itemize}
+  Example:
+  \begin{code}[keywords={using,int}]
+  using view_type = Kokkos::View<int*, ExecSpace>;
+  using map_type  = Kokkos::UnorderedMap<int, view_type, HostSpace>;
+  map_type umap(Kokkos::view_alloc(Kokkos::SequentialHostInit, ""), N);
+  \end{code}
+\end{itemize}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{General Enhancements I}
+\begin{itemize}
+  \item Add support for type conversions between \texttt{simd} types
+  \item Make reduction identity of half-precision types return the correct type
+  \begin{itemize}
+    \item Return \texttt{[b]half\_t} instead of \texttt{float} for \texttt{reduction\_identity<...>} member functions
+    \item Concerns the functions: \texttt{sum()}, \texttt{prod()}, \texttt{min()}, and \texttt{max()}
+  \end{itemize}
+  \item Improve \texttt{Kokkos::Array} consistency and compatibility with STL \texttt{array}
+  \begin{itemize}
+    \item Add \texttt{[c]begin()} and \texttt{[c]end()} methods
+    \item Add missing \texttt{noexcept} specifier to some methods
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{General Enhancements II}
+\begin{itemize}
+  \item Print the commit hash of the embedded dependencies at configure time and when calling \texttt{print\_configuration}
+  \item Desul atomics: Use Clang atomic min/max GCC-style builtins
+  \item Enable running tests on systems with only 2GB of device memory
+  \item Updated \texttt{ErrorReporter}: adhere to Kokkos naming conventions and change \texttt{get\_reports} to return values 
+\end{itemize}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{API: StaticBatchSize}
+  New execution policy trait: \texttt{Kokkos::Experimental::StaticBatchSize<N>}
+  \begin{itemize}
+    \item Allows users to specify a loop unrolling factor at compile time
+    \item Only effective for \texttt{RangePolicy} in the CUDA backend for now
+  \end{itemize}
+  Example usage:
+  \begin{code}[keywords={using,auto}]
+    // Define a batch size of 4
+    using unroll_4 = Kokkos::Experimental::StaticBatchSize<4>;
+    // Use in RangePolicy
+    Kokkos::RangePolicy<ExecSpace, unroll_4> policy(0, N);
+    // Execute parallel_for with static batch size
+    Kokkos::parallel_for(policy, KOKKOS_LAMBDA(const int i) {
+      ...
+    });
+  \end{code}
+\end{frame}
+
+%==========================================================================

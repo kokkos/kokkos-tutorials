@@ -1,0 +1,271 @@
+%==========================================================================
+
+\begin{frame}[fragile]
+
+  {\Huge Backend Updates}
+
+  \vspace{10pt}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]
+
+  {\Huge CUDA}
+
+  \vspace{10pt}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{128 Bit CAS-based device atomics on $>=$ Hopper and CUDA $>=$ 12.8}
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+    %title={Atomics on $10^8$\texttt{Kokkos::complex<double>} \textbf{without} contention},
+    width=0.8\textwidth,
+    height=0.25\textwidth,
+    grid=major,
+    ymin=0,
+    ybar,
+    ybar=2pt,
+    bar width=5pt,
+    enlargelimits=0.15,
+    legend style={at={(0.5,1.6)},
+      anchor=north,legend columns=-1},
+    ylabel={Speedup},
+    symbolic x coords={add,sub,fetch\_add,fetch\_sub,fetch\_mul,fetch\_div},
+    xtick=data,
+    x tick label style={rotate=45,anchor=east},
+    %nodes near coords,
+    %nodes near coords align={vertical},
+    ]
+\addplot coordinates {(add,60.9383491542) (sub,61.3601695793) (fetch\_add,62.2689318092) (fetch\_sub,63.6933886833) (fetch\_mul,61.4623888556) (fetch\_div,27.1370696705)};
+\addplot coordinates {(add,7.5113136277) (sub,7.3840995425) (fetch\_add,7.2957874994) (fetch\_sub,7.3351913106) (fetch\_mul,7.3557821451) (fetch\_div,1.2353750828)};
+\legend{Nvidia H100, Nvidia 5080 (Blackwell)}
+\end{axis}
+\end{tikzpicture}
+\end{figure}
+\begin{itemize}
+  \item Atomics on $10^8$ \texttt{Kokkos::complex<double>} \textbf{without} contention
+\begin{itemize}
+    \item Speedup $\approx 60$x on H100 and $\approx 7$x on RTX5080.
+    \item Same performance for \texttt{int128} and \texttt{Kokkos::complex<double>}.
+    \item Division more costly, thus less effect of atomic CAS.
+\end{itemize}
+\end{itemize}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Effect of contention on \texttt{atomic\_add} on Hopper}
+
+\begin{figure}[ht]
+\centering
+  \begin{tikzpicture}
+    \begin{loglogaxis}[
+    %title={\texttt{atomic\_add} of \texttt{Kokkos::complex<double>} with $10^8$ workers},
+    width=0.4\textwidth,
+    height=0.4\textwidth,
+    log basis x = 10,
+    grid=major,
+    xmin=1,
+    xlabel={Number of target addresses},
+    ylabel={Slowdown}
+    ]
+    \addplot+[mark=x] coordinates {
+		(1,430493.9171899781)
+		(10,15898.3990852844)
+		(100,915.3459702246)
+		(1000,43.9645742601)
+		(10000,3.777034824)
+		(100000,0.9787170675)
+		(1000000,0.8960538272)
+        (10000000,1.0)
+        };
+    \addplot+[mark=o] coordinates {
+		(1,68593.7222119811)
+		(10,4665.2018278071)
+		(100,314.4430296381)
+		(1000,4.9384166747)
+		(10000,0.7793873907)
+		(100000,0.07931081247)
+		(1000000,0.04049346243)
+        (10000000,0.04297514822)
+        };
+    \legend{Lock-based,CAS-based}
+    \end{loglogaxis}
+  \end{tikzpicture}
+  \caption{\texttt{atomic\_add} of \texttt{Kokkos::complex<double>} with $10^8$ workers}
+\end{figure}
+  \vspace{-0.8cm}
+\begin{itemize}
+    \item Effectiveness of CAS-based atomics reduces similar to Lock-based atomics at high contention.
+\end{itemize}
+
+\end{frame}
+
+
+\begin{frame}[fragile]{Leverage larger Kernel Argument}
+
+\begin{itemize}
+    \item Allows to launch kernels with up to 32kB of arguments for kernels. Previously it was 4kB.
+    \item Enables us to side-step the "Constant Cache" launch mechanism in Kokkos.
+    \item Effects functors in the 4kB to 32kB size range. No effect on smaller or larger functors.
+    \item This changes the synchronization behavior for functors in this range, due to elimination of an implicit necessary synchronization on constant cache buffer use.
+    \item Does not apply to using Clang as CUDA compiler, nor for GPUs older than Volta (i.e. Compute Capabilities lower than 7).
+\end{itemize}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]
+
+  {\Huge SYCL}
+
+  \vspace{10pt}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Use unsigned integer type as \texttt{size\_type} in SYCL}
+
+\begin{itemize}
+  \item \texttt{SYCL} now uses an unsigned integer type as \texttt{size\_type}.
+    \item Now unsigned integer type across all backends.
+\end{itemize}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]
+
+  {\Huge OpenMPTarget}
+
+  \vspace{10pt}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Allow \texttt{parallel\_scan} to start anywere in OpenMPTarget}
+
+\begin{itemize}
+  \item Previously \texttt{parallel\_scan} with a \texttt{RangePolicy} needed to start at index 0
+  \item Now any starting index smaller than the end index is supported.
+\end{itemize}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Upcoming removal of OpenMPTarget}
+\begin{large}
+We decided to remove OpenMPTarget in an upcoming release!
+\end{large}
+
+\begin{itemize}
+\item Never reached feature parity.
+\item Lower performance than native backends (CUDA, HIP, SYCL)
+\item Practically no users.
+\item Little interest in support by any institution.
+\end{itemize}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]
+
+  {\Huge OpenACC}
+
+  \vspace{10pt}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Allow \texttt{parallel\_scan} to start anywere in OpenACC}
+
+\begin{itemize}
+  \item Previously \texttt{parallel\_scan} with a \texttt{RangePolicy} needed to start at index 0
+  \item Now any starting index smaller than the end index is supported.
+\end{itemize}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Support \texttt{Kokkos\_Random} algorithms API in OpenACC}
+
+\begin{itemize}
+  \item OpenACC now supports the \texttt{Kokkos\_Random} algorithms API.
+  \item Can be inefficient if the actual team size is different from the default team size.
+\end{itemize}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Support \texttt{partition\_space} API in OpenACC}
+
+\begin{itemize}
+  \item OpenACC now supports the \texttt{partition\_space} API.
+  \item Execution space instances created by \texttt{partition\_space} will use OpenACC async IDs in a reserved range (from 64 to 191), which are assigned in a round-robin manner.
+\end{itemize}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Support custom scalar reduction in \texttt{parallel\_reduce} with a \texttt{RangePolicy} in OpenACC}
+
+\begin{itemize}
+  \item OpenACC now supports custom scalar reduction with \texttt{parallel\_reduce} and \texttt{RangePolicy}.
+  \item Supports both built-in reducers with custom scalar types, and custom reducers with custom scalar types.
+\end{itemize}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]
+
+  {\Huge HIP}
+
+  \vspace{10pt}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Improved performance and new architecture support}
+
+\begin{itemize}
+  \item Fix a performance regression introduced in 4.6 when using lightweight
+    kernel (\texttt{Experimental::WorkItemProperty::HintLightWeight}) in \texttt{parallel\_reduce}
+  \item Prefer smaller block sizes for \texttt{parallel\_for} when
+    the requested parallelism is less than the available concurrency
+  \item Use atomic builtins for \texttt{atomic\_fetch\_{min/max}} with floating
+    point types instead of our own implementation
+  \item Add support for \texttt{Navi4} architecture (Radeon AI PRO R9700, Radeon
+    RX 9070 XT)
+\end{itemize}
+\end{frame}
+
+%==========================================================================
+\begin{frame}[fragile]{ROCm 7.1}
+\begin{itemize}
+  \item Avoid using ROCm 7.1 if possible: \textbf{you may get incorrect results}
+  \item On MI100 and MI200 series, use
+    \texttt{-DKokkos\_ENABLE\_IMPL\_HIP\_MALLOC\_ASYNC=OFF}
+  \item On MI300 series, we cannot compile the testsuite yet. Very likely that
+    you will also need to use \texttt{-DKokkos\_ENABLE\_IMPL\_HIP\_MALLOC\_ASYNC=OFF}
+\end{itemize}
+\end{frame}

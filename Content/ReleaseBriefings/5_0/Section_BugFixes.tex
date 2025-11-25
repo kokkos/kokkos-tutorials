@@ -1,0 +1,77 @@
+%==========================================================================
+
+\begin{frame}[fragile]
+
+  {\Huge Bug Fixes}
+
+  \vspace{10pt}
+
+\end{frame}
+
+%==========================================================================
+
+% Examples
+
+% note: always keep the [fragile] for your frames!
+
+%\begin{frame}[fragile]{Example list}
+%  \begin{itemize}
+%      \item Item 1
+%      \item Item 2 with some \texttt{code}
+%      \begin{itemize}
+%        \item Sub-item 2.1
+%        \item Sub-item 2.2
+%      \end{itemize}
+%  \end{itemize}
+%\end{frame}
+
+%\begin{frame}[fragile]{Example code}
+%    \begin{code}[keywords={std}]
+%        #include <iostream>
+%
+%        int main() {
+%            std::cout << "hello world\n";
+%        }
+%    \end{code}
+%\end{frame}
+
+%\begin{frame}[fragile]{Example table}
+%    \begin{center}
+%        \begin{tabular}{l|l}
+%            a & b \\\hline
+%            c & d
+%        \end{tabular}
+%    \end{center}
+%\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Bug Fixes: General}
+\begin{itemize}
+  \item Track modification for resize only if \texttt{DualView} is not using a single device %#8273
+  \item Fix MSVC floating-point value does not fit in required floating-point type warning from \texttt{reduction\_identity} %#8376
+  \item Properly delete \texttt{Timer} copy constructor and copy assignment operators %#8399
+  \item Fix RISC-V support (compiler check at configuration time and missing semicolons at compile time) %#8439
+  \item Corrected \texttt{bit\_width} return type to be \texttt{int} instead of \texttt{T} to align with the standard library %#8509
+  \item Work around a performance regression related to index computation in the mdspan-based \texttt{View} %#8476
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Bug Fixes: HIP \& CUDA}
+\begin{itemize}
+  \item Launch work graph on the instance in the execution policy %#8576
+  \item Fix incorrect results from \texttt{parallel\_reduce} with \texttt{LaunchBounds} values smaller than 32 %#8452
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Bug Fixes: OpenMP}
+\begin{itemize}
+  \item Fix \texttt{partition\_space} abort when requesting more partitions than available threads %#8488
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Bug Fixes: SIMD}
+\begin{itemize}
+  \item Fix a configure-time failure when SVE is enabled and unit tests are disabled %#8661
+\end{itemize}
+\end{frame}

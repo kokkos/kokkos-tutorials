@@ -206,8 +206,8 @@ We decided to remove OpenMPTarget in an upcoming release!
 \begin{frame}[fragile]{Support \texttt{Kokkos\_Random} algorithms API in OpenACC}
 
 \begin{itemize}
-  \item Adds the OpenACC backend support for the \texttt{Kokkos\_Random} algorithms API.
-  \item May be inefficient if the actual team size is different from the default team size.
+  \item OpenACC now supports the \texttt{Kokkos\_Random} algorithms API.
+  \item Can be inefficient if the actual team size is different from the default team size.
 \end{itemize}
 
 \end{frame}
@@ -217,8 +217,8 @@ We decided to remove OpenMPTarget in an upcoming release!
 \begin{frame}[fragile]{Support \texttt{partition\_space} API in OpenACC}
 
 \begin{itemize}
-  \item Adds the OpenACC backend support for the \texttt{partition\_space} API.
-  \item Execution Space instances created by \texttt{partition\_space} will use OpenACC async values in a reserved range (from 64 to 191), which are assigned in a round-robin manner. 
+  \item OpenACC now supports the \texttt{partition\_space} API.
+  \item Execution space instances created by \texttt{partition\_space} will use OpenACC async IDs in a reserved range (from 64 to 191), which are assigned in a round-robin manner.
 \end{itemize}
 
 \end{frame}
@@ -228,8 +228,8 @@ We decided to remove OpenMPTarget in an upcoming release!
 \begin{frame}[fragile]{Support custom scalar reduction in \texttt{kokkos\_reduce} with a \texttt{RangePolicy} in OpenACC}
 
 \begin{itemize}
-  \item Adds the OpenACC backend support for custom scalar reduction in \texttt{kokkos\_reduce} with a \texttt{RangePolicy}.
-  \item Supports both Built-In Reducers with custom scalar types and Custom Reducers with custom scalar types.
+  \item OpenACC now supports custom scalar reduction with \texttt{kokkos\_reduce} and \texttt{RangePolicy}.
+  \item Supports both built-in reducers with custom scalar types, and custom reducers with custom scalar types.
 \end{itemize}
 \end{frame}
 

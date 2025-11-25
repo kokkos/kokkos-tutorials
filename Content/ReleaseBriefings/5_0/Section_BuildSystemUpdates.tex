@@ -27,15 +27,42 @@
 
 %==========================================================================
 
-\begin{frame}[fragile]{Multilanguage and Windows support}
+\begin{frame}[fragile]{Support for multiple CMake Lanugages}
   \begin{itemize}
-    \item Kokkos now offers support for multiple languages in one build
+    \item Kokkos now offers support for multiple CMake languages in one build
     \begin{itemize}
-      \item Allow a single Kokkos to be used with the CMake languages \texttt{CXX} and \texttt{CUDA/HIP}.
-      \item Kokkos sets the flags for all languages that work with the selected backend.
+      \item Allow a single Kokkos installation to be used with the CMake languages \texttt{CXX} and \texttt{CUDA/HIP}.
+      \item Kokkos sets the flags for all CMake languages that work with the selected backend.
       \item Rules for \texttt{kokkos\_launch\_compiler} stay unchanged: Used for \texttt{CUDA} backend \textbf{without} \texttt{nvcc\_wrapper} as \texttt{CXX\_COMPILER}
       \item Enable via \texttt{Kokkos\_ENABLE\_MULTIPLE\_CMAKE\_LANGUAGES=ON}
     \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Support for multiple CMake Lanugages}
+CMake
+\begin{code}
+find_package(Kokkos)
+
+# use Kokkos in a CUDA language project
+add_library(language_lib library.cu)
+target_link_libraries(language_lib PUBLIC Kokkos::kokkos)
+
+#use Kokkos in a CXX project
+add_library(cxx_lib library.cpp)
+target_link_libraries(cxx_lib PUBLIC Kokkos::kokkos)
+
+#use both in an executable
+add_executable(example cmake_example.cpp)
+target_link_libraries(example PUBLIC language_lib cxx_lib)
+\end{code}
+  \begin{itemize}
+  \item{Look into examples/build\_cmake\_installed\_multilanguage}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Windows shared library support}
+  \begin{itemize}
     \item Support for shared library builds in Windows
     \begin{itemize}
       \item Kokkos now supports \texttt{BUILD\_SHARED\_LIBS=ON} in Windows builds

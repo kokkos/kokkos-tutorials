@@ -20,7 +20,7 @@
     \item CMake Requirements
     \begin{itemize}
       \item CMake 3.22 is the new miminum
-      \item CMake 2.25.2 is the minimum for \texttt{CUDA} language support
+      \item CMake 2.25.2 is the minimum for \texttt{CUDA} CMake language support
     \end{itemize}
   \end{itemize}
 \end{frame}
@@ -61,9 +61,9 @@ target_link_libraries(example PUBLIC language_lib cxx_lib)
   \end{itemize}
 \end{frame}
 
-\begin{frame}[fragile]{Windows shared library support}
+\begin{frame}[fragile]{Windows experimental shared library support}
   \begin{itemize}
-    \item Support for shared library builds in Windows
+    \item Experimental support for shared library builds in Windows
     \begin{itemize}
       \item Kokkos now supports \texttt{BUILD\_SHARED\_LIBS=ON} in Windows builds
       \item Includes \texttt{WINDOWS\_EXPORT\_ALL\_SYMBOLS=ON} for all Kokkos-core libraries

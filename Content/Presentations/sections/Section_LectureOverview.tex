@@ -27,12 +27,12 @@
 
 \textbf{Kokkos is Ready for Use}
 \begin{scriptsize}
-  \begin{itemize} 
-	  \item {Well established project since 2012}
-	  \item {Major buy-in by DOE National Labs}
-	  \item {Well over 100 projects with over 500 developers use Kokkos}
-	  \item {Dedicated developer staff at 5 National Labs}
-	  \item {Robust support for software stacks: GCC 8+, Clang 8+, NVCC 11+, ROCM 5.2, Intel 19+}
+  \begin{itemize}
+          \item {Well established project since 2012}
+          \item {Part of the Linux Foundation's HPSF}
+	  \item {Major buy-in by US DOE National Labs and the French CEA}
+	  \item {Well over 300 projects with over 1500 developers use Kokkos}
+	  \item {Robust support for software stacks: GCC 11+, Clang 14+, NVCC 12+, ROCM 6.2, Intel 2022+, MSVC}
   \end{itemize}
 \end{scriptsize}
 
@@ -52,15 +52,15 @@
 		\begin{itemize}
 			\item{Find these slides}
 		\end{itemize}
-	\item \url{https://github.com/kokkos/kokkos/wiki}: 
+	\item \url{https://kokkos.org}:
 		\begin{itemize}
-			\item Wiki including API reference
+			\item Project website including API reference
 		\end{itemize}
 	\item \url{https://kokkosteam.slack.com}: 
 		\begin{itemize}
 			\item Slack channel for Kokkos.
 			\item Please join: fastest way to get your questions answered.
-			\item Can whitelist domains, or invite individual people. Email: crtrott@sandia.gov
+			\item Can whitelist domains, or invite individual people. Email: crtrott@sandia.gov lebrungrandt@ornl.gov
 		\end{itemize}
 \end{itemize}
 
@@ -69,6 +69,7 @@
 
 %==============================================================================
 
+\iffull
 \begin{frame}{Lecture Series Outline}
 
 \begin{itemize}
@@ -83,6 +84,7 @@
     \item Module 9: Fortran inter-op
 \end{itemize}
 \end{frame}
+\fi
 
 \begin{frame}{What to Expect}
 
@@ -101,7 +103,6 @@
 	\item Exercises are small codes with places to do modifications.
 	\item Access to GPUs helpful for most of them, but most can be done on pure CPU systems.
 	\item Only dependent on standard compilers (e.g. Clang, NVCC)
-	\item Office hours on Tuesdays 3-5 PM Eastern Time (potentially with AWS access).
         \item Ongoing support at \url{https://kokkosteam.slack.com}
 \end{itemize}
 \end{frame}

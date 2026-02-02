@@ -1,6 +1,6 @@
 #include<Kokkos_Core.hpp>
 //EXERCISE: include the right header (later Kokkos will include this)
-//#include<simd.hpp>
+//#include<Kokkos_SIMD.hpp>
 
 void test_simd(int N_in, int M, int R, double a) {
 

@@ -1,0 +1,37 @@
+%==========================================================================
+
+\begin{frame}[fragile]
+
+  {\Huge Feature highlights}
+  
+  \vspace{10pt}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Minimum compiler requirements after requiring C++20}
+
+\begin{table}[]
+\begin{tabular}{lll}
+\multicolumn{1}{r}{} & Kokkos 4.x & Kokkos 5.0 \\ \hline
+GCC                  & 8.2.0      & 10.4.0     \\
+Clang (CPU)          & 8.0.0      & 14.0.0     \\
+Clang (CUDA)         & 10.0.0     & 15.0.0     \\
+IntelLLVM (CPU)      & 2021.1.1   & 2022.0.0   \\
+IntelLLVM (SYCL)     & 2023.0.0   & 2024.2.1   \\
+NVCC                 & 11.0       & 12.2.0     \\
+NVC++                & 22.3       & 22.3       \\
+ROCm                 & 5.2.0      & 6.2.0      \\
+MSVC                 & 19.29      & 19.30      \\
+\end{tabular}
+\end{table}
+
+\textit{\footnotesize Note: Clang (CUDA) allows for CUDA 11.8 as underlying runtime.} \\
+\textit{\footnotesize Note: MSVC is only actually tested with the latest version.}
+
+\centering
+\url{https://kokkos.org/kokkos-core-wiki/get-started/requirements.html}
+\end{frame}
+
+%==========================================================================

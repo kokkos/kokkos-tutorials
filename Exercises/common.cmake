@@ -19,7 +19,7 @@ else()
     FetchContent_Declare(
       Kokkos
       GIT_REPOSITORY https://github.com/kokkos/kokkos.git
-      GIT_TAG        4.7.00
+      GIT_TAG        5.0.0
       SOURCE_DIR ${Kokkos_COMMON_SOURCE_DIR}
     )
     FetchContent_MakeAvailable(Kokkos)

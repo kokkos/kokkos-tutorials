@@ -3,7 +3,7 @@
 
 void test_simd(int N_in, int M, int R, double a) {
 
-  using simd_t = Kokkos::Experimental::native_simd<double>;
+  using simd_t = Kokkos::Experimental::simd<double>;
 
   int N = N_in/simd_t::size();
 

@@ -8,4 +8,154 @@
 
 \end{frame}
 
+\begin{frame}[fragile]{General Enhancements I}
+  \begin{itemize}
+    \item Enable ScatterView contribute into a View that is a rvalue
+    \item Use \texttt{Array::size\_type} for subscript operators
+    \item Use StaticBatchSize in ViewFill
+    \item Improve performance of \texttt{deep\_copy} from scalar in view fill using \texttt{StaticBatchSize}
+  \end{itemize}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{General Enhancements II}
+  \begin{itemize}
+    \item Enforce failure when exceeding \texttt{team\_size\_max} and \texttt{scratch\_size\_max} checks
+    \item Enable MPI detection with PALS
+    \item Add \texttt{Kokkos::norm} for \texttt{Kokkos::complex} similar to \texttt{std::norm}
+  \end{itemize}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{SIMD Enhancements}
+  \begin{itemize}
+    \item Add bitwise operators to simd vectors of integral types and simd masks
+    \item Add simd memory permute functions
+    \item Use neon and sve SIMD instructions if nvcc supports them
+  \end{itemize}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{MDRangePolicy overhaul}
+  Improved performance for \texttt{MDRangePolicy} for all rank (2 to 6) for \texttt{CUDA}, \texttt{HIP} and \texttt{SYCL}
+  \begin{itemize}
+    \item Rewrite internal logic for computing functor indices
+    \item Fix performance discrepancies between iterate Left and Right
+  \end{itemize}
+
+  \vspace{5pt}
+  Note: Doesn't concern nested multidimensional policy like \texttt{TeamThreadMDRange} or \texttt{TeamVectorMDRange}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{MDRangePolicy overhaul}
+  Change the default tile size for \texttt{CUDA}, \texttt{HIP}, and \texttt{SYCL} backends.
+  Use more threads for the dimension that accesses memory in a coalesced way.
+  \vspace{10pt}
+  \begin{itemize}
+    \item Lower register usage for the same kernel
+    \item Better memory throughput for memory-intensive kernels.
+    \item Better GPU occupancy for simple kernels.
+  \end{itemize}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{MDRangePolicy overhaul}
+  \begin{figure}[ht]
+    \centering
+    \begin{tikzpicture}
+      \begin{axis}[
+        width=0.8\textwidth,
+        height=0.35\textwidth,
+        grid=major,
+        ymin=0,
+        ybar,
+        ybar=5pt,
+        bar width=12pt,
+        enlargelimits=0.15,
+        legend style={at={(0.5, 1.3)},
+          anchor=north,legend columns=-1,font=\small},
+        ylabel={Speedup},
+        symbolic x coords={2D, 3D, 4D, 5D, 6D},
+        xtick=data,
+        x tick label style={at={(0.0, -0.5)},font=\small},
+        ]
+      \addplot[color=red!60, fill=red!40] coordinates {(2D, 1.23) (3D, 1.38) (4D, 1.56) (5D, 1.36) (6D, 2.16)};
+      \addplot[color=green!60, fill=green!40] coordinates {(2D, 1.32) (3D, 1.00) (4D, 1.08) (5D, 1.42) (6D, 2.13)};
+      \legend{AMD MI250X, Nvidia A100}
+      \end{axis}
+    \end{tikzpicture}
+  \end{figure}
+  \begin{itemize}
+    \item Stream Add kernel ($C = A + B$) for different dimensions.
+  \end{itemize}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{MDRangePolicy overhaul}
+  \begin{figure}[ht]
+    \centering
+    \begin{tikzpicture}
+      \begin{axis}[
+        width=0.8\textwidth,
+        height=0.35\textwidth,
+        grid=major,
+        ymin=0,
+        ybar,
+        ybar=10pt,
+        bar width=15pt,
+        enlargelimits=0.15,
+        legend style={at={(0.5, 1.3)},
+          anchor=north,legend columns=-1,font=\small},
+        ylabel={Speedup},
+        symbolic x coords={2D Left, 2D Right, 3D Left, 3D Right},
+        xtick=data,
+        x tick label style={at={(0.0, -0.5)},font=\small},
+        ]
+      \addplot[color=red!60, fill=red!40] coordinates {(2D Left, 1.44) (2D Right, 3.17) (3D Left, 1.00) (3D Right, 2.32)};
+      \addplot[color=green!60, fill=green!40] coordinates {(2D Left, 1.94) (2D Right, 1.94) (3D Left, 1.01) (3D Right, 2.71)};
+      \legend{AMD MI250X, Nvidia A100}
+      \end{axis}
+    \end{tikzpicture}
+  \end{figure}
+  \begin{itemize}
+    \item Stencil kernel with 7 points and 9 points in 2D and 3D respectively.
+  \end{itemize}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Expand math support}
+  Increase \texttt{\textbf{half}} and \texttt{\textbf{bhalf}} support
+  \begin{itemize}
+    \item Add \texttt{denorm\_min} traits
+    \item Add non standard \texttt{rcp}, \texttt{rcpf} and \texttt{rcpl} functions.
+    \item Extend \texttt{rsqrt} to half types
+  \end{itemize}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Expand math support}
+  Implement all remaining math functions
+  \begin{itemize}
+    \item Add \texttt{modf}, \texttt{modff} and \texttt{modfl} functions
+    \item Add mathematical functions \texttt{frexp} \texttt{ldexp}, \texttt{scalbn}, \texttt{scalbln}
+    \item Provide more quadruple precision floating-point manipulation functions.
+    \item Add \texttt{isnormal} function for all floating-point types.
+    \item Add binary predicate math comparison functions.
+    \item Add fpclassify function.
+    \item Round to integer math functions \texttt{rint} and \texttt{round}.
+    \item Add std \texttt{nexttoward} wrapper.
+  \end{itemize}
+
+\end{frame}
+
 %==========================================================================

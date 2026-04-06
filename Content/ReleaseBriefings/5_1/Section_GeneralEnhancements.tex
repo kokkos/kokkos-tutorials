@@ -159,3 +159,12 @@
 \end{frame}
 
 %==========================================================================
+
+\begin{frame}[fragile]{SIMD support on ARM}
+  \texttt{nvcc} > 12.8 allows to use \texttt{NEON} instructions.
+  \begin{itemize}
+    \item With `KOKKOS\_ARCH\_NATIVE=ON` we run checks if the compiler supports \texttt{NEON} and \texttt{SVE}. If the compiler supports them we enable them.
+    \item For all manually specified ARM architectures we enable them if the architecture supports them. We do \textbf{not} check if the compiler supports them.
+  \end{itemize}
+\end{frame}
+

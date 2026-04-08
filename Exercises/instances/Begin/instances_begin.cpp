@@ -27,15 +27,7 @@ using ViewVectorType = Kokkos::View<double*>;
 using ViewMatrixType = Kokkos::View<double**>;
 
 // EXERCISE: We need later a new result type for reductions. What is it?
-//#ifdef KOKKOS_ENABLE_CUDA
-//#define RESULT_MEM_SPACE Kokkos::CudaHostPinnedSpace
-//#endif
-//#ifdef KOKKOS_ENABLE_HIP
-//#define RESULT_MEM_SPACE Kokkos::HIPHostPinnedSpace
-//#endif
-//#ifndef RESULT_MEM_SPACE
-//#define RESULT_MEM_SPACE Kokkos::HostSpace
-//#endif
+// using ResultMemSpace = 
 using ResultType = double;
 
 // EXERCISE: We need to pass in an instance

@@ -29,12 +29,25 @@
 
 %==========================================================================
 
-\begin{frame}[fragile]{SIMD Enhancements}
+\begin{frame}[fragile]{Array Update}
+
+  Relaxed constraints on \texttt{Kokkos::Array} subscript operator
+
+  \vspace{1em}
+
   \begin{itemize}
-    \item Add bitwise operators to simd vectors of integral types and simd masks
-    \item Add simd memory permute functions
-    \item Use neon and sve SIMD instructions if nvcc supports them
+    \item Previously, the indexer type was constrained so that the following holds:
+    \begin{code}
+      std::is_integral_v<IndexType> || std::is_enum_v<IndexType>
+    \end{code}
+    \item Now, only requires to be implictly convertible to \texttt{Kokkos::Array::size\_type}
   \end{itemize}
+  
+  \vspace{1.5em}
+    
+  This relaxation allows custom type indexers\\
+  This is closer to the indexer constraints in \texttt{Kokkos::View}
+  
 \end{frame}
 
 %==========================================================================
@@ -156,6 +169,26 @@
     \item Add std \texttt{nexttoward} wrapper.
   \end{itemize}
 
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{SIMD Enhancements}
+  \begin{itemize}
+    \item Added bitwise operators to all simd masks and simd vectors of integral types
+    \begin{itemize}
+      \item Bitwise ops: \texttt{\textasciitilde{}, \&{}, |, \^{} , \&=, |=, \^{}=}
+    \end{itemize}
+
+    \vspace{1em}
+
+    \item Added simd memory permute functions
+    \begin{itemize}
+      \item \texttt{[unchecked|partial]\_gather\_from(in, indices, simd\_flag)}
+      \item \texttt{[unchecked|partial]\_scatter\_to(simd, out, indices, simd\_flag)}
+      \item Replace memory permute functions in deprecated \texttt{where\_expression}
+    \end{itemize}
+  \end{itemize}
 \end{frame}
 
 %==========================================================================

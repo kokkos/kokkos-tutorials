@@ -118,9 +118,9 @@ void mpi_style_iteration(int num_elements, int num_mpi_neighs, int num_sendrecv,
 
 int main( int argc, char* argv[] )
 {
-  int64_t N = 1000000;  // number of elements
+  int64_t N = 20000;  // number of elements
   int neighs = 6;       // number of neighbors
-  int num_send = 10000; // number of elements to send/recv
+  int num_send = 5000; // number of elements to send/recv
   int nrepeat = 10;     // number of repeats of the test
 
   // Read command line arguments.
@@ -139,9 +139,9 @@ int main( int argc, char* argv[] )
       nrepeat = atoi( argv[ ++i ] );
     }
     else if ( ( strcmp( argv[ i ], "-h" ) == 0 ) || ( strcmp( argv[ i ], "-help" ) == 0 ) ) {
-      printf( "  -N <int>:       number of elements (default: 1000000)\n" );
+      printf( "  -N <int>:       number of elements (default: 20000)\n" );
       printf( "  -neighs <int>:  number of neighbors (default: 6)\n" );
-      printf( "  -nsend <int>:   number of send/recv elements (default: 10000)\n" );
+      printf( "  -nsend <int>:   number of send/recv elements (default: 5000)\n" );
       printf( "  -nrepeat <int>: number of repetitions (default: 10)\n" );
       printf( "  -help (-h):     print this message\n\n" );
       exit( 1 );

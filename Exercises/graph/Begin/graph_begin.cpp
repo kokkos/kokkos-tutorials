@@ -22,7 +22,7 @@
 #include <Kokkos_Core.hpp>
 
 #include <Kokkos_Random.hpp>
-#include <Kokkos_Graph.hpp>
+// EXERCISE: Include the right header!
 
 template<class T>
 constexpr bool is_view_v = false;
@@ -55,9 +55,12 @@ struct pack_functor {
   }
 };
 
-template<class GraphNode, view D, view P, view B>
-auto pack(GraphNode node, D data, P pack_ids, B buffer) {
-  return node.then_parallel_for("Pack One", policy_t(0, pack_ids.extent(0)),
+// EXERCISE: take graph nodes instead of passing in execution space instances
+// What should these functions return now?
+// Use simple unconstrained templates for the graph node
+template<Kokkos::ExecutionSpace Exec, view D, view P, view B>
+void pack(Exec exec, D data, P pack_ids, B buffer) {
+  Kokkos::parallel_for("Pack One", policy_t(exec, 0, pack_ids.extent(0)),
     pack_functor{data, pack_ids, buffer});
 }
 
@@ -70,16 +73,21 @@ struct copy_functor {
   }
 };
 
-template<class GraphNode, view R, view S>
-auto transfer(GraphNode node, R recv, S send) {
-  auto temp_node = node.then_parallel_for("DeepCopy", policy_t(0, recv.extent(0)),
+// EXERCISE: take graph nodes instead of passing in execution space instances
+// What should these functions return now?
+// Use simple unconstrained templates for the graph node
+template<Kokkos::ExecutionSpace Exec, view R, view S>
+auto transfer(Exec exec, R recv, S send) {
+  Kokkos::parallel_for("DeepCopy", policy_t(exec, 0, recv.extent(0)),
     copy_functor{recv, send});
-  return temp_node.then_host("HostThing", [=]() { printf("HostTransfer %p %p\n",recv.data(), send.data()); });
+  // EXERCISE the following should become a host node!
+  exec.fence();
+  printf("HostTransfer %p %p\n",recv.data(), send.data());
 }
 
-template<class GraphNode, view D, view B>
-auto unpack(GraphNode node, D data, B buffer) {
-  return node.then_parallel_for("DeepCopy", policy_t(0, buffer.extent(0)),
+template<Kokkos::ExecutionSpace Exec, view D, view B>
+auto unpack(Exec exec, D data, B buffer) {
+  Kokkos::parallel_for("DeepCopy", policy_t(exec, 0, buffer.extent(0)),
     copy_functor{data, buffer});
 }
 
@@ -95,6 +103,8 @@ void mpi_style_iteration(int num_elements, int num_mpi_neighs, int num_sendrecv,
   // Kokkos::Experimental::Graph graph;
 
   timer.reset();
+  // EXERCISE Start creating your graph here
+  // Do you need the repeat here?
   for(int r=0; r < num_repeat; r++) {
     for(int neigh = 0; neigh < num_mpi_neighs; neigh++) {
       // Create subviews for 
@@ -103,29 +113,27 @@ void mpi_style_iteration(int num_elements, int num_mpi_neighs, int num_sendrecv,
       auto recv_buf    = Kokkos::subview(recv_buffer, neigh, Kokkos::ALL());
       auto my_data     = Kokkos::subview(data, Kokkos::pair{num_elements, (int)data.extent(0)});
 
-      auto my_pack     = pack_functor{data, my_pack_ids, send_buf};
-      auto my_transfer = copy_functor{recv_buf, send_buf};
-      auto my_unpack   = copy_functor{my_data, recv_buf};
-
-      // EXERCISE: use pack, transfer and unpack functions to create graph nodes
-      //           and remove unnecessary fence!
-      Kokkos::parallel_for("Pack", policy_t(0, pack_ids.extent(0)), my_pack);
-      Kokkos::parallel_for("Transfer", policy_t(0, recv_buf.extent(0)), my_transfer);
-      Kokkos::parallel_for("Unpack", policy_t(0, recv_buf.extent(0)), my_unpack);
-      Kokkos::fence();
+      Kokkos::DefaultExecutionSpace exec;
+      // EXERCISE: pass in graph nodes appropriately to connect functions 
+      pack(exec, data, my_pack_ids, send_buf);
+      transfer(exec, recv_buf, send_buf);
+      unpack(exec, Kokkos::subview(data, Kokkos::pair{num_elements, (int)data.extent(0)}), recv_buf);
     }
   }
-  double time = timer.seconds();
-  printf("Runtime: %lf \n",time*1000);
-
   // EXERCISE: instantiate the graph object
   // Kokkos::fence();
   // printf("Graph Create Done\n");
 
+  // EXERCISE: measure creation time here
+  double time = timer.seconds();
+  printf("Runtime: %lf \n",time*1000);
+
+
+  // EXERCISE: ask the graph to exectute its tasks
   // double time_create = timer.seconds();
   // timer.reset();
   // for(int r=0; r < num_repeat; r++) {
-  //   EXERCISE: ask the graph to exectute its tasks
+  //   EXERCISE: submit graph here!
   //   Kokkos::fence();
   // }
   // double time = timer.seconds();
@@ -135,9 +143,9 @@ void mpi_style_iteration(int num_elements, int num_mpi_neighs, int num_sendrecv,
 
 int main( int argc, char* argv[] )
 {
-  int64_t N = 1000000;  // number of elements
+  int64_t N = 20000;  // number of elements
   int neighs = 6;       // number of neighbors
-  int num_send = 10000; // number of elements to send/recv
+  int num_send = 5000; // number of elements to send/recv
   int nrepeat = 10;     // number of repeats of the test
 
   // Read command line arguments.
@@ -156,9 +164,9 @@ int main( int argc, char* argv[] )
       nrepeat = atoi( argv[ ++i ] );
     }
     else if ( ( strcmp( argv[ i ], "-h" ) == 0 ) || ( strcmp( argv[ i ], "-help" ) == 0 ) ) {
-      printf( "  -N <int>:       number of elements (default: 1000000)\n" );
+      printf( "  -N <int>:       number of elements (default: 20000)\n" );
       printf( "  -neighs <int>:  number of neighbors (default: 6)\n" );
-      printf( "  -nsend <int>:   number of send/recv elements (default: 10000)\n" );
+      printf( "  -nsend <int>:   number of send/recv elements (default: 5000)\n" );
       printf( "  -nrepeat <int>: number of repetitions (default: 10)\n" );
       printf( "  -help (-h):     print this message\n\n" );
       exit( 1 );

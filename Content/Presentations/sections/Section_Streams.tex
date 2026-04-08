@@ -389,41 +389,6 @@ fence();
 
 %==========================================================================
 
-\begin{frame}[fragile]{Simple Dispatch}
-  \textbf{Simple Parallel Loop}
-  \begin{itemize}
-    \item{Asynchronous}
-    \item{Overlaps with host functions}
-    \item{Use \texttt{Kokkos::fence()} to wait for completion}
-  \end{itemize}
-
-  \begin{columns}[]
-    \begin{column}{.67\textwidth}
-
-       \includegraphics[width=0.95\textwidth]{figures/streams-fig8} 
- 
-    \end{column}
-
-    \begin{column}{.33\textwidth}
-	    \begin{code}[linebackgroundcolor={},keywords={L1,L2,policy_device}]
-RangePolicy<> 
-  policy_device(0,N)
-FunctorL1 L1(...);
-FunctorL2 L2(...);
-
-parallel_for("L1", 
-  policy_device, L1);
-parallel_for("L2", 
-  policy_device, L2);
-foo();
-fence();
-      \end{code}
-    \end{column}
-  \end{columns}
-\end{frame}
-
-%==========================================================================
-
 \begin{frame}[fragile]{Deep Copy}
   \textbf{2-Argument deep\_copy is fully blocking}
   \begin{itemize}
@@ -699,6 +664,108 @@ parallel_for("L5",
   \end{columns}
 \end{frame}
 
+\begin{frame}[fragile]{Execution Space Instances}
+\textbf{Instances are handles to execution resources}
+
+\begin{code}
+// Getting the default instance
+auto default_instance = Kokkos::DefaultExecutionSpace();
+// get the maximum amount of concurrent execution
+int n = default_instance.concurrency();
+// wait for any outstanding work to finish
+default_instance.fence();
+\end{code}
+\begin{itemize}
+\item Each instance represents a set of execution resources.
+\item If two instances are of different type or compare non-equal, they are different execution queues.
+\item Shared-ptr semantics for copy and assignment.  
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Partitioning}
+\textbf{Splitting the default instances}
+\begin{code}
+auto default_instance = Kokkos::DefaultExecutionSpace();
+auto instances = Kokkos::Experimental::partition_space(
+                   default_instance, 1, 1);
+parallel_for(RangePolicy(instances[0], 0, NA), functorA);
+parallel_for(RangePolicy(instances[1], 0, NB), functorB);
+\end{code}
+\begin{itemize}
+\item { Split an instance according to weights.
+  \begin{itemize}
+     \item In practice the weights don't matter yet, just the number of arguments
+     \item will change when we implement actual splitting of thread pool backends
+  \end{itemize}
+}
+\item { May return the same instance multiple times, if splitting is not possible. }
+\item { For CUDA, HIP and SYCL each returned instance owns it own stream / queue. }
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}[fragile]{Interoperability}
+\textbf{Interoperability with Native Models via Streams and Queues}
+\begin{code}
+  cudaStream_t stream;
+  cudaStreamCreate(&stream);
+  {
+    Kokkos::Cuda exec(stream);
+    // call some Kokkos work
+  }
+  cudaStreamDestroy(stream); // release stream
+\end{code}
+\begin{itemize}
+\item Create Kokkos Execution Space instances from:
+\begin{itemize}
+   \item CUDA/HIP stream or SYCL queue respectively
+\end{itemize}
+\item The instance will not destroy the native handle
+\item The stream/queue must outlive the exec instance
+\end{itemize}
+
+\begin{code}
+   Kokkos::Cuda instance; // default instance
+   auto stream = instance.cuda_stream();
+   // do some CUDA work with the stream
+\end{code}
+\begin{itemize}
+  \item For interoperability of Kokkos with native backend code
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Exercise: Execution Space Instances}
+\textbf{Simulate MPI communication behavior with N neihbors}
+\begin{code}
+for(int n=0; n<neighbors; n++) {
+  auto my_send_buffer = subview(my_send_buffer, n, ALL);
+  auto my_recv_buffer = subview(my_recv_buffer, n, ALL);
+  auto my_idxs = subview(idxs, n, ALL);
+  pack_buffers(data, my_idxs, my_send_buffer);
+  exchange_messages(my_send_buffer, my_recv_buffer);
+  unpack_buffers(data, my_recv_buffer);
+}
+\end{code}
+
+
+  \textbf{Details}:
+  \begin{small}
+  \begin{itemize}
+\item Location: \ExerciseDirectory{execution\_space\_instances}
+\item Create instances via \texttt{partition\_space}
+\item Pass instances into functions
+\item Use instances to construct execution policies and call \texttt{deep\_copy}
+\end{itemize}
+  \end{small}
+
+\ul{\textbf{Things to try:}}
+  \begin{small}
+  \begin{itemize}
+  \item Vary problem size, number of neighors and instances (-S; -N; -I)
+  \end{itemize}
+  \end{small}
+
+\end{frame}
 
 \begin{frame}{Section Summary}
 

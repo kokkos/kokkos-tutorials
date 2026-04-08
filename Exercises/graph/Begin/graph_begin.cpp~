@@ -127,7 +127,7 @@ int main( int argc, char* argv[] )
   for ( int i = 0; i < argc; i++ ) {
     if ( strcmp( argv[ i ], "-N" ) == 0 ) {
       N = atoi( argv[ ++i ] );
-      printf( "  User N is %lld\n", N );
+      printf( "  User N is %d\n", N );
     }
     else if ( strcmp( argv[ i ], "-neighs" ) == 0 ) {
       neighs = atoi( argv[ ++i ] );
@@ -151,7 +151,7 @@ int main( int argc, char* argv[] )
 
   Kokkos::initialize( argc, argv );
   {
-    printf("Execute with %lld %i %i %i\n",N, neighs, num_send, nrepeat);
+    printf("Execute with %li %i %i %i\n",N, neighs, num_send, nrepeat);
     mpi_style_iteration(N, neighs, num_send, nrepeat);
   }
   Kokkos::finalize();

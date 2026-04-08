@@ -91,28 +91,45 @@ void mpi_style_iteration(int num_elements, int num_mpi_neighs, int num_sendrecv,
   init(data, pack_ids);
 
   Kokkos::Timer timer;
-  Kokkos::Experimental::Graph graph;
+  // EXERCISE: Create an Kokkos graph to capture work items
+  // Kokkos::Experimental::Graph graph;
 
-  for(int neigh = 0; neigh < num_mpi_neighs; neigh++) {
-    auto my_pack_ids = Kokkos::subview(pack_ids, neigh, Kokkos::ALL());
-    auto send_buf = Kokkos::subview(send_buffer, neigh, Kokkos::ALL());
-    auto recv_buf = Kokkos::subview(recv_buffer, neigh, Kokkos::ALL());
-    auto node1 = pack(graph.root_node(), data, my_pack_ids, send_buf);
-    auto node2 = transfer(node1, recv_buf, send_buf);
-    auto node3 = unpack(node2, Kokkos::subview(data, Kokkos::pair{num_elements, (int)data.extent(0)}), recv_buf);
-  }
-  graph.instantiate();
-  Kokkos::fence();
-  printf("Graph Create Done\n");
-
-  double time_create = timer.seconds();
   timer.reset();
   for(int r=0; r < num_repeat; r++) {
-    graph.submit();
-    Kokkos::fence();
+    for(int neigh = 0; neigh < num_mpi_neighs; neigh++) {
+      // Create subviews for 
+      auto my_pack_ids = Kokkos::subview(pack_ids, neigh, Kokkos::ALL());
+      auto send_buf    = Kokkos::subview(send_buffer, neigh, Kokkos::ALL());
+      auto recv_buf    = Kokkos::subview(recv_buffer, neigh, Kokkos::ALL());
+      auto my_data     = Kokkos::subview(data, Kokkos::pair{num_elements, (int)data.extent(0)});
+
+      auto my_pack     = pack_functor{data, my_pack_ids, send_buf};
+      auto my_transfer = copy_functor{recv_buf, send_buf};
+      auto my_unpack   = copy_functor{my_data, recv_buf};
+
+      // EXERCISE: use pack, transfer and unpack functions to create graph nodes
+      //           and remove unnecessary fence!
+      Kokkos::parallel_for("Pack", policy_t(0, pack_ids.extent(0)), my_pack);
+      Kokkos::parallel_for("Transfer", policy_t(0, recv_buf.extent(0)), my_transfer);
+      Kokkos::parallel_for("Unpack", policy_t(0, recv_buf.extent(0)), my_unpack);
+      Kokkos::fence();
+    }
   }
   double time = timer.seconds();
-  printf("Graph Runtime: %lf %lf\n",time*1000, time_create*1000);
+  printf("Runtime: %lf \n",time*1000);
+
+  // EXERCISE: instantiate the graph object
+  // Kokkos::fence();
+  // printf("Graph Create Done\n");
+
+  // double time_create = timer.seconds();
+  // timer.reset();
+  // for(int r=0; r < num_repeat; r++) {
+  //   EXERCISE: ask the graph to exectute its tasks
+  //   Kokkos::fence();
+  // }
+  // double time = timer.seconds();
+  // printf("Graph Runtime: %lf %lf\n",time*1000, time_create*1000);
 }
 
 

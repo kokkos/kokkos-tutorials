@@ -18,6 +18,16 @@
 
 \end{frame}
 
+\begin{frame}[fragile]{Features and Fixes for \texttt{CUDA}}
+
+  \begin{itemize}
+    \item Added support for \texttt{Kokkos\_ARCH\_BLACKWELL103} for B300 GPUs (requires \texttt{CUDA} $\geq 12.8$).
+    \item Fixed building with \texttt{clang} when enabling both \texttt{CUDA} and \texttt{OpenMP}.
+    \item Added support for the flags \texttt{-Ofc} and \texttt{--fdevice-time-trace} to \texttt{nvcc\_wrapper} (Useful for getting insights into compile time).
+  \end{itemize}
+
+\end{frame}
+
 %==========================================================================
 
 \begin{frame}[fragile]
@@ -29,3 +39,13 @@
 \end{frame}
 
 %==========================================================================
+
+\begin{frame}[fragile]{Features and Fixes for \texttt{HIP}}
+
+  \begin{itemize}
+    \item Add support for \texttt{Kokkos\_ARCH\_AMD\_GFX950} for MI350 and MI355 (requires \texttt{ROCm} $\geq 7.0$ recommended $\geq 7.1$)
+    \item Added support for \texttt{bhalf\_t} (in \texttt{Kokkos::Experimental}).
+    \item Added math functions for \texttt{half\_t} and \texttt{bhalf\_t} instead of casting to \texttt{float}.
+  \end{itemize}
+
+\end{frame}

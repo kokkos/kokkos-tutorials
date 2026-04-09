@@ -46,6 +46,17 @@
 
 %==========================================================================
 
+\begin{frame}[fragile]{General}
+  \begin{itemize}
+    \item Fix \texttt{reduction\_identity} with the \texttt{BAnd} reducer
+    \item Update \texttt{team\_fan\_\{in|out\}} member functions of \texttt{ThreadsExecTeamMember} not to call host-only functions on the device
+    \item Ensure that execution space instances fence when they are destructed
+    \item Correctly identify GCC and LLVM Clang on macOS
+  \end{itemize}
+\end{frame}
+
+%==========================================================================
+
 \begin{frame}[fragile]{Restrict host atomics to sizes that are \texttt{lock-free}}
   The atomics for integers were not restricted on the sizes for which they are \texttt{lock-free} (except with \texttt{MSVC}).
  \begin{itemize}
@@ -53,4 +64,21 @@
    \item \textbf{Problem}: Linking \texttt{latomic} by anyone outside of Kokkos' own build system results in \textbf{unsafe} atomic operations.
    \item Kokkos' atomics on integers with 128 bit or more use our internal lock-tables. Linking \texttt{libatomic} is \textbf{neither} necessary \textbf{nor} recommended.
  \end{itemize}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Conformance with the C++ standard}
+  \begin{itemize}
+    \item Add missing constexpr specifiers on \texttt{conj()}, and for the \texttt{real()} and \texttt{imag()} non-member functions taking complex numbers
+    \item Make overloads of \texttt{isnormal} compliant with std
+  \end{itemize}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{SIMD}
+  \begin{itemize}
+    \item Use intrinsics when calling \texttt{min} and \texttt{max} on simd vectors of integral types
+  \end{itemize}
 \end{frame}

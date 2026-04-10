@@ -14,34 +14,38 @@
 
 % note: always keep the [fragile] for your frames!
 
-%\begin{frame}[fragile]{Example list}
-%  \begin{itemize}
-%      \item Item 1
-%      \item Item 2 with some \texttt{code}
-%      \begin{itemize}
-%        \item Sub-item 2.1
-%        \item Sub-item 2.2
-%      \end{itemize}
-%  \end{itemize}
-%\end{frame}
+\begin{frame}[fragile]{Breaking Changes}
+ \begin{itemize}
+   \item Kokkos now detects and reports an error if an execution space is outside its valid lifetime scope, i.e., before \texttt{initialize()} or after \texttt{finalize()}.
+     \begin{itemize}
+      \item An example has been added to show users how to migrate from static execution spaces to comply with the new lifetime scope enforcement.
+     \end{itemize}
+   \item \texttt{Kokkos::TeamPolicy} now validates the \texttt{vector\_length} argument at construction time and aborts with a descriptive error if it is out of range, making misconfiguration bugs easier to catch.
+     \begin{itemize}
+       \item \texttt{Kokkos::TeamPolicy} now requires \texttt{vector\_length} to be a power of two.
+     \end{itemize}
+   \item Kokkos now warns when an OpenMP execution space instance is created inside an active OpenMP parallel region.
+   \item The OpenMPTarget backend has been removed from Kokkos.
+ \end{itemize}
+\end{frame}
 
-%\begin{frame}[fragile]{Example code}
-%    \begin{code}[keywords={std}]
-%        #include <iostream>
-%
-%        int main() {
-%            std::cout << "hello world\n";
-%        }
-%    \end{code}
-%\end{frame}
+\begin{frame}[fragile]{Example code}
+   \begin{code}[keywords={std}]
+       #include <iostream>
 
-%\begin{frame}[fragile]{Example table}
+       int main() {
+           std::cout << "hello world\n";
+       }
+   \end{code}
+\end{frame}
+
+% \begin{frame}[fragile]{Example table}
 %    \begin{center}
 %        \begin{tabular}{l|l}
 %            a & b \\\hline
 %            c & d
 %        \end{tabular}
 %    \end{center}
-%\end{frame}
+% \end{frame}
 
 %==========================================================================

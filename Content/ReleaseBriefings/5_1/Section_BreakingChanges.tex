@@ -24,6 +24,12 @@
      \begin{itemize}
        \item \texttt{Kokkos::TeamPolicy} now requires \texttt{vector\_length} to be a power of two.
      \end{itemize}
+   \item \texttt{ScatterView} is no longer move constructible or move assignable.
+ \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Breaking Changes on OpenMP and OpenMPTarget}
+ \begin{itemize}
    \item Kokkos now warns when an OpenMP execution space instance is created inside an active OpenMP parallel region.
    \item The OpenMPTarget backend has been removed from Kokkos.
  \end{itemize}

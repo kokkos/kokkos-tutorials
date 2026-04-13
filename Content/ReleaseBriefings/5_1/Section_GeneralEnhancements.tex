@@ -11,9 +11,14 @@
 \begin{frame}[fragile]{General Enhancements I}
   \begin{itemize}
     \item Enable ScatterView contribute into a View that is a rvalue
+    \begin{itemize}
+      \item \begin{code}[keywords={}]
+Experimental::contribute(subview(2d_view, ALL(), 0), scatterview);
+      \end{code}
+    \end{itemize}
     \item Use \texttt{Array::size\_type} for subscript operators
-    \item Use StaticBatchSize in ViewFill
-    \item Improve performance of \texttt{deep\_copy} from scalar in view fill using \texttt{StaticBatchSize}
+    \item Implement \texttt{StaticBatchSize} for HIP backend
+    \item Improve \texttt{deep\_copy} performance for scalar view fill using \texttt{StaticBatchSize}
   \end{itemize}
 \end{frame}
 
@@ -42,12 +47,12 @@
     \end{code}
     \item Now, only requires to be implictly convertible to \texttt{Kokkos::Array::size\_type}
   \end{itemize}
-  
+
   \vspace{1.5em}
-    
+
   This relaxation allows custom type indexers\\
   This is closer to the indexer constraints in \texttt{Kokkos::View}
-  
+
 \end{frame}
 
 %==========================================================================

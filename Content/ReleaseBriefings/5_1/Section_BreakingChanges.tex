@@ -28,6 +28,30 @@
  \end{itemize}
 \end{frame}
 
+\begin{frame}[fragile]{Example code}
+   \begin{code}[keywords={std, static, return, int, auto, bool, true, optional}]
+	   ...
+       Kokkos::DefaultExecutionSpace replace_static_execution_space() {
+         static std::optional<Kokkos::DefaultExecutionSpace> exec;
+         [[maybe_unused]] static bool once = [] {
+            exec = Kokkos::DefaultExecutionSpace();
+            Kokkos::push_finalize_hook([] { exec.reset(); });
+            return true;
+         }();
+         KOKKOS_ASSERT(exec.has_value());
+         return *exec;
+       }
+       int main() {
+          Kokkos::initialize();
+          {
+             auto exec = replace_static_execution_space();
+             compute_stuff(exec);
+          }
+          Kokkos::finalize();
+       }
+   \end{code}
+\end{frame}
+
 \begin{frame}[fragile]{Breaking Changes on OpenMP and OpenMPTarget}
  \begin{itemize}
    \item Kokkos now warns when an OpenMP execution space instance is created inside an active OpenMP parallel region.
@@ -35,15 +59,6 @@
  \end{itemize}
 \end{frame}
 
-\begin{frame}[fragile]{Example code}
-   \begin{code}[keywords={std}]
-       #include <iostream>
-
-       int main() {
-           std::cout << "hello world\n";
-       }
-   \end{code}
-\end{frame}
 
 % \begin{frame}[fragile]{Example table}
 %    \begin{center}

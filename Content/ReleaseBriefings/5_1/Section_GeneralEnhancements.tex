@@ -177,7 +177,7 @@
   \begin{itemize}
     \item Added bitwise operators to all simd masks and simd vectors of integral types
     \begin{itemize}
-      \item Bitwise ops: \texttt{\textasciitilde{}, \&{}, |, \^{} , \&=, |=, \^{}=}
+      \item Bitwise ops: \texttt{\textasciitilde{}, \&{}, |, \^{}, \&=, |=, \^{}=}
     \end{itemize}
 
     \vspace{1em}
@@ -196,7 +196,7 @@
 \begin{frame}[fragile]{SIMD support on ARM}
   \texttt{nvcc} $>$ 12.8 allows to use \texttt{NEON} instructions.
   \begin{itemize}
-    \item With \texttt{KOKKOS\_ARCH\_NATIVE=ON} we run checks if the compiler supports \texttt{NEON} and \texttt{SVE}. If the compiler supports them we enable them.
+    \item With \texttt{Kokkos\_ARCH\_NATIVE=ON} we run checks if the compiler supports \texttt{NEON} and \texttt{SVE}. If the compiler supports them we enable them.
     \item For all manually specified ARM architectures we enable them if the architecture supports them by specification. We do \textbf{not} check if the compiler supports them.
   \end{itemize}
 \end{frame}

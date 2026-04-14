@@ -76,20 +76,49 @@ Visit \url{https://kokkos.org/community/tea-time/}
 
 %==========================================================================
 
-\begin{frame}[fragile]{Other news}
+\begin{frame}[fragile]{Roadmap: Deprecation Clean-up}
 
-\medskip
+\begin{alertblock}{Kokkos 5.2: Major Removal}
+\begin{itemize}
+    \item Most \texttt{KOKKOS\_ENABLE\_DEPRECATED\_CODE\_4} paths will be \textbf{removed}.
+    \item \textbf{Action:} Compile with deprecation warnings enabled to identify remaining 4.x legacy code.
+\end{itemize}
+\end{alertblock}
 
-\begin{center}
-  \textbf{Mailing Lists}\hspace{5em}~\\
-  Sign up for the Kokkos mailing list to stay up-to-date\hspace{5em}~\\
-  with the latest Kokkos news.\hspace{5em}~\\
-  \url{https://kokkos.org/community/mailing-lists/}\hspace{5em}~
-\end{center}
-\medskip
-\begin{textblock}{2}(12.5,9.75)
-  \includegraphics[width=\textwidth]{5_1/MLs.png}
-\end{textblock}
+\begin{block}{Temporary Reprieve (Final Removal in 5.3)}
+These remain in 5.2 but will be deleted in the following release:
+\begin{description}
+    \item[\texttt{MemoryManaged}] $\rightarrow$ Use \texttt{MemoryTraits<>} 
+    \item[\texttt{View::HostMirror}] $\rightarrow$ Use \texttt{View::host\_mirror\_type}
+\end{description}
+\end{block}
+
+\begin{itemize}
+    \item \textit{Note: Version 5.3 will have zero exceptions for 4.x legacy code.}
+\end{itemize}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Legacy View Removal (Kokkos 5.3)}
+
+\begin{alertblock}{Final Transition}
+The legacy \texttt{View} implementation will be removed in 5.3.
+\end{alertblock}
+
+\begin{itemize}
+    \item \textbf{Status:} \texttt{std::mdspan}-based \texttt{View} has been the default since 5.0.
+    \item \textbf{Contingency Flag Removal:} \texttt{-DKokkos\_ENABLE\_IMPL\_VIEW\_LEGACY=ON} will no longer be available.
+\end{itemize}
+
+\vfill
+
+\begin{block}{Are you still using the legacy implementation?}
+\centering
+\textbf{Please reach out to the team via GitHub or Slack!} \\
+We need to address any blocking bugs or regressions before 5.3.
+\end{block}
 
 \end{frame}
 

@@ -60,7 +60,7 @@ Experimental::contribute(subview(2d_view, ALL(), 0), scatterview);
 
 %==========================================================================
 
-\begin{frame}[fragile]{MDRangePolicy overhaul}
+\begin{frame}[fragile]{MDRangePolicy Overhaul (1/4)}
   Improved performance for \texttt{MDRangePolicy} for all rank (2 to 6) for \texttt{CUDA}, \texttt{HIP} and \texttt{SYCL}
   \begin{itemize}
     \item Rewrite internal logic for computing functor indices
@@ -73,7 +73,7 @@ Experimental::contribute(subview(2d_view, ALL(), 0), scatterview);
 
 %==========================================================================
 
-\begin{frame}[fragile]{MDRangePolicy overhaul}
+\begin{frame}[fragile]{MDRangePolicy Overhaul (2/4)}
   Change the default tile size for \texttt{CUDA}, \texttt{HIP}, and \texttt{SYCL} backends.
   Use more threads for the dimension that accesses memory in a coalesced way.
   \vspace{10pt}
@@ -86,7 +86,7 @@ Experimental::contribute(subview(2d_view, ALL(), 0), scatterview);
 
 %==========================================================================
 
-\begin{frame}[fragile]{MDRangePolicy overhaul}
+\begin{frame}[fragile]{MDRangePolicy Overhaul (3/4)}
   \begin{figure}[ht]
     \centering
     \begin{tikzpicture}
@@ -119,7 +119,7 @@ Experimental::contribute(subview(2d_view, ALL(), 0), scatterview);
 
 %==========================================================================
 
-\begin{frame}[fragile]{MDRangePolicy overhaul}
+\begin{frame}[fragile]{MDRangePolicy Overhaul (4/4)}
   \begin{figure}[ht]
     \centering
     \begin{tikzpicture}

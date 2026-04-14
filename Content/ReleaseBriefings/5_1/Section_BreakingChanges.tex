@@ -63,7 +63,7 @@ void foo() {
 }
 
 void foobar() { // below is OK
-  auto instances = partion_space(OpenMP(), 1, 1);
+  auto instances = partition_space(OpenMP(), 1, 1);
   #pragma omp parallel num_threads(2)
   {
     bar(instances[omp_get_thread_num()]);

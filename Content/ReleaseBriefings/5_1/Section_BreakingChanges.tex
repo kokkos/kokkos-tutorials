@@ -52,13 +52,50 @@
    \end{code}
 \end{frame}
 
-\begin{frame}[fragile]{Breaking Changes on OpenMP and OpenMPTarget}
+\begin{frame}[fragile]{Breaking Changes on OpenMP}
  \begin{itemize}
    \item Kokkos now warns when an OpenMP execution space instance is created inside an active OpenMP parallel region.
-   \item The OpenMPTarget backend has been removed from Kokkos.
+   \item When enabling nested OpenMP: create execution space outside of the outermost OpenMP parallel region
  \end{itemize}
+\begin{code}
+void foo() {
+  #pragma omp parallel
+  {
+    bar(OpenMP()); // not allowed
+  }
+}
+
+void foobar() { // below is OK
+  auto instances = partion_space(OpenMP(), 1, 1);
+  #pragma omp parallel num_threads(2)
+  {
+    bar(instances[omp_get_thread_num()]);
+  }
+}
+\end{code}
 \end{frame}
 
+\begin{frame}[fragile]{OpenMPTarget Removal}
+\textbf{The OpenMPTarget was removed!}
+\vspace{0.5cm}
+
+  \textit{Orginal motivation for backend during ECP:}
+  \begin{itemize}
+     \item Hedge against SYCL failing for Intel GPUs
+     \item Interoperability with other OpenMPTarget based codes
+     \item Common GPU backend for multiple compilers
+  \end{itemize}
+\vspace{0.2cm}
+
+  \textit{But it never worked out, and rational got lost:}
+  \begin{itemize}
+     \item Performance never got good enough
+     \item Backend wasn't feature complete
+     \item Multi compiler support was flaky (only upstream LLVM really worked)
+     \item No one used it
+     \item SYCL was ok on Intel
+  \end{itemize}
+\end{frame}
 
 % \begin{frame}[fragile]{Example table}
 %    \begin{center}

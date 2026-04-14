@@ -54,7 +54,7 @@
     \item Added support for \texttt{Kokkos\_ARCH\_AMD\_GFX950} for MI350 and MI355 (requires \texttt{ROCm} $\geq 7.0$ recommended $\geq 7.1$)
     \item Added support for \texttt{bhalf\_t} (in \texttt{Kokkos::Experimental}).
     \item Added math functions for \texttt{half\_t} and \texttt{bhalf\_t} instead of casting to \texttt{float}.
-	\item Fixed race conditions in HIP \texttt{parallel\_scan} when running on MI300A
+	\item Workaround race condition reported in \texttt{parallel\_scan} when running on MI300A
   	\begin{itemize}
 		\item Added an extra synchronization at the end of \texttt{parallel\_scan} implementation.
 		\item Seems to be a compiler bug on MI300A.

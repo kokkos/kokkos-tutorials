@@ -12,11 +12,7 @@
 
 \begin{frame}[fragile]{Export Kokkos type traits as C++20 concepts}
 
-Export Kokkos type traits as C++20 concepts to be used internally and in downstream code.
-\begin{itemize}
-\item Defined in Kokkos\_Concepts.hpp
-\end{itemize}
-Available Kokkos type traits concepts
+Now defining the following concepts
 \begin{itemize}
 \item \texttt{Kokkos::ExecutionSpace}
 \item \texttt{Kokkos::MemorySpace}
@@ -24,5 +20,17 @@ Available Kokkos type traits concepts
 \item \texttt{Kokkos::TeamHandle}
 \item \texttt{Kokkos::Reducer}
 \end{itemize}
+
+\begin{lstlisting}[language=c++]
+// Old way: SFINAE-based constraint
+template <typename Exec, class Numbers>
+std::enable_if_t<Kokkos::is_execution_space_v<Exec>>
+    crunch1(Exec const& exec, Numbers numbers) { /* ... */ }
+
+// With concepts introduced in Kokkos 5.1
+template <Kokkos::ExecutionSpace Exec, class Numbers>
+void crunch2(Exec const& exec, Numbers numbers) { /* ... */ }
+\end{lstlisting}
+
 \end{frame}
 

@@ -31,27 +31,22 @@
 %==========================================================================
 
 \begin{frame}[fragile]{Example code}
-   \begin{code}[keywords={std, static, return, int, auto, bool, true, optional}]
-	   ...
-       Kokkos::DefaultExecutionSpace replace_static_execution_space() {
-         static std::optional<Kokkos::DefaultExecutionSpace> exec;
-         [[maybe_unused]] static bool once = [] {
-            exec = Kokkos::DefaultExecutionSpace();
-            Kokkos::push_finalize_hook([] { exec.reset(); });
-            return true;
-         }();
-         KOKKOS_ASSERT(exec.has_value());
-         return *exec;
-       }
-       int main() {
-          Kokkos::initialize();
-          {
-             auto exec = replace_static_execution_space();
-             compute_stuff(exec);
-          }
-          Kokkos::finalize();
-       }
-   \end{code}
+   \begin{lstlisting}[language=c++]
+Kokkos::DefaultExecutionSpace replace_static_execution_space() {
+  // store the object in a std::optional so it can be released
+  static std::optional<Kokkos::DefaultExecutionSpace> exec;
+  // acquire resources on 1st invocation in a threadsafe manner
+  [[maybe_unused]] static bool once = [] {
+    std::tie(exec) = Kokkos::Experimental::partition_space(
+        Kokkos::DefaultExecutionSpace(), 1);
+     // ensure the underlying object get destroyed before finalize
+     Kokkos::push_finalize_hook([] { exec.reset(); });
+     return true;
+  }();
+  KOKKOS_ASSERT(exec.has_value());
+  return *exec;
+}
+   \end{lstlisting}
 \end{frame}
 
 \begin{frame}[fragile]{Breaking Changes on OpenMP}

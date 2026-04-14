@@ -16,15 +16,15 @@
 
 \begin{frame}[fragile]{Breaking Changes}
  \begin{itemize}
-   \item Kokkos now detects and reports an error if an execution space is outside its valid lifetime scope, i.e., before \texttt{initialize()} or after \texttt{finalize()}.
-     \begin{itemize}
-      \item An example has been added to show users how to migrate from a static execution space variable to comply with the new lifetime scope enforcement.
-     \end{itemize}
    \item \texttt{TeamPolicy} now validates the \texttt{vector\_length} argument at construction time and aborts with a descriptive error if it is out of range, making misconfiguration bugs easier to catch.
      \begin{itemize}
        \item \texttt{TeamPolicy} now requires \texttt{vector\_length} to be a power of two.
      \end{itemize}
-   \item \texttt{ScatterView} is no longer move constructible or move assignable.
+   \item The value returned by \texttt{scatter\_view.access()} is no longer copyable or movable.
+   \item Kokkos now detects and reports an error if an execution space is outside its valid lifetime scope, i.e., before \texttt{initialize()} or after \texttt{finalize()}.
+     \begin{itemize}
+      \item An example has been added to show users how to migrate from a static execution space variable to comply with the new lifetime scope enforcement.
+     \end{itemize}
  \end{itemize}
 \end{frame}
 
@@ -73,7 +73,7 @@ void foobar() { // below is OK
 \end{frame}
 
 \begin{frame}[fragile]{OpenMPTarget Removal}
-\textbf{The OpenMPTarget was removed!}
+\textbf{The OpenMPTarget backend was removed!}
 \vspace{0.5cm}
 
   \textit{Orginal motivation for backend during ECP:}
@@ -84,7 +84,7 @@ void foobar() { // below is OK
   \end{itemize}
 \vspace{0.2cm}
 
-  \textit{But it never worked out, and rational got lost:}
+  \textit{But it never worked out, and rationale got lost:}
   \begin{itemize}
      \item Performance never got good enough
      \item Backend wasn't feature complete

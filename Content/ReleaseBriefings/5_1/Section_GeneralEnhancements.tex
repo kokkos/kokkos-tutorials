@@ -36,7 +36,6 @@ arr[zero] = arr[one] = arr[2] = 42;
   \begin{itemize}
     \item Enforce failure when exceeding \texttt{team\_size\_max} and \texttt{scratch\_size\_max} checks
     \item Enable MPI detection with PALS
-    \item Add \texttt{Kokkos::norm} for \texttt{Kokkos::complex} similar to \texttt{std::norm}
   \end{itemize}
 \end{frame}
 
@@ -54,19 +53,37 @@ arr[zero] = arr[one] = arr[2] = 42;
 
 %==========================================================================
 
-\begin{frame}[fragile]{Expand math support}
-  Implement all remaining math functions
-  \begin{itemize}
-    \item Add \texttt{modf}, \texttt{modff} and \texttt{modfl} functions
-    \item Add mathematical functions \texttt{frexp} \texttt{ldexp}, \texttt{scalbn}, \texttt{scalbln}
-    \item Provide more quadruple precision floating-point manipulation functions.
-    \item Add \texttt{isnormal} function for all floating-point types.
-    \item Add binary predicate math comparison functions.
-    \item Add fpclassify function.
-    \item Round to integer math functions \texttt{rint} and \texttt{round}.
-    \item Add std \texttt{nexttoward} wrapper.
-  \end{itemize}
+\begin{frame}[fragile]{Expand math support (1/2)}
 
+Now providing all common math functions from the standard library
+\begin{itemize}
+\item Basic operations
+  \begin{itemize}
+  \item \texttt{remquo}
+  \end{itemize}
+\item Nearest integer floating point operations
+  \begin{itemize}
+  \item \texttt{round}, \texttt{lround}, \texttt{llround}, \texttt{rint}, \texttt{lrint}, \texttt{llrint}
+  \end{itemize}
+\item Floating point manipulation functions
+  \begin{itemize}
+  \item \texttt{frexp}, \texttt{ldexp}, \texttt{modf}, \texttt{scalebn}, \texttt{scalebln}, \texttt{ilogb}, \texttt{nexttoward}
+  \end{itemize}
+\item Classification and comparison
+  \begin{itemize}
+  \item \texttt{fpclassify}, \texttt{isnormal}, \texttt{isgreater}, \texttt{isgreaterequal}, \texttt{isless}, \texttt{islessequal}, \texttt{islessgreater}, \texttt{isunordered}
+  \end{itemize}
+\end{itemize}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Expand math support (1/2)}
+\begin{itemize}
+\item Provide more quadruple precision floating-point manipulation functions
+\item Implemented \texttt{norm} free function acting on complex numbers
+\end{itemize}
 \end{frame}
 
 %==========================================================================

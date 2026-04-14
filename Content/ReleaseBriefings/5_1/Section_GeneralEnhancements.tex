@@ -8,51 +8,9 @@
 
 \end{frame}
 
-\begin{frame}[fragile]{General Enhancements I}
-  \begin{itemize}
-    \item Enable ScatterView contribute into a View that is a rvalue
-      \begin{lstlisting}[language=c++]
-contribute(subview(2d_view, ALL, 0), scatterview);
-      \end{lstlisting}
-    \item Use \texttt{Array::size\_type} for subscript operators
-      \begin{lstlisting}[language=c++]
-Kokkos::Array arr{0, 1, 2, 3, 5, 7};
-enum { zero = 0 };
-// now can also index with class object that are convertible to size_t
-std::integral_constant<std::size_t, 1> one;
-arr[zero] = arr[one] = arr[2] = 42;
-      \end{lstlisting}
-    \item Improve \texttt{deep\_copy} performance for scalar view fill using \texttt{StaticBatchSize}
-  \end{itemize}
-\begin{center}
-  \includegraphics[width=0.5\textwidth]{5_1/fill-bandwidth.png}
-\end{center}
-\end{frame}
-
 %==========================================================================
 
-\begin{frame}[fragile]{General Enhancements II}
-  \begin{itemize}
-    \item Enforce failure when exceeding \texttt{team\_size\_max} and \texttt{scratch\_size\_max} checks
-    \item Enable MPI detection with PALS
-  \end{itemize}
-\end{frame}
-
-%==========================================================================
-
-\begin{frame}[fragile]{Expand math support}
-  Increase \texttt{\textbf{half}} and \texttt{\textbf{bhalf}} support
-  \begin{itemize}
-    \item Add \texttt{denorm\_min} traits
-    \item Add non standard \texttt{rcp}, \texttt{rcpf} and \texttt{rcpl} functions.
-    \item Extend \texttt{rsqrt} to half types
-  \end{itemize}
-
-\end{frame}
-
-%==========================================================================
-
-\begin{frame}[fragile]{Expand math support (1/2)}
+\begin{frame}[fragile]{Expanded math support (1/2)}
 
 Now providing all common math functions from the standard library
 \begin{itemize}
@@ -78,11 +36,46 @@ Now providing all common math functions from the standard library
 
 %==========================================================================
 
-\begin{frame}[fragile]{Expand math support (1/2)}
+\begin{frame}[fragile]{Expanded math support (2/2)}
 \begin{itemize}
 \item Provide more quadruple precision floating-point manipulation functions
 \item Implemented \texttt{norm} free function acting on complex numbers
+\item Added non-standard \texttt{rcp} reciprocal function
+\item Increased \texttt{\textbf{half}} and \texttt{\textbf{bhalf}} support
+  \begin{itemize}
+  \item Add missing \texttt{denorm\_min} numerical trait specialization
+  \item More reduced-precision math functions
+  \end{itemize}
 \end{itemize}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{View fill performance}
+Improved \texttt{deep\_copy} performance for scalar view fill using \texttt{StaticBatchSize}
+\begin{center}
+  \includegraphics[width=0.5\textwidth]{5_1/fill-bandwidth.png}
+\end{center}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Miscellaneous improvements}
+  \begin{itemize}
+    \item Enable ScatterView contribute into a View that is a rvalue
+      \begin{lstlisting}[language=c++]
+contribute(subview(2d_view, ALL, 0), scatterview);
+      \end{lstlisting}
+    \item Use \texttt{Array::size\_type} for subscript operators
+      \begin{lstlisting}[language=c++]
+Kokkos::Array arr{0, 1, 2, 3, 5, 7};
+enum { zero = 0 };
+// now can also index with class object that are convertible to size_t
+std::integral_constant<std::size_t, 1> one;
+arr[zero] = arr[one] = arr[2] = 42;
+      \end{lstlisting}
+    \item Enable MPI detection with PALS
+  \end{itemize}
 \end{frame}
 
 %==========================================================================

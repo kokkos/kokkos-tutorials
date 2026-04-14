@@ -34,3 +34,94 @@ void crunch2(Exec const& exec, Numbers numbers) { /* ... */ }
 
 \end{frame}
 
+%==========================================================================
+
+\begin{frame}[fragile]{MDRangePolicy Overhaul (1/4)}
+  Improved performance for \texttt{MDRangePolicy} for all rank (2 to 6) for \texttt{CUDA}, \texttt{HIP} and \texttt{SYCL}
+  \begin{itemize}
+    \item Rewrite internal logic for computing functor indices
+    \item Fix performance discrepancies between iterate Left and Right
+  \end{itemize}
+
+  \vspace{5pt}
+  Note: Doesn't concern nested multidimensional policy like \texttt{TeamThreadMDRange} or \texttt{TeamVectorMDRange}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{MDRangePolicy Overhaul (2/4)}
+  Change the default tile size for \texttt{CUDA}, \texttt{HIP}, and \texttt{SYCL} backends.
+  Use more threads for the dimension that accesses memory in a coalesced way.
+  \vspace{10pt}
+  \begin{itemize}
+    \item Lower register usage for the same kernel
+    \item Better memory throughput for memory-intensive kernels.
+    \item Better GPU occupancy for simple kernels.
+  \end{itemize}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{MDRangePolicy Overhaul (3/4)}
+  \begin{figure}[ht]
+    \centering
+    \begin{tikzpicture}
+      \begin{axis}[
+        width=0.8\textwidth,
+        height=0.35\textwidth,
+        grid=major,
+        ymin=0,
+        ybar,
+        ybar=5pt,
+        bar width=12pt,
+        enlargelimits=0.15,
+        legend style={at={(0.5, 1.3)},
+          anchor=north,legend columns=-1,font=\small},
+        ylabel={Speedup},
+        symbolic x coords={2D, 3D, 4D, 5D, 6D},
+        xtick=data,
+        x tick label style={at={(0.0, -0.5)},font=\small},
+        ]
+      \addplot[color=red!60, fill=red!40] coordinates {(2D, 1.23) (3D, 1.38) (4D, 1.56) (5D, 1.36) (6D, 2.16)};
+      \addplot[color=green!60, fill=green!40] coordinates {(2D, 1.32) (3D, 1.00) (4D, 1.08) (5D, 1.42) (6D, 2.13)};
+      \legend{AMD MI250X, Nvidia A100}
+      \end{axis}
+    \end{tikzpicture}
+  \end{figure}
+  \begin{itemize}
+    \item Stream Add kernel ($C = A + B$) for different dimensions.
+  \end{itemize}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{MDRangePolicy Overhaul (4/4)}
+  \begin{figure}[ht]
+    \centering
+    \begin{tikzpicture}
+      \begin{axis}[
+        width=0.8\textwidth,
+        height=0.35\textwidth,
+        grid=major,
+        ymin=0,
+        ybar,
+        ybar=10pt,
+        bar width=15pt,
+        enlargelimits=0.15,
+        legend style={at={(0.5, 1.3)},
+          anchor=north,legend columns=-1,font=\small},
+        ylabel={Speedup},
+        symbolic x coords={2D Left, 2D Right, 3D Left, 3D Right},
+        xtick=data,
+        x tick label style={at={(0.0, -0.5)},font=\small},
+        ]
+      \addplot[color=red!60, fill=red!40] coordinates {(2D Left, 1.44) (2D Right, 3.17) (3D Left, 1.00) (3D Right, 2.32)};
+      \addplot[color=green!60, fill=green!40] coordinates {(2D Left, 1.94) (2D Right, 1.94) (3D Left, 1.01) (3D Right, 2.71)};
+      \legend{AMD MI250X, Nvidia A100}
+      \end{axis}
+    \end{tikzpicture}
+  \end{figure}
+  \begin{itemize}
+    \item Stencil kernel with 7 points and 9 points in 2D and 3D respectively.
+  \end{itemize}
+\end{frame}

@@ -11,12 +11,17 @@
 \begin{frame}[fragile]{General Enhancements I}
   \begin{itemize}
     \item Enable ScatterView contribute into a View that is a rvalue
-    \begin{itemize}
-      \item \begin{code}[keywords={}]
-Experimental::contribute(subview(2d_view, ALL(), 0), scatterview);
-      \end{code}
-    \end{itemize}
+      \begin{lstlisting}[language=c++]
+contribute(subview(2d_view, ALL, 0), scatterview);
+      \end{lstlisting}
     \item Use \texttt{Array::size\_type} for subscript operators
+      \begin{lstlisting}[language=c++]
+Kokkos::Array arr{0, 1, 2, 3, 5, 7};
+enum { zero = 0 };
+// now can also index with class object that are convertible to size_t
+std::integral_constant<std::size_t, 1> one;
+arr[zero] = arr[one] = arr[2] = 42;
+      \end{lstlisting}
     \item Implement \texttt{StaticBatchSize} for HIP backend
     \item Improve \texttt{deep\_copy} performance for scalar view fill using \texttt{StaticBatchSize}
   \end{itemize}
@@ -33,29 +38,6 @@ Experimental::contribute(subview(2d_view, ALL(), 0), scatterview);
     \item Enable MPI detection with PALS
     \item Add \texttt{Kokkos::norm} for \texttt{Kokkos::complex} similar to \texttt{std::norm}
   \end{itemize}
-\end{frame}
-
-%==========================================================================
-
-\begin{frame}[fragile]{Array Update}
-
-  Relaxed constraints on \texttt{Kokkos::Array} subscript operator
-
-  \vspace{1em}
-
-  \begin{itemize}
-    \item Previously, the indexer type was constrained so that the following holds:
-    \begin{code}
-      std::is_integral_v<IndexType> || std::is_enum_v<IndexType>
-    \end{code}
-    \item Now, only requires to be implictly convertible to \texttt{Kokkos::Array::size\_type}
-  \end{itemize}
-
-  \vspace{1.5em}
-
-  This relaxation allows custom type indexers\\
-  This is closer to the indexer constraints in \texttt{Kokkos::View}
-
 \end{frame}
 
 %==========================================================================

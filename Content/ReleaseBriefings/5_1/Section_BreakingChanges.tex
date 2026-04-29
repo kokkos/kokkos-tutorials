@@ -1,0 +1,106 @@
+%==========================================================================
+
+\begin{frame}[fragile]
+
+  {\Huge Breaking Changes}
+
+  \vspace{10pt}
+
+\end{frame}
+
+%==========================================================================
+
+% Examples
+
+% note: always keep the [fragile] for your frames!
+
+\begin{frame}[fragile]{Breaking Changes}
+ \begin{itemize}
+   \item \texttt{TeamPolicy} now validates the \texttt{vector\_length} argument at construction time and aborts with a descriptive error if it is out of range, making misconfiguration bugs easier to catch.
+     \begin{itemize}
+       \item \texttt{TeamPolicy} now requires \texttt{vector\_length} to be a power of two.
+     \end{itemize}
+   \item The value returned by \texttt{scatter\_view.access()} is no longer copyable or movable.
+   \item Kokkos now detects and reports an error if an execution space is outside its valid lifetime scope, i.e., before \texttt{initialize()} or after \texttt{finalize()}.
+     \begin{itemize}
+      \item An example has been added to show users how to migrate from a static execution space variable to comply with the new lifetime scope enforcement.
+     \end{itemize}
+ \end{itemize}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Example code}
+   \begin{lstlisting}[language=c++]
+Kokkos::DefaultExecutionSpace replace_static_execution_space() {
+  // store the object in a std::optional so it can be released
+  static std::optional<Kokkos::DefaultExecutionSpace> exec;
+  // acquire resources on 1st invocation in a threadsafe manner
+  [[maybe_unused]] static bool once = [] {
+    std::tie(exec) = Kokkos::Experimental::partition_space(
+        Kokkos::DefaultExecutionSpace(), 1);
+     // ensure the underlying object get destroyed before finalize
+     Kokkos::push_finalize_hook([] { exec.reset(); });
+     return true;
+  }();
+  KOKKOS_ASSERT(exec.has_value());
+  return *exec;
+}
+   \end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]{Breaking Changes on OpenMP}
+ \begin{itemize}
+   \item Kokkos now warns when an OpenMP execution space instance is created inside an active OpenMP parallel region.
+   \item When enabling nested OpenMP: create execution space outside of the outermost OpenMP parallel region
+ \end{itemize}
+\begin{code}
+void foo() {
+  #pragma omp parallel
+  {
+    bar(OpenMP()); // not allowed
+  }
+}
+
+void foobar() { // below is OK
+  auto instances = partition_space(OpenMP(), 1, 1);
+  #pragma omp parallel num_threads(2)
+  {
+    bar(instances[omp_get_thread_num()]);
+  }
+}
+\end{code}
+\end{frame}
+
+\begin{frame}[fragile]{OpenMPTarget Removal}
+\textbf{The OpenMPTarget backend was removed!}
+\vspace{0.5cm}
+
+  \textit{Original motivation for backend during ECP:}
+  \begin{itemize}
+     \item Hedge against SYCL failing for Intel GPUs
+     \item Interoperability with other OpenMPTarget based codes
+     \item Common GPU backend for multiple compilers
+  \end{itemize}
+\vspace{0.2cm}
+
+  \textit{But it never worked out, and rationale got lost:}
+  \begin{itemize}
+     \item Performance never got good enough
+     \item Backend wasn't feature complete
+     \item Multi compiler support was flaky (only upstream LLVM really worked)
+     \item No one used it
+     \item SYCL was ok on Intel
+  \end{itemize}
+\end{frame}
+
+% \begin{frame}[fragile]{Example table}
+%    \begin{center}
+%        \begin{tabular}{l|l}
+%            a & b \\\hline
+%            c & d
+%        \end{tabular}
+%    \end{center}
+% \end{frame}
+
+%==========================================================================

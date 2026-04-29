@@ -67,8 +67,8 @@ int main( int argc, char* argv[] )
   {
 
   // Allocate y, x vectors and Matrix A on device.
-  using ViewVectorType = Kokkos::View<double*>;
-  using ViewMatrixType = Kokkos::View<double**>;
+  using ViewVectorType = Kokkos::View<double*, Kokkos::SharedSpace>;
+  using ViewMatrixType = Kokkos::View<double**, Kokkos::SharedSpace>;
   ViewVectorType y( "y", N );
   ViewVectorType x( "x", M );
   ViewMatrixType A( "A", N, M );

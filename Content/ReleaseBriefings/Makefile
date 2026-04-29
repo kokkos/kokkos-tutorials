@@ -1,5 +1,5 @@
 
-default: release-45
+default: release-51
 
 workaround-on:
 	sed -i.bak 's|%\\input|\\input|g' KokkosTutorial_PreTitle.tex
@@ -11,28 +11,40 @@ workaround-off:
 	rm KokkosTutorial_PreTitle.tex.bak
 
 release-36:
-	pdflatex release-36.tex
+	latexmk release-36
 
 release-37:
-	pdflatex release-37.tex
+	latexmk release-37
 
 release-40:
-	pdflatex release-40.tex
+	latexmk release-40
 
 release-41:
-	pdflatex release-41.tex
+	latexmk release-41
 
 release-42:
-	pdflatex release-42.tex
+	latexmk release-42
 
 release-43:
-	pdflatex release-43.tex
+	latexmk release-43
 
 release-44:
-	pdflatex release-44.tex
+	latexmk release-44
 
 release-45:
-	pdflatex release-45.tex
+	latexmk release-45
+
+release-46:
+	latexmk release-46
+
+release-47:
+	latexmk release-47
+
+release-50:
+	latexmk release-50
+
+release-51:
+	latexmk release-51
 
 clean:
-	rm -r *.aux *.log *.nav *.out *.snm *.toc *.vrb
+	latexmk -c

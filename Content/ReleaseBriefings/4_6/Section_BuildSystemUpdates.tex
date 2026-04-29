@@ -1,0 +1,43 @@
+%==========================================================================
+
+\begin{frame}[fragile]
+
+  {\Huge Build Systems Updates}
+
+  \vspace{10pt}
+
+\end{frame}
+
+%==========================================================================
+
+% Examples
+
+% note: always keep the [fragile] for your frames!
+
+\begin{frame}[fragile]{New build system features}
+  \begin{itemize}
+    \item Add support for Zen 4 AMD microarchitecture (\texttt{Kokkos\_ARCH\_ZEN4})
+    \item Enable NVIDIA Grace architecture with NVHPC (\texttt{Kokkos\_ARCH\_ARMV9\_GRACE})
+    \item Support static library builds via \texttt{CMAKE\_CUDA\_RUNTIME\_LIBRARY=static} when using CUDA as CMake language
+  \end{itemize}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Spack support for MI300A}
+  \begin{itemize}
+    \item Spack \textit{develop} branch now supports MI300A with a new variant \textcolor{red}{\texttt{apu}}
+    (\href{https://github.com/spack/spack/pull/48609}{spack/spack\#48609})
+
+    \item To compile Kokkos for MI300A, forcing the APU mode, use the following command:
+    \texttt{spack install kokkos +rocm amdgpu\_target=gfx942 \textcolor{red}{+apu}}
+
+    % In pure CMake, this is equivalent to:
+    % cmake -DKokkos_ENABLE_ROCM=ON -DKokkos_ARCH_AMD_GFX942_APU=ON
+  \end{itemize}
+
+\end{frame}
+
+
+%==========================================================================

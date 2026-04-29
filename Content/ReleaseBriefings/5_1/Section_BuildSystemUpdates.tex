@@ -1,0 +1,20 @@
+%==========================================================================
+
+\begin{frame}[fragile]
+
+  {\Huge Build System Updates}
+
+  \vspace{10pt}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Integration of \texttt{ROCm} and \texttt{HIP} in \texttt{CMake}}
+  Kokkos now uses \texttt{find\_package(HIP)} to find \texttt{ROCm}. The search includes the path in the environment variable \texttt{ROCM\_PATH}.
+  \begin{itemize}
+    \item Allows us to get the \texttt{ROCm} version independently of the compiler version.
+    \item \textbf{Problem}: \texttt{find\_package(HIP)} runs autodetection of GPU architectures if \texttt{GPU\_TARGETS} is not defined as \texttt{CMake} variable.
+    \item We warn if the architecture in \texttt{GPU\_TARGETS} does not match the device architecture enabled in Kokkos. This can happen e.g. when cross-compiling.
+  \end{itemize}
+\end{frame}

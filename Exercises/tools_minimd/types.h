@@ -112,12 +112,12 @@ typedef Kokkos::View<MMD_float*[PAD],Kokkos::LayoutRight,Kokkos::MemoryTraits<Ko
 typedef Kokkos::View<MMD_int*,Kokkos::MemoryTraits<Kokkos::Unmanaged> > int_1d_um_view_type;
 typedef Kokkos::View<const MMD_int*,Kokkos::MemoryTraits<Kokkos::Unmanaged> > int_1d_const_um_view_type;
 
-typedef typename x_view_type::HostMirror x_host_view_type;
-typedef typename float_1d_view_type::HostMirror float_1d_host_view_type;
-typedef typename float_2d_view_type::HostMirror float_2d_host_view_type;
-typedef typename int_1d_view_type::HostMirror int_1d_host_view_type;
-typedef typename int_2d_view_type::HostMirror int_2d_host_view_type;
-typedef typename int_view_type::HostMirror int_host_view_type;
+typedef typename x_view_type::host_mirror_type x_host_view_type;
+typedef typename float_1d_view_type::host_mirror_type float_1d_host_view_type;
+typedef typename float_2d_view_type::host_mirror_type float_2d_host_view_type;
+typedef typename int_1d_view_type::host_mirror_type int_1d_host_view_type;
+typedef typename int_2d_view_type::host_mirror_type int_2d_host_view_type;
+typedef typename int_view_type::host_mirror_type int_host_view_type;
 
 typedef typename Kokkos::DefaultExecutionSpace::scratch_memory_space SharedSpace;
 typedef Kokkos::View<float*[3], Kokkos::LayoutLeft, SharedSpace, Kokkos::MemoryTraits<Kokkos::Unmanaged> > neighbor_pos_shared_type;

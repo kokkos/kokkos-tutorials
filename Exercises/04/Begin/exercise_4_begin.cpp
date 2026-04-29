@@ -102,9 +102,9 @@ int main( int argc, char* argv[] )
   ViewMatrixType A( "A", N, M );
 
   // Create host mirrors of device views.
-  ViewVectorType::HostMirror h_y = Kokkos::create_mirror_view( y );
-  ViewVectorType::HostMirror h_x = Kokkos::create_mirror_view( x );
-  ViewMatrixType::HostMirror h_A = Kokkos::create_mirror_view( A );
+  auto h_y = Kokkos::create_mirror_view( y );
+  auto h_x = Kokkos::create_mirror_view( x );
+  auto h_A = Kokkos::create_mirror_view( A );
 
   // Initialize y vector on host.
   for ( int i = 0; i < N; ++i ) {

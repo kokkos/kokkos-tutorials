@@ -26,16 +26,8 @@ using range_policy = Kokkos::RangePolicy<ExecSpace>;
 using ViewVectorType = Kokkos::View<double*>;
 using ViewMatrixType = Kokkos::View<double**>;
 
-#ifdef KOKKOS_ENABLE_CUDA
-#define RESULT_MEM_SPACE Kokkos::CudaHostPinnedSpace
-#endif
-#ifdef KOKKOS_ENABLE_HIP
-#define RESULT_MEM_SPACE Kokkos::HIPHostPinnedSpace
-#endif
-#ifndef RESULT_MEM_SPACE
-#define RESULT_MEM_SPACE Kokkos::HostSpace
-#endif
-using ResultType = Kokkos::View<double, RESULT_MEM_SPACE>;
+using ResultMemSpace = Kokkos::SharedHostPinnedSpace;
+using ResultType = Kokkos::View<double, ResultMemSpace>;
 
 void operation(ExecSpace instance, ResultType result, ViewMatrixType A, ViewVectorType y, ViewVectorType x) {
   int N = x.extent(0);

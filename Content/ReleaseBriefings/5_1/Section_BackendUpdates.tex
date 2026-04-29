@@ -1,0 +1,98 @@
+%==========================================================================
+
+\begin{frame}[fragile]
+
+  {\Huge Backend Updates}
+
+  \vspace{10pt}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]
+
+  {\Huge CUDA}
+
+  \vspace{10pt}
+
+\end{frame}
+
+\begin{frame}[fragile]{Features and Fixes for \texttt{CUDA}}
+
+  \begin{itemize}
+    \item Added support for \texttt{Kokkos\_ARCH\_BLACKWELL103} for B300 GPUs (requires \texttt{CUDA} $\geq 12.8$).
+    \item Fixed building with \texttt{clang} when enabling both \texttt{CUDA} and \texttt{OpenMP}.
+    \item Added support for the flags \texttt{-Ofc} and \texttt{--fdevice-time-trace} to \texttt{nvcc\_wrapper} (Useful for getting insights into compile time).
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{SIMD support on ARM with NVCC}
+  \texttt{nvcc} $>$ 12.8 allows to use \texttt{NEON} instructions.
+  \begin{itemize}
+    \item With \texttt{Kokkos\_ARCH\_NATIVE=ON} we run checks if the compiler supports \texttt{NEON} and \texttt{SVE}. If the compiler supports them we enable them.
+    \item For all manually specified ARM architectures we enable them if the architecture supports them by specification. We do \textbf{not} check if the compiler supports them.
+  \end{itemize}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]
+
+  {\Huge HIP}
+
+  \vspace{10pt}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Features and Fixes for \texttt{HIP}}
+
+  \begin{itemize}
+    \item Added support for \texttt{Kokkos\_ARCH\_AMD\_GFX950} for MI350 and MI355 (requires \texttt{ROCm} $\geq 7.0$ recommended $\geq 7.1$)
+    \item Added support for \texttt{bhalf\_t} (in \texttt{Kokkos::Experimental}).
+    \item Added math functions for \texttt{half\_t} and \texttt{bhalf\_t} instead of casting to \texttt{float}.
+	\item Workaround race condition reported in \texttt{parallel\_scan} when running on MI300A
+  	\begin{itemize}
+		\item Added an extra synchronization at the end of \texttt{parallel\_scan} implementation.
+		\item Seems to be a compiler bug on MI300A.
+		\item Extra overhead is negligible.
+  	\end{itemize}
+    \item Implemented support for \texttt{StaticBatchSize} policy trait
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{\texttt{HIP} \texttt{parallel\_scan} Performance}
+  \begin{figure}[ht]
+    \centering
+    \begin{tikzpicture}
+      \begin{axis}[
+        width=0.99\textwidth,
+        height=0.35\textwidth,
+        grid=major,
+        ymin=0,
+        ybar,
+        ybar=5pt,
+        bar width=6pt,
+        enlargelimits=0.15,
+        legend style={at={(0.5, 1.3)},
+          anchor=north,legend columns=-1,font=\small},
+		  xlabel={Input Array Size},
+		  ylabel={Execution Time (sec)},
+        symbolic x coords={64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536},
+        xtick=data,
+        x tick label style={at={(0.0, -0.5)},font=\small},
+        ]
+		  \addplot[color=red!60, fill=red!40] coordinates {(64, 2.05E-05) (128, 2.07E-05) (256, 2.01E-05) (512, 2.11E-05) (1024,  2.18E-05) (2048, 2.20E-05) (4096, 2.16E-05) (8192, 2.37E-05) (16384, 2.58E-05) (32768, 3.20E-05) (65536, 4.36E-05)};
+		  \addplot[color=green!60, fill=green!40] coordinates {(64, 2.15E-05) (128, 2.10E-05) (256, 2.02E-05) (512, 2.16E-05) (1024, 2.20E-05) (2048, 2.15E-05) (4096, 2.31E-05) (8192, 2.34E-05) (16384, 2.61E-05) (32768, 3.15E-05) (65536, 4.37E-05)};
+      \legend{Old ParalleScan, New ParallelScan}
+      \end{axis}
+    \end{tikzpicture}
+  \end{figure}
+  \begin{itemize}
+	  \item \texttt{parallel\_scan} Performance on MI300A
+  \end{itemize}
+\end{frame}

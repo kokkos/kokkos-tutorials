@@ -82,9 +82,9 @@ int main( int argc, char* argv[] )
 
   // EXERCISE: Create mirrors of the views on host.
 
-  // ViewVectorType::HostMirror h_y = Kokkos::create_mirror_view( y );
-  // ViewVectorType::HostMirror h_x = Kokkos::create_mirror_view( x );
-  // ViewMatrixType::HostMirror h_A = Kokkos::create_mirror_view( A );
+  // auto h_y = Kokkos::create_mirror_view( y );
+  // auto h_x = Kokkos::create_mirror_view( x );
+  // auto h_A = Kokkos::create_mirror_view( A );
 
   // Initialize y vector on host.
   // EXERCISE: Use host version of y.

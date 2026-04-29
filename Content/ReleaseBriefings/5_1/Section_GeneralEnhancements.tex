@@ -1,0 +1,100 @@
+%==========================================================================
+
+\begin{frame}[fragile]
+
+  {\Huge General Enhancements}
+
+  \vspace{10pt}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Expanded math support (1/2)}
+
+Now providing all common math functions from the standard library
+\begin{itemize}
+\item Basic operations
+  \begin{itemize}
+  \item \texttt{remquo}
+  \end{itemize}
+\item Nearest integer floating point operations
+  \begin{itemize}
+  \item \texttt{round}, \texttt{lround}, \texttt{llround}, \texttt{rint}, \texttt{lrint}, \texttt{llrint}
+  \end{itemize}
+\item Floating point manipulation functions
+  \begin{itemize}
+  \item \texttt{frexp}, \texttt{ldexp}, \texttt{modf}, \texttt{scalebn}, \texttt{scalebln}, \texttt{ilogb}, \texttt{nexttoward}
+  \end{itemize}
+\item Classification and comparison
+  \begin{itemize}
+  \item \texttt{fpclassify}, \texttt{isnormal}, \texttt{isgreater}, \texttt{isgreaterequal}, \texttt{isless}, \texttt{islessequal}, \texttt{islessgreater}, \texttt{isunordered}
+  \end{itemize}
+\end{itemize}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Expanded math support (2/2)}
+\begin{itemize}
+\item Provide more quadruple precision floating-point manipulation functions
+\item Implemented \texttt{norm} free function acting on complex numbers
+\item Added non-standard \texttt{rcp} reciprocal function
+\item Increased \texttt{\textbf{half}} and \texttt{\textbf{bhalf}} support
+  \begin{itemize}
+  \item Add missing \texttt{denorm\_min} numerical trait specialization
+  \item More reduced-precision math functions
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{View fill performance}
+Improved \texttt{deep\_copy} performance for scalar view fill using \texttt{StaticBatchSize}
+\begin{center}
+  \includegraphics[width=0.5\textwidth]{5_1/fill-bandwidth.png}
+\end{center}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Miscellaneous improvements}
+  \begin{itemize}
+    \item Enable ScatterView contribute into a View that is a rvalue
+      \begin{lstlisting}[language=c++]
+contribute(subview(2d_view, ALL, 0), scatterview);
+      \end{lstlisting}
+    \item Use \texttt{Array::size\_type} for subscript operators
+      \begin{lstlisting}[language=c++]
+Kokkos::Array arr{0, 1, 2, 3, 5, 7};
+enum { zero = 0 };
+// now can also index with class object that are convertible to size_t
+std::integral_constant<std::size_t, 1> one;
+arr[zero] = arr[one] = arr[2] = 42;
+      \end{lstlisting}
+    \item Enable MPI detection with PALS
+  \end{itemize}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{SIMD Enhancements}
+  \begin{itemize}
+    \item Added bitwise operators to all simd masks and simd vectors of integral types
+    \begin{itemize}
+      \item Bitwise ops: \texttt{\textasciitilde{}, \&{}, |, \^{}, \&=, |=, \^{}=}
+    \end{itemize}
+
+    \vspace{1em}
+
+    \item Added simd memory permute functions
+    \begin{itemize}
+      \item \texttt{[unchecked|partial]\_gather\_from(in, indices, simd\_flag)}
+      \item \texttt{[unchecked|partial]\_scatter\_to(simd, out, indices, simd\_flag)}
+      \item Replace memory permute functions in deprecated \texttt{where\_expression}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+

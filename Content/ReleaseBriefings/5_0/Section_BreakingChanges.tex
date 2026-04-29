@@ -1,0 +1,174 @@
+%==========================================================================
+
+\begin{frame}[fragile]
+
+  {\Huge Deprecations}
+
+  \vspace{10pt}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Deprecations}
+New \texttt{Kokkos\_ENABLE\_DEPRECATED\_CODE\_5} (\texttt{= ON} by default)
+  \begin{itemize}
+    \item Deprecate \texttt{KOKKOS\_ATTRIBUTE\_NODISCARD} macro
+    \item Deprecate \texttt{{Owning,Observing}RawPtr} aliases
+    \item Deprecate \texttt{Random\_XorShift\{64,1024\}\_Pool::init}
+    \item Deprecate \texttt{basic\_simd::\{const\_\}where\_expression}
+    \item Deprecate support for using nested OpenMP parallel regions without nested OpenMP enabled
+    \item Deprecate creating Kokkos::OpenMP instances inside OpenMP parallel regions
+  \end{itemize}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Deprecations in \texttt{Kokkos::View}}
+  Various type alias deprecations and replacements in \texttt{View}
+  \begin{itemize}
+    \item \texttt{HostMirror} $\rightarrow$ \texttt{host\_mirror\_type}
+    \item \texttt{scalar\_array\_type} $\rightarrow$ \texttt{data\_type}
+    \item \texttt{const\_scalar\_array\_type} $\rightarrow$ \texttt{const\_data\_type}
+    \item \texttt{non\_const\_scalar\_array\_type} $\rightarrow$ \texttt{non\_const\_data\_type}
+    \item \texttt{array\_type} $\rightarrow$ \texttt{type}
+    \item \texttt{DynamicView::array\_type} $\rightarrow$ \texttt{DynamicView::uniform\_type}
+  \end{itemize}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Deprecations in \texttt{ErrorReporter}}
+Various deprecations and replacements in \texttt{ErrorReporter}
+  \begin{itemize}
+      \item \texttt{getCapacity()} $\rightarrow$  \texttt{capacity()}
+      \item \texttt{getNumReports()} $\rightarrow$ \texttt{num\_reports()}
+      \item \texttt{getNumReportAttempts()} $\rightarrow$  \texttt{num\_report\_attempts()}
+      \item \texttt{getReports()} $\rightarrow$  \texttt{get\_reports()}
+\begin{code}[keywords={ErrorReporter}]
+  // before
+  std::vector<int> reporters;
+  std::vector<report_type> reports;
+  error_reporter.getReports(reporters, reports);
+
+  // now uses structured bindings
+  auto [reporters, reports] = error_reporter.get_reports();
+\end{code}
+  \end{itemize}
+
+\begin{block}{Note}
+\begin{itemize}
+\item \texttt{Kokkos\_ENABLE\_DEPRECATED\_CODE\_4} \texttt{= ON} $\rightarrow$ \texttt{OFF}
+\end{itemize}
+\end{block}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]
+
+  {\Huge Breaking Changes}
+
+  \vspace{10pt}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Removed options and Version bumps}
+\textbf{Makefiles}
+\begin{itemize}
+  \item Deprecated in 4.6, dropped in 5.0. %#8374
+  \item Removes the burden of maintaining two build systems
+\end{itemize}
+\textbf{Kepler architecture (Nvidia GPU)}
+\begin{itemize}
+  \item \texttt{sm\_3x} not supported since CUDA 12.
+  \item Dropping support for \texttt{Kokkos\_ARCH\_KEPLER30/32/35/37}. %#8518
+\end{itemize}
+\textbf{Google Benchmark}
+\begin{itemize}
+  \item v1.8.3 is the new minimum. %#8579
+\end{itemize}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Breaking changes}
+\textbf{Task-based parallelism}
+\begin{itemize}
+  \item Rarely used. Deprecated in 4.5. Now, dropped. %#8390
+  \item No more: \texttt{TaskSingle}, \texttt{task\_spawn}, \texttt{host\_spawn}, \texttt{BasicFuture}, etc.
+\end{itemize}
+\textbf{Parallel dispatch: \texttt{parallel\_for/scan/reduce}}
+\begin{itemize}
+  \item Dispatch only within the Kokkos execution environment.
+  \item Abort if used before \texttt{initialize()} or after \texttt{finalize()}. %#7675
+\end{itemize}
+\textbf{Execution space chosen by default in \texttt{Kokkos::Graph::submit()}}
+\begin{itemize}
+  \item Used to be the execution space specified during \texttt{Graph} construction.
+  \item Now, defaults to \texttt{Kokkos::DefaultExecutionSpace}. %#8365
+  \item Matches semantics of other parallel constructs in Kokkos.
+\end{itemize}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Breaking changes}
+\textbf{Default SIMD vector width}
+\begin{itemize}
+  \item From now, choose the largest SIMD vector width available for type \texttt{T}. %#8250
+  \item Example (with AVX512): \texttt{Kokkos::Experimental::simd<float>} maps to:
+  \begin{code}
+  before:
+      Kokkos::Experimental::basic_simd<float, avx512_fixed_size<8>>
+  after:
+     Kokkos::Experimental::basic_simd<float, avx512_fixed_size<16>>
+  \end{code}
+  \item Specifying desired vector width still available: \texttt{Kokkos::Experimental::simd<float, 8>}
+\end{itemize}
+\textbf{Memory trait alias \texttt{Kokkos::MemoryRandomAccess}}
+\begin{itemize}
+  \item Also meant \texttt{Kokkos::Unmanaged} memory trait. Now, fixed. %#8368
+  \item Older meaning supported via \texttt{Kokkos\_ENABLE\_DEPRECATED\_CODE\_4}.
+\end{itemize}
+\end{frame}
+
+%==========================================================================
+
+% Examples
+
+% note: always keep the [fragile] for your frames!
+
+%\begin{frame}[fragile]{Example list}
+%  \begin{itemize}
+%      \item Item 1
+%      \item Item 2 with some \texttt{code}
+%      \begin{itemize}
+%        \item Sub-item 2.1
+%        \item Sub-item 2.2
+%      \end{itemize}
+%  \end{itemize}
+%\end{frame}
+
+%\begin{frame}[fragile]{Example code}
+%    \begin{code}[keywords={std}]
+%        #include <iostream>
+%
+%        int main() {
+%            std::cout << "hello world\n";
+%        }
+%    \end{code}
+%\end{frame}
+
+%\begin{frame}[fragile]{Example table}
+%    \begin{center}
+%        \begin{tabular}{l|l}
+%            a & b \\\hline
+%            c & d
+%        \end{tabular}
+%    \end{center}
+%\end{frame}
+
+%==========================================================================

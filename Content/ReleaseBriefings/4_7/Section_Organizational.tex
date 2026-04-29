@@ -1,0 +1,151 @@
+
+%==========================================================================
+
+\begin{frame}[fragile]
+
+  {\Huge Organizational}
+
+  \vspace{15pt}
+
+  \begin{itemize}
+    \item Targeting C++20 for Kokkos 5.0
+    \item Minimum Requirements for Kokkos 5.0
+    \item Mailing Lists
+  \end{itemize}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Kokkos 5 and ISO C++20}
+\begin{center}
+\textbf{Kokkos 5 is coming October-November 2025}
+
+\vspace{0.5cm}
+\textbf{This will require C++20!}
+\end{center}
+
+\textit{Start preparing now:}
+\begin{itemize}
+  \item{Check availability of compilers on your systems}
+  \item{Test with C++20 enabled: start with a CPU build}
+  \item{Minimum Compiler requirements will change}
+\end{itemize}
+
+\vspace{0.5cm}
+
+Release 4.7 will be the last release before Kokkos 5.0, supported until July 2026
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Kokkos 5 minimum requirements}
+
+\begin{table}[]
+\begin{tabular}{lll}
+\multicolumn{1}{r}{} & Kokkos 4.x & Kokkos 5.0 \\ \hline
+GCC                  & 8.2.0      & 10.4.0     \\
+Clang (CPU)          & 8.0.0      & 14.0.0     \\
+Clang (CUDA)         & 10.0.0     & 16.0.0     \\
+IntelLLVM (CPU)      & 2021.1.1   & 2022.0.0   \\
+IntelLLVM (SYCL)     & 2023.0.0   & 2024.2.1   \\
+NVCC                 & 11.0       & 12.2.0     \\
+NVC++                & 22.3       & 22.3       \\
+ROCM                 & 5.2.0      & 6.2.0      \\
+MSVC                 & 19.29      & 19.30      \\
+\end{tabular}
+\end{table}
+
+\textit{\footnotesize Note: Clang (CUDA) will require CUDA 11.8 as underlying runtime.}
+
+\textit{\footnotesize Note: MSVC is only actually tested with the latest version.}
+
+\begin{center}
+\url{https://kokkos.org/kokkos-core-wiki/get-started/requirements.html}
+\end{center}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Deprecated Code 4}
+
+\textbf{Deprecated Code 4 will be off by default and started to be removed!}
+
+\begin{itemize}
+\item In Kokkos 5.0 \texttt{Kokkos\_ENABLE\_DEPRECATED\_CODE\_4=OFF} is the default!
+\item Some deprecated feature will immediately be removed.
+\item Features where we expect users still needing time, will stick around for a couple more minor releases. 
+\end{itemize}
+
+\begin{center}
+\textit{Start preparing now with:} \texttt{Kokkos\_ENABLE\_DEPRECATED\_CODE\_4=OFF}
+
+\vspace{1cm}
+\textbf{Remember: raw Makefile support will be removed!}
+\end{center}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Kokkos Mailing Lists}
+
+\vspace{0.5cm}
+\begin{center}
+Sign up for the Kokkos mailing list to stay up-to-date with the latest Kokkos news.
+\end{center}
+
+\vspace{0.5cm}
+
+\begin{center}
+\url{https://kokkos.org/community/mailing-lists/}
+\end{center}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Kokkos Trademark}
+
+Kokkos is a Linux Foundation project with a trademark!
+
+\textbf{Why trademark enforcement is important}
+\begin{itemize}
+\item{\textbf{Avoiding confusion}: Users will want to know what is part of Kokkos, with LF rules, versus a project by third parties.}
+\item{\textbf{Legal Protection}: Preserving the Kokkos project as an Open Source community may require us to protect the project against commercial takeover.}
+\item{\textbf{User Trust}: Allows us to build up the Kokkos brand as a sign of quality and maturity.}
+\end{itemize}
+
+\begin{center}
+\textit{The Kokkos trademark does NOT prevent you from using the word "Kokkos" in your slides, papers and websites!}
+\end{center}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Trademark Do's and Don'ts}
+
+\textbf{Do's}
+
+\begin{itemize}
+\item{We want you to publish and advertise your project using Kokkos!}
+\item{We want you to publish on ideas to improve Kokkos!}
+\end{itemize}
+
+\vspace{1cm}
+\textbf{Don'ts}
+
+\begin{itemize}
+\item{Do not imply that your effort is part of the Kokkos project if it isn't.}
+\begin{itemize}
+\item{Project Names are critical: Foo for Kokkos (GOOD); Kokkos-Foo (BAD)}
+\item{The Kokkos project uses names such as Kokkos-Kernels, Kokkos-FFT, Kokkos-Comm that imply sub efforts in the Kokkos project.}
+\end{itemize}
+\item{Do not imply that the Kokkos project endorsed your effort if it hasn't.}
+\end{itemize}
+
+\end{frame}
+
+%==========================================================================
+

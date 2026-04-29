@@ -1,0 +1,108 @@
+%==========================================================================
+
+\begin{frame}[fragile]
+
+  {\Huge General Enhancements}
+
+  \vspace{10pt}
+
+\end{frame}
+
+%==========================================================================
+
+% Examples
+
+% note: always keep the [fragile] for your frames!
+
+\begin{frame}[fragile]{Architecture Support and Performance}
+ \begin{itemize}
+     \item Support for AMD Zen 5, SiFive RISC-V Y74MC and ARMv8.4 CPU architectures
+   \begin{itemize}
+       \item Enable with \texttt{-DKokkos\_ARCH\_AMD\_ZEN5=ON} 
+       \item Enable with \texttt{-DKokkos\_ARCH\_RISCV\_U74MC=ON}
+   \end{itemize}
+  \item Exit early at initialize with \texttt{--kokkos-help}
+    \begin{itemize}
+      \item Calling ``\texttt{executable --kokkos-help}" now causes normal termination
+   \end{itemize}  
+  \item Symbol visibility fix-ups to support C++20 modules
+    \begin{itemize}
+      \item Avoid static variables and functions in header
+    \end{itemize}
+  \item Add \texttt{constexpr} specifier to \texttt{operator==} and \texttt{operator!=} for \texttt{Kokkos::complex}
+ \end{itemize}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{APIs and Behaviors}
+ \begin{itemize}
+   \item Change the return type of \texttt{partition\_space} when the weights are
+     known at compile time: \texttt{std::vector} $\rightarrow$
+     \texttt{std::array}
+    \begin{itemize}
+      \item Allows to "unpack" the elements of the expression into individually named variables
+      \item Breaks backward compatibility
+      \end{itemize}
+\begin{code}[keywords={partition_space}]
+/* OLD: still works because of auto */
+auto my_vector = Experimental::partition_space(ExecSpace, 1, 1);
+auto exec0 = my_vector[0];
+auto exec1 = my_vector[1];
+...
+/* NEW! */
+auto [exec0, exec1] = Experimental::partition_space(ExecSpace, 1, 1);
+\end{code}
+   \item NO changes when the weights are known at runtime 
+ \end{itemize}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{APIs and Behaviors (Continued)}
+ \begin{itemize}
+  \item Add constructors for \texttt{Random\_XorShift*\_Pool} with execution space argument
+      \begin{itemize}
+      \item Allows construction of instances with non-blocking initialization
+    \end{itemize}
+     \item Add \texttt{Kokkos::SIMD::SVE} support for 128-bit and 256-bit SVE 
+     \begin{itemize}
+      \item Adds support for \emph{Scalable Vector Extensions} for Kokkos SIMD types on ARM V8.4-compatible CPUs
+      \item Enabled with~\texttt{-DKokkos\_ARCH\_NATIVE}, ~\texttt{-DKokkos\_ARCH\_ARM\_SVE} and~\texttt{-DKokkos\_ARCH\_ARMV9\_GRACE}
+      \item Contributed by Minh Quan Ho from SiPearl
+     \end{itemize}
+     \item Implement \texttt{Kokkos::nextafter} for fp16 types
+\begin{code}[keywords={nextafter}]
+Experimental::half_t a = 1, t = 2;
+Experimental::half_t b = nextafter(a, t);
+\end{code}
+        \item Removes~\texttt{[[nodiscard]]} attributes from the Kokkos SIMD interface to align with C++26
+ \end{itemize}
+\end{frame}
+
+%==========================================================================
+
+
+
+%\begin{frame}[fragile]{Example code}
+%    \begin{code}[keywords={std}]
+%        #include <iostream>
+%        
+%        int main() {
+%            std::cout << "hello world\n";
+%        }
+%    \end{code}
+%\end{frame}
+
+%\begin{frame}[fragile]{Example table}
+%    \begin{center}
+%        \begin{tabular}{l|l}
+%            a & b \\\hline
+%            c & d
+%        \end{tabular}
+%    \end{center}
+%\end{frame}
+
+%==========================================================================
+
+%==========================================================================

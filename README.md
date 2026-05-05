@@ -7,23 +7,13 @@ model (github.com/kokkos/kokkos).
 
 ## The Kokkos Lectures
 
-We are currently running **The Kokkos Lectures** - an extended version
-of our **Intro-Full** Tutorial, spanning 8 modules. For information on that, 
+The most comprehensive recording of our tutorials - the **The Kokkos Lectures** - are available on YouTube.
+For more information on that, including the
 Slides and Recordings visit: [The Kokkos Lectures Wiki](https://github.com/kokkos/kokkos-tutorials/wiki/Kokkos-Lecture-Series)
 
-## Other Tutorial Compilations
+## Old Slides
 
-Tutorials in the **Intro-Short** directory cover
- * simple data parallel patterns and policies
- * multidimensional array views
- * execution and memory spaces
-
-Tutorials in the **Intro-Full** directory cover
- * simple data parallel patterns and policies
- * multidimensional array views
- * execution and memory spaces
- * thread safety and atomic operations
- * hierarchical data parallel patterns
+The old slides are available in this repository under the [legacy tag](https://github.com/kokkos/kokkos-tutorials/tree/legacy).
 
 # Building the Tutorials
 

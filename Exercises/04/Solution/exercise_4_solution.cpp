@@ -66,21 +66,8 @@ int main( int argc, char* argv[] )
   Kokkos::initialize( argc, argv );
   {
 
-  #ifdef KOKKOS_ENABLE_CUDA
-  #define MemSpace Kokkos::CudaSpace
-  #endif
-  #ifdef KOKKOS_ENABLE_HIP
-  #define MemSpace Kokkos::Experimental::HIPSpace
-  #endif
-  #ifdef KOKKOS_ENABLE_OPENMPTARGET
-  #define MemSpace Kokkos::OpenMPTargetSpace
-  #endif
-
-  #ifndef MemSpace
-  #define MemSpace Kokkos::HostSpace
-  #endif
-
-  using ExecSpace = MemSpace::execution_space;
+  using ExecSpace = Kokkos::DefaultExecutionSpace;
+  using MemSpace = ExecSpace::memory_space;
   using range_policy = Kokkos::RangePolicy<ExecSpace>;
 
   // Allocate y, x vectors and Matrix A on device.

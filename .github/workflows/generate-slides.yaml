@@ -1,26 +1,45 @@
-name: Generate slides from source
+---
+name: Generate slides from source for specific branches
 
-on:
+on:                             # yamllint disable-line rule:truthy
   push:
     paths:
       - 'Content/Presentations/**'
-      - 'Content/ReleaseBriefings/**'
+      - '.github/workflows/generate-slides.yaml'
   pull_request:
     branches: [ "main" ]
 
 jobs:
+  define-matrix:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Set JSON array of branches for which to generate slides
+        id: branches
+        run: >
+          echo
+          'branches=["main"]'
+          >> "$GITHUB_OUTPUT"
+
+    outputs:
+      branches: ${{ steps.branches.outputs.branches }}
+
   build:
+    needs: define-matrix
+
     strategy:
       matrix:
-        which: [Presentations, ReleaseBriefings]
+        branch: ${{ fromJSON(needs.define-matrix.outputs.branches) }}
 
     runs-on: ubuntu-latest
+
+    env:
+      DEBIAN_FRONTEND: noninteractive
 
     steps:
     - name: Install packages
       run: >
         sudo apt-get update &&
-        DEBIAN_FRONTEND=noninteractive
         sudo apt-get install -y --no-install-recommends
         make
         latexmk
@@ -32,18 +51,80 @@ jobs:
         texlive-plain-generic
 
     - name: Checkout source
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6.0.2
+      with:
+        ref: ${{ matrix.branch }}
 
     - name: Build slides
       run: >
-        cd Content/${{ matrix.which }} &&
-        make
+        cd Content/Presentations/modularized/ &&
+        make -j
 
     - name: Upload PDFs as artifacts
       id: deployment
-      uses: actions/upload-artifact@v4.6.1
+      uses: actions/upload-artifact@v7.0.1
       with:
-        name: Slides${{ matrix.which }}
+        name: ${{ matrix.branch }}
         path: |
-          Content/${{ matrix.which }}/release-*.pdf
-          Content/${{ matrix.which }}/modularized/*.pdf
+          Content/Presentations/modularized/*.pdf
+
+  deploy:
+    needs:
+      - define-matrix
+      - build
+
+    permissions:
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Setup GitHub Pages
+        uses: actions/configure-pages@v6.0.0
+
+      - name: Enable gh CLI to download build artifacts
+        uses: actions/checkout@v6.0.2
+
+       # For some reason, these next two steps cannot be combined.
+      - name: Download build artifacts
+        run: >
+          mkdir branches/ &&
+          pushd branches/ &&
+          for branch in
+          $(echo '${{ needs.define-matrix.outputs.branches }}' | jq -r '.[]');
+          do
+            gh run download --name ${branch} --dir ${branch};
+          done &&
+          popd
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Using `tree` to recursively list files in an index.html is
+      # described here: https://stackoverflow.com/a/46383157
+      - name: Populate the _site directory
+        run: |
+          mkdir _site
+          cd _site/
+          mv ../branches/* .
+          tree -H '.' \
+            --noreport \
+            --houtro "" \
+            --dirsfirst \
+            --charset utf-8 \
+            --ignore-case \
+            -T 'Kokkos Tutorials' \
+            -P '*.pdf' \
+            -o index.html
+          tree -F
+
+      - name: Upload GitHub Pages artifact
+        uses: actions/upload-pages-artifact@v5.0.0
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5.0.0

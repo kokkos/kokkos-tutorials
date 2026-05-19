@@ -27,6 +27,7 @@ jobs:
         lmodern
         python3-pygments
         texlive
+        texlive-luatex
         texlive-latex-extra
         texlive-plain-generic
 

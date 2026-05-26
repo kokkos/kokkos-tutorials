@@ -100,7 +100,7 @@ jobs:
           for branch in
           $(echo '${{ needs.define-matrix.outputs.branches }}' | jq -r '.[]');
           do
-            gh run download --name ${branch} --dir ${branch};
+            gh run download "${GITHUB_RUN_ID}" --name "${branch}" --dir "${branch}";
           done &&
           popd
         env:

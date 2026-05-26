@@ -3,6 +3,7 @@ name: Generate slides from source for specific branches
 
 on:                             # yamllint disable-line rule:truthy
   push:
+    branches: [ "main" ]
     paths:
       - 'Content/Presentations/**'
       - '.github/workflows/generate-slides.yaml'
@@ -69,6 +70,7 @@ jobs:
           Content/Presentations/modularized/*.pdf
 
   deploy:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs:
       - define-matrix
       - build

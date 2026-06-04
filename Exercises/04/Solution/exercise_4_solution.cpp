@@ -58,10 +58,10 @@ int main( int argc, char* argv[] )
   #define MemSpace Kokkos::CudaSpace
   #endif
   #ifdef KOKKOS_ENABLE_HIP
-  #define MemSpace Kokkos::Experimental::HIPSpace
+  #define MemSpace Kokkos::HIPSpace
   #endif
-  #ifdef KOKKOS_ENABLE_OPENMPTARGET
-  #define MemSpace Kokkos::OpenMPTargetSpace
+  #ifdef KOKKOS_ENABLE_SYCL
+  #define MemSpace Kokkos::SYCLDeviceUSMSpace
   #endif
 
   #ifndef MemSpace

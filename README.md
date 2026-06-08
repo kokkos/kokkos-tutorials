@@ -11,6 +11,10 @@ The most comprehensive recording of our tutorials - the **The Kokkos Lectures** 
 For more information on that, including the
 Slides and Recordings visit: [The Kokkos Lectures Wiki](https://github.com/kokkos/kokkos-tutorials/wiki/Kokkos-Lecture-Series)
 
+## Building the slides
+
+You need a recent Latex version installed on the system with the following packages: 
+
 ## Old Slides
 
 The old slides are available in this repository under the [legacy tag](https://github.com/kokkos/kokkos-tutorials/tree/legacy).

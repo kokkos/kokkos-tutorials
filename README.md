@@ -13,7 +13,14 @@ Slides and Recordings visit: [The Kokkos Lectures Wiki](https://github.com/kokko
 
 ## Building the slides
 
-You need a recent Latex version installed on the system with the following packages: 
+You need a recent Latex version installed on the system with the following packages: pgffor, beramono, comment, eso-pic, fontenc, inputenc, listings, lstlinebgrd, minted, paralist, pgf, pgfplotstable, soul, subfig, textpos, tikz, ulem, xcolor, and xparse.
+
+To compile the slides, please run
+
+```bash
+cd Content/Presentations/
+make
+```
 
 ## Old Slides
 

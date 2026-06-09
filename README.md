@@ -11,6 +11,17 @@ The most comprehensive recording of our tutorials - the **The Kokkos Lectures** 
 For more information on that, including the
 Slides and Recordings visit: [The Kokkos Lectures Wiki](https://github.com/kokkos/kokkos-tutorials/wiki/Kokkos-Lecture-Series)
 
+## Building the slides
+
+You need a recent Latex version installed on the system with the following packages: pgffor, beramono, comment, eso-pic, fontenc, inputenc, listings, lstlinebgrd, minted, paralist, pgf, pgfplotstable, soul, subfig, textpos, tikz, ulem, xcolor, and xparse.
+
+To compile the slides, please run
+
+```bash
+cd Content/Presentations/
+make
+```
+
 ## Old Slides
 
 The old slides are available in this repository under the [legacy tag](https://github.com/kokkos/kokkos-tutorials/tree/legacy).

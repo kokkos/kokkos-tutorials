@@ -89,7 +89,7 @@ struct System {
   // Temperature and delta Temperature
   Kokkos::View<double***> T, dT;
   // Halo data
-  using buffer_t = Kokkos::View<double**,Kokkos::LayoutLeft, Kokkos::SharedSpace>;
+  using buffer_t = Kokkos::View<double**,Kokkos::LayoutLeft, Kokkos::SharedHostPinnedSpace>;
   buffer_t T_left, T_right, T_up, T_down, T_front, T_back;
   buffer_t T_left_out, T_right_out, T_up_out, T_down_out, T_front_out, T_back_out;
 

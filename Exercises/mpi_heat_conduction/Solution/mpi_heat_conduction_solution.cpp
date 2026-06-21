@@ -4,38 +4,8 @@
 #include<Kokkos_Core.hpp>
 #include<mpi.h>
 
-template <class ExecSpace>
-struct SpaceInstance {
-  static ExecSpace create() { return ExecSpace(); }
-  static void destroy(ExecSpace&) {}
-  static bool overlap() { return false; }
-};
-
-#ifndef KOKKOS_ENABLE_DEBUG
-#ifdef KOKKOS_ENABLE_CUDA
-template <>
-struct SpaceInstance<Kokkos::Cuda> {
-  static Kokkos::Cuda create() {
-    cudaStream_t stream;
-    cudaStreamCreate(&stream);
-    return Kokkos::Cuda(stream);
-  }
-  static void destroy(Kokkos::Cuda& space) {
-    cudaStream_t stream = space.cuda_stream();
-    cudaStreamDestroy(stream);
-  }
-  static bool overlap() {
-    bool value          = true;
-    auto local_rank_str = std::getenv("CUDA_LAUNCH_BLOCKING");
-    if (local_rank_str) {
-      value = (std::stoi(local_rank_str) == 0);
-    }
-    return value;
-  }
-};
-#endif
-#endif
-
+// Communication Helper: stores mpi neighbor information
+// Also provides the recv/send function for views
 struct CommHelper {
   MPI_Comm comm;
 
@@ -50,7 +20,7 @@ struct CommHelper {
 
   // Neighbor Ranks
   int up,down,left,right,front,back;
- 
+
   CommHelper(MPI_Comm comm_) {
     comm = comm_;
     int nranks;
@@ -62,7 +32,8 @@ struct CommHelper {
 
     ny = std::sqrt(1.0*(nranks/nx));
     while((nranks/nx)%ny != 0) ny++;
-    
+
+    // Figure out neighbors
     nz = nranks/nx/ny;
     x = me%nx;
     y = (me/nx)%ny;
@@ -86,10 +57,10 @@ struct CommHelper {
 };
 
 struct System {
-  // Using theoretical physicists way of describing system, 
+  // Using theoretical physicists way of describing system,
   // i.e. we stick everything in as few constants as possible
-  // be i and i+1 two timesteps dt apart: 
-  // T(x,y,z)_(i+1) = T(x,y,z)_(i)+dT(x,y,z)*dt; 
+  // be i and i+1 two timesteps dt apart:
+  // T(x,y,z)_(i+1) = T(x,y,z)_(i)+dT(x,y,z)*dt;
   // dT(x,y,z) = q * sum_dxdydz( T(x+dx,y+dy,z+dz) - T(x,y,z) )
   // If its surface of the body add:
   // dT(x,y,z) += -sigma*T(x,y,z)^4
@@ -111,14 +82,14 @@ struct System {
 
   // number of timesteps
   int N;
-  
+
   // interval for print
   int I;
 
   // Temperature and delta Temperature
   Kokkos::View<double***> T, dT;
   // Halo data
-  using buffer_t = Kokkos::View<double**,Kokkos::LayoutLeft, Kokkos::CudaSpace>; 
+  using buffer_t = Kokkos::View<double**,Kokkos::LayoutLeft, Kokkos::SharedHostPinnedSpace>;
   buffer_t T_left, T_right, T_up, T_down, T_front, T_back;
   buffer_t T_left_out, T_right_out, T_up_out, T_down_out, T_front_out, T_back_out;
 
@@ -130,7 +101,7 @@ struct System {
   // timestep width
   double dt;
 
-  // thermal transfer coefficient 
+  // thermal transfer coefficient
   double q;
 
   // thermal radiation coefficient (assume Stefan Boltzmann law P = sigma*A*T^4
@@ -140,12 +111,11 @@ struct System {
   double P;
 
   // init_system
-  
   System(MPI_Comm comm_): comm(comm_) {
     mpi_active_requests = 0;
     X = Y = Z = 200;
     X_lo = Y_lo = Z_lo = 0;
-    X_hi = Y_hi = Z_hi = X; 
+    X_hi = Y_hi = Z_hi = X;
     N = 10000;
     I = 100;
     T = Kokkos::View<double***>();
@@ -155,23 +125,14 @@ struct System {
     q = 1.0;
     sigma = 1.0;
     P = 1.0;
-    E_left  = SpaceInstance<Kokkos::DefaultExecutionSpace>::create();
-    E_right = SpaceInstance<Kokkos::DefaultExecutionSpace>::create();
-    E_up    = SpaceInstance<Kokkos::DefaultExecutionSpace>::create();
-    E_down  = SpaceInstance<Kokkos::DefaultExecutionSpace>::create();
-    E_front = SpaceInstance<Kokkos::DefaultExecutionSpace>::create();
-    E_back  = SpaceInstance<Kokkos::DefaultExecutionSpace>::create();
-    E_bulk  = SpaceInstance<Kokkos::DefaultExecutionSpace>::create();
-  }
-
-  void destroy_exec_spaces() {
-    SpaceInstance<Kokkos::DefaultExecutionSpace>::destroy(E_left);
-    SpaceInstance<Kokkos::DefaultExecutionSpace>::destroy(E_right);
-    SpaceInstance<Kokkos::DefaultExecutionSpace>::destroy(E_front);
-    SpaceInstance<Kokkos::DefaultExecutionSpace>::destroy(E_back);
-    SpaceInstance<Kokkos::DefaultExecutionSpace>::destroy(E_up);
-    SpaceInstance<Kokkos::DefaultExecutionSpace>::destroy(E_down);
-    SpaceInstance<Kokkos::DefaultExecutionSpace>::destroy(E_bulk);
+    auto instances = Kokkos::Experimental::partition_space(Kokkos::DefaultExecutionSpace{}, 1,1,1,1,1,1,1);
+    E_left  = instances[0];
+    E_right = instances[1];
+    E_up    = instances[2];
+    E_down  = instances[3];
+    E_front = instances[4];
+    E_back  = instances[5];
+    E_bulk  = instances[6];
   }
 
   void setup_subdomain() {
@@ -212,15 +173,15 @@ struct System {
 
   void print_help() {
     printf("Options (default):\n");
-    printf("  -X IARG: (%i) num elements in X direction\n", X); 
-    printf("  -Y IARG: (%i) num elements in Y direction\n", Y); 
-    printf("  -Z IARG: (%i) num elements in Z direction\n", Z); 
-    printf("  -N IARG: (%i) num timesteps\n", N); 
-    printf("  -I IARG: (%i) print interval\n", I); 
-    printf("  -T0 FARG: (%lf) initial temperature\n", T0); 
-    printf("  -dt FARG: (%lf) timestep size\n", dt); 
-    printf("  -q FARG: (%lf) thermal conductivity\n", q); 
-    printf("  -sigma FARG: (%lf) thermal radiation\n", sigma); 
+    printf("  -X IARG: (%i) num elements in X direction\n", X);
+    printf("  -Y IARG: (%i) num elements in Y direction\n", Y);
+    printf("  -Z IARG: (%i) num elements in Z direction\n", Z);
+    printf("  -N IARG: (%i) num timesteps\n", N);
+    printf("  -I IARG: (%i) print interval\n", I);
+    printf("  -T0 FARG: (%lf) initial temperature\n", T0);
+    printf("  -dt FARG: (%lf) timestep size\n", dt);
+    printf("  -q FARG: (%lf) thermal conductivity\n", q);
+    printf("  -sigma FARG: (%lf) thermal radiation\n", sigma);
     printf("  -P FARG: (%lf) incoming power\n", P);
   }
 
@@ -323,7 +284,7 @@ struct System {
     if(z > 0)    dT_xyz += q * (T(x  ,y  ,z-1) - T_xyz);
     if(z < NZ-1) dT_xyz += q * (T(x  ,y  ,z+1) - T_xyz);
 
-    // Heat conduction with Halo    
+    // Heat conduction with Halo
     if(x == 0 && X_lo != 0)  dT_xyz += q * (T_left(y  ,z  ) - T_xyz);
     if(x == (NX-1) && X_hi != X)  dT_xyz += q * (T_right(y  ,z  ) - T_xyz);
     if(y == 0 && Y_lo != 0)  dT_xyz += q * (T_down(x  ,z  ) - T_xyz);
@@ -356,7 +317,7 @@ struct System {
       Kokkos::deep_copy(E_down, T_down_out ,Kokkos::subview(T,Kokkos::ALL,0,Kokkos::ALL));
       mar++;
     }
-    if(Z_lo != 0) { 
+    if(Z_lo != 0) {
       Kokkos::deep_copy(E_front,T_front_out,Kokkos::subview(T,Kokkos::ALL,Kokkos::ALL,0));
       mar++;
     }
@@ -386,7 +347,7 @@ struct System {
       comm.isend_irecv(comm.down,T_down_out,T_down,&mpi_requests_send[mar],&mpi_requests_recv[mar]);
       mar++;
     }
-    if(Z_lo != 0) { 
+    if(Z_lo != 0) {
       E_front.fence();
       comm.isend_irecv(comm.front,T_front_out,T_front,&mpi_requests_send[mar],&mpi_requests_recv[mar]);
       mar++;
@@ -465,7 +426,6 @@ int main(int argc, char* argv[]) {
     System sys(MPI_COMM_WORLD);
     if(sys.check_args(argc,argv))
       sys.timestep();
-    sys.destroy_exec_spaces();
   }
 
   Kokkos::finalize();

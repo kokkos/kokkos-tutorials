@@ -4,41 +4,6 @@
 #include<Kokkos_Core.hpp>
 #include<mpi.h>
 
-// EXERCISE: use execution space instances to overlap more work
-
-// Helper struct to create instances, under consideration for including in core Kokkos
-template <class ExecSpace>
-struct SpaceInstance {
-  static ExecSpace create() { return ExecSpace(); }
-  static void destroy(ExecSpace&) {}
-  static bool overlap() { return false; }
-};
-
-#ifndef KOKKOS_ENABLE_DEBUG
-#ifdef KOKKOS_ENABLE_CUDA
-template <>
-struct SpaceInstance<Kokkos::Cuda> {
-  static Kokkos::Cuda create() {
-    cudaStream_t stream;
-    cudaStreamCreate(&stream);
-    return Kokkos::Cuda(stream);
-  }
-  static void destroy(Kokkos::Cuda& space) {
-    cudaStream_t stream = space.cuda_stream();
-    cudaStreamDestroy(stream);
-  }
-  static bool overlap() {
-    bool value          = true;
-    auto local_rank_str = std::getenv("CUDA_LAUNCH_BLOCKING");
-    if (local_rank_str) {
-      value = (std::stoi(local_rank_str) == 0);
-    }
-    return value;
-  }
-};
-#endif
-#endif
-
 // Communication Helper: stores mpi neighbor information
 // Also provides the recv/send function for views
 struct CommHelper {
@@ -89,10 +54,10 @@ struct CommHelper {
 };
 
 struct System {
-  // Using theoretical physicists way of describing system, 
+  // Using theoretical physicists way of describing system,
   // i.e. we stick everything in as few constants as possible
-  // be i and i+1 two timesteps dt apart: 
-  // T(x,y,z)_(i+1) = T(x,y,z)_(i)+dT(x,y,z)*dt; 
+  // be i and i+1 two timesteps dt apart:
+  // T(x,y,z)_(i+1) = T(x,y,z)_(i)+dT(x,y,z)*dt;
   // dT(x,y,z) = q * sum_dxdydz( T(x+dx,y+dy,z+dz) - T(x,y,z) )
   // If its surface of the body add:
   // dT(x,y,z) += -sigma*T(x,y,z)^4
@@ -114,14 +79,14 @@ struct System {
 
   // number of timesteps
   int N;
-  
+
   // interval for print
   int I;
 
   // Temperature and delta Temperature
   Kokkos::View<double***> T, dT;
   // Halo data
-  using buffer_t = Kokkos::View<double**,Kokkos::LayoutLeft, Kokkos::CudaHostPinnedSpace>; 
+  using buffer_t = Kokkos::View<double**, Kokkos::LayoutLeft, Kokkos::SharedHostPinnedSpace>;
   buffer_t T_left, T_right, T_up, T_down, T_front, T_back;
   buffer_t T_left_out, T_right_out, T_up_out, T_down_out, T_front_out, T_back_out;
 
@@ -158,24 +123,14 @@ struct System {
     sigma = 1.0;
     P = 1.0;
     // Already created execution space instances
-    E_left  = SpaceInstance<Kokkos::DefaultExecutionSpace>::create();
-    E_right = SpaceInstance<Kokkos::DefaultExecutionSpace>::create();
-    E_up    = SpaceInstance<Kokkos::DefaultExecutionSpace>::create();
-    E_down  = SpaceInstance<Kokkos::DefaultExecutionSpace>::create();
-    E_front = SpaceInstance<Kokkos::DefaultExecutionSpace>::create();
-    E_back  = SpaceInstance<Kokkos::DefaultExecutionSpace>::create();
-    E_bulk  = SpaceInstance<Kokkos::DefaultExecutionSpace>::create();
-  }
-
-  // Destroying the execution space instances again
-  void destroy_exec_spaces() {
-    SpaceInstance<Kokkos::DefaultExecutionSpace>::destroy(E_left);
-    SpaceInstance<Kokkos::DefaultExecutionSpace>::destroy(E_right);
-    SpaceInstance<Kokkos::DefaultExecutionSpace>::destroy(E_front);
-    SpaceInstance<Kokkos::DefaultExecutionSpace>::destroy(E_back);
-    SpaceInstance<Kokkos::DefaultExecutionSpace>::destroy(E_up);
-    SpaceInstance<Kokkos::DefaultExecutionSpace>::destroy(E_down);
-    SpaceInstance<Kokkos::DefaultExecutionSpace>::destroy(E_bulk);
+    auto instances = Kokkos::Experimental::partition_space(Kokkos::DefaultExecutionSpace{}, 1,1,1,1,1,1,1);
+    E_left  = instances[0];
+    E_right = instances[1];
+    E_up    = instances[2];
+    E_down  = instances[3];
+    E_front = instances[4];
+    E_back  = instances[5];
+    E_bulk  = instances[6];
   }
 
   void setup_subdomain() {
@@ -334,7 +289,7 @@ struct System {
     if(z > 0)    dT_xyz += q * (T(x  ,y  ,z-1) - T_xyz);
     if(z < NZ-1) dT_xyz += q * (T(x  ,y  ,z+1) - T_xyz);
 
-    // Heat conduction with Halo    
+    // Heat conduction with Halo
     if(x == 0 && X_lo != 0)  dT_xyz += q * (T_left(y  ,z  ) - T_xyz);
     if(x == (NX-1) && X_hi != X)  dT_xyz += q * (T_right(y  ,z  ) - T_xyz);
     if(y == 0 && Y_lo != 0)  dT_xyz += q * (T_down(x  ,z  ) - T_xyz);
@@ -455,7 +410,6 @@ int main(int argc, char* argv[]) {
     System sys(MPI_COMM_WORLD);
     if(sys.check_args(argc,argv))
       sys.timestep();
-    sys.destroy_exec_spaces();
   }
 
   Kokkos::finalize();

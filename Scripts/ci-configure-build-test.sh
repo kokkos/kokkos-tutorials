@@ -31,6 +31,7 @@ kokkoskernels/GaussSeidel
 kokkoskernels/GraphColoring
 kokkoskernels/InnerProduct
 mdrange
+mpi_heat_conduction
 mpi_pack_unpack
 random_number
 scatter_view
@@ -67,11 +68,6 @@ kokkoskernels/SpGEMM/Solution # Begin does not include the proper headers (on pu
 mpi_exch
 tools_minimd
 )
-
-# TODO: explicitly specifies CUDA
-if [ "$backend" == CUDA ]; then
-  EXERCISES+=(mpi_heat_conduction/Solution) # TODO: mpi_heat_conduction/Begin does not use cmake
-fi
 
 # Add Begin and Solution subdirectory from BEGIN_SOLUTION_EXCERCISES to EXERCISES
 for e in "${BEGIN_SOLUTION_EXERCISES[@]}"; do

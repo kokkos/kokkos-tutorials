@@ -1,0 +1,108 @@
+%==========================================================================
+
+\begin{frame}[fragile]
+
+  {\Huge Bug Fixes}
+
+  \vspace{10pt}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Atomics violated C++ semantics}
+
+\begin{itemize}
+  \item Our atomic operations violated C++ semantics when calling \texttt{atomic\_load} on a \texttt{const}
+  \item Specifically our implmentation of \texttt{atomic\_load} and \texttt{atomic\_store} via \texttt{atomic\_compare\_and\_swap}
+  \item Now we require \texttt{atomic\_load}, \texttt{atomic\_store}, and \texttt{atomic\_compare\_and\_swap} to be lock-free a specific \texttt{sizeof(T)} for all atomics to be lock free.
+  \item Most relevant architectures provide all three for 4 and 8 bytes but only \texttt{atomic\_compare\_and\_swap} for 16 bytes.
+\end{itemize}
+
+\end{frame}
+
+
+\begin{frame}[fragile]{Effect of contention on lock-free \texttt{atomic\_load/store} on Grace-Hopper 200}
+\begin{figure}[!htb]
+    \centering
+        \begin{minipage}{0.4\textwidth}
+        \centering
+        \begin{tikzpicture}
+          \begin{semilogxaxis}[
+              title={Grace},
+          width=1.0\textwidth,
+          height=1.0\textwidth,
+          log basis x = 10,
+          grid=major,
+          xmin=1,
+          xlabel={Contention},
+          %ylabel={Slowdown},
+          ymin=1,
+          ymax=100
+          ]
+          %cpu
+          \addplot+[mark=o, color=nvidia_green] coordinates {
+          (100,1.0)
+          (1000,1.1088313941)
+          (10000,2.5329092838)
+          (100000,7.6595455536)
+          (1000000,48.8640858911)
+           };
+          %cpu    
+          \addplot+[mark=o, color=black] coordinates {
+          (100,9.02886777711)
+          (1000,16.3405593973)
+          (10000,26.2635370966)
+          (100000,39.1844956122)
+          (1000000,87.6812757724)
+              };
+        \legend{direct,cas-based}
+        \end{semilogxaxis}
+      \end{tikzpicture}
+    \end{minipage}
+    \begin{minipage}{.4\textwidth}
+        \centering
+        \begin{tikzpicture}
+          \begin{semilogxaxis}[
+              title={Hopper},
+          width=1.0\textwidth,
+          height=1.0\textwidth,
+          log basis x = 10,
+          grid=major,
+          xmin=1,
+          xlabel={Contention},
+          ylabel={Slowdown},
+          ymin=1,
+          ymax=100
+          ]
+          %grace-hopper 200 reference on on-cas
+          %non-cas
+          %gpu
+          \addplot+[mark=x, color=nvidia_green] coordinates {
+          (100,1.0)
+          (1000,1.0)
+          (10000,2.6924211572)
+          (100000,11.2185832364)
+          (1000000,21.6895538258)
+              };
+           % cas-based
+           %gpu 
+           \addplot+[mark=x, color=black] coordinates {
+          (100,2.06410845404)
+          (1000,2.08026722305)
+          (10000,2.6912696104)
+          (100000,18.5523211491)
+          (1000000,368.08750952935)
+              };
+        \legend{direct,cas-based}
+        \end{semilogxaxis}
+      \end{tikzpicture}
+    \end{minipage}%
+    \caption{1e9 \texttt{atomic\_load/store} operations on \texttt{int} with various contention}
+\end{figure}
+\vspace{-0.8cm}
+\begin{itemize}
+    \item Performance improvement for \texttt{atomic\_load/store} for 4 and 8 byte long types.
+\end{itemize}
+
+\end{frame}

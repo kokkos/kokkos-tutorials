@@ -271,6 +271,8 @@ Kokkos::parallel_for(numberOfAtoms, @gray
 @gray);@gray
   \end{code}
 
+  (Will review C\texttt{++} Lambdas on the next slide)
+
   \pause
 
   A lambda is not \textit{magic}, it is the compiler \textbf{auto-generating} a \textbf{functor} for you.
@@ -287,6 +289,36 @@ Kokkos::parallel_for(numberOfAtoms, @gray
   %\pause
   %$\Rightarrow$ So, {\color{darkgreen}\texttt{atomForces}} must be a pointer (e.g., not a \texttt{std::vector})
 
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Quick review of C\texttt{++} Lambda syntax}
+  \url{https://cppreference.com/cpp/language/lambda}
+
+  C++ Lambdas auto-generate the variable capture code:
+
+    \begin{code}[keywords={}, frame=single, numbers=left]
+@grayKokkos::parallel_for(numberOfAtoms,@gray
+    [@pattern=@pattern] (const int64_t atomIndex) { // copy by value, implicit
+    @darkgreenatomForces@darkgreen[atomIndex] = calculateForce(@darkreddata@darkred);
+  }
+@gray);@gray
+\end{code}
+
+\begin{code}[keywords={}, frame=single, numbers=left, firstnumber=2]
+    [@patternatomForces, data@pattern] (const int64_t atomIndex) { // explicit
+\end{code}
+
+\pause
+
+\begin{code}[keywords={}, frame=single, numbers=left, firstnumber=2]
+    [@pattern&@pattern] (const int64_t atomIndex) { // by reference, implicit
+\end{code}
+
+\begin{code}[keywords={}, frame=single, numbers=left, firstnumber=2]
+    [@pattern&atomForces, &data@pattern] (const int64_t atomIndex) { // explicit
+\end{code}
 \end{frame}
 
 %==========================================================================

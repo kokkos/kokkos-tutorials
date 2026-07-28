@@ -74,11 +74,14 @@ target_link_libraries(myLib PUBLIC Kokkos::kokkos)
 cmake_minimum_required(VERSION 3.22)
 project(MyProject CXX)
 
-find_package(Kokkos 4.2 REQUIRED CONFIG) # Find Kokkos version 4.2 or later
+find_package(Kokkos X.Y REQUIRED CONFIG) # Replace X.Y with your minimum required Kokkos version
 
 add_executable(HelloKokkos HelloKokkos.cpp)
 target_link_libraries(HelloKokkos PRIVATE Kokkos::kokkos)
 \end{minted}
+
+\vspace{1eM}
+{\scriptsize See the \href{https://kokkos.org/kokkos-core-wiki/get-started/requirements.html}{Kokkos documentation} for the minimum supported compilers and hardware for each release.}
 
 \vspace{2eM}
 \textbf{How do I control cmake's search procedure?}
@@ -331,7 +334,7 @@ packages:
 \item Step 1: Declare dependency on specific version of kokkos (4.x or develop)
 \begin{shell}
 class myLib(CMakePackage):
-  depends_on('kokkos@4.2')
+  depends_on('kokkos@X.Y')  # Replace X.Y with your minimum required Kokkos version
 \end{shell}
 \item Step 2: Add build rule pointing to Spack-installed Kokkos and same C\texttt{++} compiler Kokkos uses
 \begin{shell}

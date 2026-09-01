@@ -262,14 +262,16 @@ AtomForceFunctor functor(atomForces, data);
         \btLstHL<1->{4-6}{black!15}
       },
       keywords={}, frame=single]
-@grayatomForces already exists
-data already exists
+@gray// atomForces already exists
+// data already exists
 Kokkos::parallel_for(numberOfAtoms, @gray
     [=] (const int64_t atomIndex) {
     @darkgreenatomForces@darkgreen[atomIndex] = calculateForce(@darkreddata@darkred);
   }
 @gray);@gray
   \end{code}
+
+  (Will review C\texttt{++} Lambdas on the next two slides)
 
   \pause
 
@@ -286,6 +288,68 @@ Kokkos::parallel_for(numberOfAtoms, @gray
 
   %\pause
   %$\Rightarrow$ So, {\color{darkgreen}\texttt{atomForces}} must be a pointer (e.g., not a \texttt{std::vector})
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Quick review of C\texttt{++} Lambda syntax (1)}
+  \url{https://cppreference.com/cpp/language/lambda}
+
+  C++ Lambdas auto-generate the variable capture code:
+
+    \begin{code}[keywords={}, frame=single, numbers=left]
+// atomForces already exists
+// data already exists
+@grayKokkos::parallel_for(numberOfAtoms,@gray
+    [@pattern&@pattern] (const int64_t atomIndex) { // by reference, implicit
+    @darkgreenatomForces@darkgreen[atomIndex] = calculateForce(@darkreddata@darkred);
+  }
+@gray);@gray
+\end{code}
+
+\begin{code}[keywords={}, frame=single, numbers=left, firstnumber=3, stepnumber=4]
+    // explicit, but gives an error!  why?
+    [@pattern&atomForces@pattern] (const int64_t atomIndex) {
+\end{code}
+
+\pause
+
+\begin{code}[keywords={}, frame=single, numbers=left, firstnumber=3, stepnumber=4]
+    // explicit, now captures all needed variables.
+    [@pattern&atomForces, &data@pattern] (const int64_t atomIndex) {
+\end{code}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Quick review of C\texttt{++} Lambda syntax (2)}
+  \url{https://cppreference.com/cpp/language/lambda}
+
+  C++ Lambdas auto-generate the variable capture code:
+
+    \begin{code}[keywords={}, frame=single, numbers=left]
+// atomForces already exists
+// data already exists
+@grayKokkos::parallel_for(numberOfAtoms,@gray
+    [@pattern=@pattern] (const int64_t atomIndex) { // copy by value, implicit
+    @darkgreenatomForces@darkgreen[atomIndex] = calculateForce(@darkreddata@darkred);
+  }
+@gray);@gray
+\end{code}
+
+\begin{code}[keywords={}, frame=single, numbers=left, firstnumber=4]
+    [@patternatomForces, data@pattern] (const int64_t atomIndex) { // explicit
+\end{code}
+
+\begin{block}{Important concept}
+  Kokkos uses \textbf{capture by value (that makes a copy)
+    to guard against race conditions}
+  from multiple threads modifying a value.
+\end{block}
+
+In the next exercise, we see \textbf{these copies are immutable}.
 
 \end{frame}
 

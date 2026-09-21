@@ -52,7 +52,7 @@ execution space over a serial loop on the same node.
 Pass all result files to the plotting script and replace the slide figure:
 
 ```console
-python3 plot.py h200-cuda.csv mi300x-hip.csv epyc-openmp.csv \
+python3 plot.py results/a100-cuda.csv \
   --output ../../modularized/figures/ScalarIntegration.pdf
 ```
 

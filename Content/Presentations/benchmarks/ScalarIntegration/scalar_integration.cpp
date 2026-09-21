@@ -98,10 +98,10 @@ KOKKOS_INLINE_FUNCTION double integrand(double x) {
   return 4.0 / (1.0 + x * x);
 }
 
-double serial_integral(std::int64_t intervals) {
+double serial_integral(int64_t intervals) {
   double const dx = 1.0 / static_cast<double>(intervals);
   double result   = 0.0;
-  for (std::int64_t i = 0; i < intervals; ++i) {
+  for (int64_t i = 0; i < intervals; ++i) {
     double const x = (static_cast<double>(i) + 0.5) * dx;
     result += integrand(x);
   }
@@ -109,15 +109,15 @@ double serial_integral(std::int64_t intervals) {
 }
 
 template <class ExecutionSpace>
-double parallel_integral(std::int64_t intervals) {
+double parallel_integral(int64_t intervals) {
   using policy_type =
-      Kokkos::RangePolicy<ExecutionSpace, Kokkos::IndexType<std::int64_t>>;
+      Kokkos::RangePolicy<ExecutionSpace, Kokkos::IndexType<int64_t>>;
 
   double const dx = 1.0 / static_cast<double>(intervals);
   double result   = 0.0;
   Kokkos::parallel_reduce(
       "scalar_integration", policy_type(0, intervals),
-      KOKKOS_LAMBDA(std::int64_t i, double& update) {
+      KOKKOS_LAMBDA(int64_t i, double& update) {
         double const x = (static_cast<double>(i) + 0.5) * dx;
         update += integrand(x);
       },
@@ -158,12 +158,6 @@ int main(int argc, char* argv[]) {
   Kokkos::initialize(argc, argv);
   {
     std::cerr << "label: " << options.label << "\n";
-    std::cerr << "selected execution space: "
-              << (options.use_host_execution_space
-                      ? Kokkos::DefaultHostExecutionSpace::name()
-                      : Kokkos::DefaultExecutionSpace::name())
-              << "\n";
-    Kokkos::print_configuration(std::cerr, true);
 
     std::cout << "label,intervals,serial_seconds,parallel_seconds,speedup,"
                  "serial_result,parallel_result\n";
@@ -171,7 +165,7 @@ int main(int argc, char* argv[]) {
 
     for (int exponent = options.min_exponent;
          exponent <= options.max_exponent; ++exponent) {
-      std::int64_t const intervals = std::int64_t{1} << exponent;
+      int64_t const intervals = int64_t{1} << exponent;
 
       double parallel_result = 0.0;
       auto parallel_operation = [&] {

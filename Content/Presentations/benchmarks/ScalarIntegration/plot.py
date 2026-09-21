@@ -1,14 +1,9 @@
 #!/usr/bin/env python3
-
-# SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-# SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
-
 import argparse
 import csv
 from pathlib import Path
 
 import matplotlib.pyplot as plt
-
 
 def parse_arguments():
     parser = argparse.ArgumentParser(

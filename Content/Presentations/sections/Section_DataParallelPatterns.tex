@@ -344,9 +344,8 @@ Kokkos::parallel_for(numberOfAtoms, @gray
 \end{code}
 
 \begin{block}{Important concept}
-  Kokkos uses \textbf{capture by value (that makes a copy)
-    to guard against race conditions}
-  from multiple threads modifying a value.
+  Kokkos uses capture by value (that makes a copy)
+    to avoid dangling or inaccessible references when dispatching parallel operations.
 \end{block}
 
 In the next exercise, we see \textbf{these copies are immutable}.

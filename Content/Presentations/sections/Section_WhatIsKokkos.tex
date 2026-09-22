@@ -101,6 +101,34 @@ Just switching Programming Models costs multiple person-years per app!
 	\end{itemize}
 \end{frame}
 
+\begin{frame}[fragile]{Emerging economics in the world of AI}
+
+We don't know the long-term costs
+of maintaining AI-generated code in scientific HPC applications
+\begin{itemize}
+\item \textbf{Hypothesis 1:}
+  Kokkos AI-generated code is
+  \textbf{likely cheaper} because the Kokkos model is
+  more compact,
+  high level,
+  and a single Kokkos code
+  supports multiple backends (CUDA, ROCm, SYCL, CPU, etc.)
+  that \textbf{translates to fewer LOC and fewer tokens}
+\item \textbf{Hypothesis 2:} Kokkos AI-generated code is
+  \textbf{likely more constrained and therefore more performant}
+  than equivalent backend AI-generated code
+\end{itemize}
+
+\pause
+
+\begin{block}{More study needed}
+  We are not aware of studies and this is conjecture,
+  nevertheless for the above reasons
+  we expect Kokkos to be useful in an AI world.
+\end{block}
+
+\end{frame}
+
 \begin{frame}{High Performance Software Foundation (HPSF)}
 \vspace{0.125cm}
 \begin{columns}[T,onlytextwidth]
@@ -173,8 +201,6 @@ Significant diversifying of user base over the last few years
 \end{itemize}
 
 \includegraphics[width=\linewidth]{../modularized/figures/kokkos-slack-members}
-
-
 \end{frame}
 
 \begin{frame}[fragile]{Kokkos at the Center}

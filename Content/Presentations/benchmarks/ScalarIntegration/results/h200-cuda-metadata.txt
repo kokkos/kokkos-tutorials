@@ -1,1 +1,0 @@
-label: NVIDIA H200 (CUDA)

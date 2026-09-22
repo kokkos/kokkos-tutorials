@@ -1,1 +1,0 @@
-label: NVIDIA A100 (CUDA)

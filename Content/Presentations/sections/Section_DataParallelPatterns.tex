@@ -765,6 +765,56 @@ int main(int argc, char* argv[]) {
 
 %==========================================================================
 
+\begin{frame}[fragile]{Exercise \#1: From a serial loop to a Kokkos lambda}
+
+  \begin{columns}[T,onlytextwidth]
+    \column{0.47\textwidth}
+    \textbf{Serial outer loop}
+    \begin{tiny}
+    \begin{code}[frame=single]
+for (int j=0; j<N; ++j) {
+  double temp2 = 0;
+  for (int i=0; i<M; ++i) {
+    temp2 += A[j*M+i] * x[i];
+  }
+  result += y[j] * temp2;
+}
+    \end{code}
+    \end{tiny}
+
+    \column{0.51\textwidth}
+    \textbf{Kokkos reduction}
+    \begin{tiny}
+    \begin{code}[frame=single]
+Kokkos::parallel_reduce(N,
+  KOKKOS_LAMBDA(int j,
+                double& update) {
+    double temp2 = 0;
+    for (int i=0; i<M; ++i) {
+      temp2 += A[j*M+i] * x[i];
+    }
+    update += y[j] * temp2;
+  }, result);
+    \end{code}
+    \end{tiny}
+  \end{columns}
+
+  \vspace{-3pt}
+
+  \begin{block}{Mapping the loop to a lambda}
+    \begin{small}
+    \begin{itemize}
+      \item \texttt{N} defines the iteration range; \texttt{j} is the lambda's work index.
+      \item \texttt{KOKKOS\_LAMBDA} captures \texttt{A}, \texttt{x}, and \texttt{y} by value.
+      \item Kokkos combines each private \texttt{update} into the final \texttt{result}.
+    \end{itemize}
+    \end{small}
+  \end{block}
+
+\end{frame}
+
+%==========================================================================
+
 % Include this slide when actually doing hands-on with AWS
 %\begin{frame}[fragile]
 %We are using AWS instances sponsored by AWS \& HPSF.

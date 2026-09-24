@@ -22,10 +22,10 @@
 
   \begin{code}[keywords={}]
 Kokkos::parallel_reduce("Label", 
-  RangePolicy<ExecutionSpace>(0, N),
+  RangePolicy<ExecutionSpace>(0, M),
   KOKKOS_LAMBDA (const size_t row, double & valueToUpdate) {
     double thisRowsSum = 0;
-    for (size_t entry = 0; entry < M; ++entry) {
+    for (size_t entry = 0; entry < N; ++entry) {
       thisRowsSum += @blueA@blue(row, entry) * @darkgreenx@darkgreen(entry);
     }
     valueToUpdate += @darkredy@darkred(row) * thisRowsSum;
@@ -129,7 +129,7 @@ View<double***, @boldLayout@bold, Space> name(...);
 \ul{\textbf{Things to try:}}
   \begin{small}
   \begin{itemize}
-  \item Vary problem size and number of rows (-S ...; -N ...)
+  \item Vary problem size and number of rows (-S ...; -M ...)
   \item Change number of repeats (-nrepeat ...)
   \item Compare behavior of CPU vs GPU
   \item On GPUs, compare using \texttt{SharedSpace} vs using the default memory space, i.e, not providing an explicit memory space.
@@ -462,8 +462,8 @@ operator()(int index, double & valueToUpdate) const {
   \vspace{-3pt}
 
   \begin{code}[keywords={}]
-View<double**, @boldExecutionSpace@bold> @blueA@blue(N, M);
-parallel_for(RangePolicy< @boldExecutionSpace@bold>(0, N),
+View<double**, @boldExecutionSpace@bold> @blueA@blue(M, N);
+parallel_for(RangePolicy< @boldExecutionSpace@bold>(0, M),
   ... thisRowsSum += @blueA@blue(j, i) * @darkgreenx@darkgreen(i);
   \end{code}
 

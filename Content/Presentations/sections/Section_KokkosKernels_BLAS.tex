@@ -125,16 +125,16 @@
 %  \item Recall the Kokkos Inner Product exercise:
   \item Inner product $<y,A*x>$
   \begin{itemize}
-    \item $y$ is $Nx1$, $A$ is $NxM$,\\ $x$ is $Mx1$
+    \item $y$ is $Mx1$, $A$ is $MxN$,\\ $x$ is $Nx1$
   \end{itemize}
   \item Early exercise code looked like
 
   \begin{code}[keywords={double,parallel_reduce,for,int}]
 double result = 0;
-Kokkos::parallel_reduce("yAz", N,
+Kokkos::parallel_reduce("yAz", M,
     KOKKOS_LAMBDA (int j, double &update) {
       double temp2 = 0;
-      for (int i = 0; i < M; ++i) {
+      for (int i = 0; i < N; ++i) {
         temp2 += A(j, i) * x(i);
       }
       update += y(j) * temp2;
@@ -272,7 +272,7 @@ KokkosBlas::dot(r,x,y);
       \begin{flushleft}
       \vspace{-2em}
   \begin{code}[keywords={View,double,gemv,dot}, basicstyle=\tiny, breaklines=true]
-Kokkos::View<double*> tmp("tmp", N);
+Kokkos::View<double*> tmp("tmp", M);
 
 KokkosBlas::gemv("N",alpha,A,x,beta,tmp);
 
@@ -288,10 +288,10 @@ result = KokkosBlas::dot(y,tmp);
       \vspace{-2em}
   \begin{code}[keywords={parallel_reduce,for,int,double}, basicstyle=\tiny, breaklines=true]
 double result = 0;
-Kokkos::parallel_reduce("yAx", N, 
- KOKKOS_LAMBDA (int j, double &update) { 
+Kokkos::parallel_reduce("yAx", M,
+ KOKKOS_LAMBDA (int j, double &update) {
   double temp2 = 0;
-   for (int i = 0; i < M; ++i) { 
+   for (int i = 0; i < N; ++i) {
      temp2 += A(j, i) * x(i);
    }
    update += y(j) * temp2;

@@ -722,7 +722,7 @@ double totalIntegral = 0;
 
   \textbf{Details}:
   \begin{itemize}
-    \item $y$ is $Nx1$, $A$ is $NxM$, $x$ is $Mx1$
+    \item $y$ is $Mx1$, $A$ is $MxN$, $x$ is $Nx1$
     \item We'll use this exercise throughout the tutorial
   \end{itemize}
 
@@ -848,8 +848,8 @@ int main(int argc, char* argv[]) {
   \itemsep0em
 %  \item Vary number of threads
   \item Vary problem size with command line argument -S $s$
-  \item Vary number of rows with command line argument -N $n$
-  \item Num rows = $2^n$, num cols = $2^m$, total size = $2^s == 2^{n+m}$
+  \item Vary number of rows with command line argument -M $m$
+  \item Num rows = $2^m$, num cols = $2^n$, total size = $2^s == 2^{m+n}$
   \end{itemize}
   \end{small}
 \end{frame}

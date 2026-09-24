@@ -34,10 +34,10 @@ try a scan and fill for fill array?
   \vspace{-3pt}
 
   \begin{code}[keywords={}]
-Kokkos::parallel_reduce("yAx",N,
+Kokkos::parallel_reduce("yAx",M,
   KOKKOS_LAMBDA (const int row, double & valueToUpdate) {
     double thisRowsSum = 0;
-    for (int col = 0; col < M; ++col) {
+    for (int col = 0; col < N; ++col) {
       thisRowsSum += @blueA@blue(row,col) * @darkgreenx@darkgreen(col);
     }
     valueToUpdate += @darkredy@darkred(row) * thisRowsSum;
@@ -85,7 +85,7 @@ Kokkos::parallel_reduce("yAx",N,
   \vspace{-3pt}
 
   \begin{code}[keywords={}]
-Kokkos::parallel_for("yAx", N*M,
+Kokkos::parallel_for("yAx", M*N,
   KOKKOS_LAMBDA (const size_t index) {
     const int row = extractRow(index);
     const int col = extractCol(index);
@@ -129,7 +129,7 @@ Kokkos::parallel_for("yAx", N*M,
   \begin{code}[keywords={}]
 for each row
   Functor functor(row, ...);
-  parallel_reduce(M, functor);
+  parallel_reduce(N, functor);
 }
   \end{code}
 
@@ -170,7 +170,7 @@ for each row
   \vspace{-3pt}
 
   \begin{enumerate}
-    \item{Do \textbf{one parallel launch} of \texttt{N} teams.}
+    \item{Do \textbf{one parallel launch} of \texttt{M} teams.}
     \item{Each team handles a row.}
     \item{The threads within \textbf{teams perform a reduction}.}
     \item{The thread teams \textbf{perform a reduction}.}
@@ -197,13 +197,13 @@ for each row
 
   \begin{code}
 parallel_reduce("yAx",
-  team_policy(N, Kokkos::AUTO),
+  team_policy(M, Kokkos::AUTO),
 
   KOKKOS_LAMBDA (const member_type & @blueteamMember@blue, double & @orangeupdate@orange) {
     int @purplerow@purple = @blueteamMember@blue.league_rank();
 
     double thisRowsSum = 0;
-    parallel_reduce(TeamThreadRange(@blueteamMember@blue, M),
+    parallel_reduce(TeamThreadRange(@blueteamMember@blue, N),
       [=] (int @darkgreencol@darkgreen, double & @redinnerUpdate@red) {
         @redinnerUpdate@red += A(@purplerow@purple, @darkgreencol@darkgreen) * x(@darkgreencol@darkgreen);
       }, thisRowsSum);
@@ -358,7 +358,7 @@ void operator()(const member_type & teamMember) {
   const size_t row = teamMember.league_rank();
 
   int begin = teamMember.team_rank();
-  for(int col = begin; col < M; col += teamMember.team_size()) {
+  for(int col = begin; col < N; col += teamMember.team_size()) {
     atomic_add(&@orangeresult@orange, @darkredy@darkred(row) * @blueA@blue(row,col) * @darkgreenx@darkgreen(entry));
   }
 @gray}@gray
@@ -392,7 +392,7 @@ void operator()(const member_type & teamMember) {
 @grayoperator() (member_type & teamMember, double & update) {
   const int row = teamMember.league_rank();@gray
   double @purplethisRowsSum@purple;
-  @pattern``do a reduction''@pattern(@policy``over M columns''@policy,
+  @pattern``do a reduction''@pattern(@policy``over N columns''@policy,
     [=] (const int col) {
       @purplethisRowsSum@purple += @blueA@blue(row,col) * @darkgreenx@darkgreen(col);
     });
@@ -434,7 +434,7 @@ void operator()(const member_type & teamMember) {
 @grayoperator() (const member_type & teamMember, double & update ) {
   const int row = teamMember.league_rank();@gray
   double @purplethisRowsSum@purple;
-  @patternparallel_reduce@pattern(@policyTeamThreadRange(teamMember, M)@policy,
+  @patternparallel_reduce@pattern(@policyTeamThreadRange(teamMember, N)@policy,
     [=] (const int col, double & thisRowsPartialSum ) {
       thisRowsPartialSum += @blueA@blue(row, col) * @darkgreenx@darkgreen(col);
     }, @purplethisRowsSum@purple );
@@ -549,7 +549,7 @@ parallel_something(
 \ul{\textbf{Things to try:}}
   \begin{small}
   \begin{itemize}
-  \item Vary problem size and number of rows (-S ...; -N ...)
+  \item Vary problem size and number of rows (-S ...; -M ...)
   \item Compare behavior with Exercise 4 for very non-square matrices
   \item Compare behavior of CPU vs GPU
   \end{itemize}
@@ -975,7 +975,7 @@ a third natural layer of parallelism.
 \ul{\textbf{Things to try:}}
   \begin{small}
   \begin{itemize}
-  \item Vary problem size and number of rows (-S ...; -N ...)
+  \item Vary problem size and number of rows (-S ...; -M ...)
   \item Compare behavior with TeamPolicy Exercise for very non-square matrices
   \item Compare behavior of CPU vs GPU
   \end{itemize}

@@ -60,15 +60,13 @@ int main( int argc, char* argv[] )
   {
 
   // EXERCISE give-away: Choose an Execution Space.
-  // using ExecSpace = Kokkos::Serial;
-  // using ExecSpace = Kokkos::Threads;
-  // using ExecSpace = Kokkos::OpenMP;
-  // using ExecSpace = Kokkos::Cuda;
+  // using ExecSpace = Kokkos::DefaultExecutionSpace;
+  // using ExecSpace = Kokkos::DefaultHostExecutionSpace;
 
   // EXERCISE: Choose device memory space.
+  // using MemSpace = typename ExecSpace::memory_space;
   // using MemSpace = Kokkos::HostSpace;
-  // using MemSpace = Kokkos::CudaSpace;
-  // using MemSpace = Kokkos::CudaUVMSpace;
+  // using MemSpace = Kokkos::SharedSpace;
 
   // EXERCISE give-away: Choose a Layout.
   // EXERCISE: When exercise is correctly implemented, then
@@ -77,6 +75,7 @@ int main( int argc, char* argv[] )
 
   // using Layout = Kokkos::LayoutLeft;
   // using Layout = Kokkos::LayoutRight;
+  // using Layout = typename ExecSpace::array_layout;
 
   // EXERCISE give-away: Use a RangePolicy.
   // using range_policy = Kokkos::RangePolicy<ExecSpace>;

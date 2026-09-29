@@ -54,26 +54,22 @@ int main( int argc, char* argv[] )
   Kokkos::initialize( argc, argv );
   {
 
-  #ifdef KOKKOS_ENABLE_CUDA
-  #define MemSpace Kokkos::CudaSpace
-  #endif
-  #ifdef KOKKOS_ENABLE_HIP
-  #define MemSpace Kokkos::HIPSpace
-  #endif
-  #ifdef KOKKOS_ENABLE_SYCL
-  #define MemSpace Kokkos::SYCLDeviceUSMSpace
-  #endif
+  using ExecSpace = Kokkos::DefaultExecutionSpace;
+  // using ExecSpace = Kokkos::DefaultHostExecutionSpace;
 
-  #ifndef MemSpace
-  #define MemSpace Kokkos::HostSpace
-  #endif
+  using MemSpace = typename ExecSpace::memory_space;
+  // using MemSpace = Kokkos::HostSpace;
+  // using MemSpace = Kokkos::SharedSpace;
 
-  using ExecSpace = MemSpace::execution_space;
+  using Layout = Kokkos::LayoutLeft;
+  // using Layout = Kokkos::LayoutRight;
+  // using Layout = typename ExecSpace::array_layout;
+
   using range_policy = Kokkos::RangePolicy<ExecSpace>;
 
   // Allocate y, x vectors and Matrix A on device.
-  using ViewVectorType = Kokkos::View<double*, Kokkos::LayoutLeft, MemSpace>;
-  using ViewMatrixType = Kokkos::View<double**, Kokkos::LayoutLeft, MemSpace>;
+  using ViewVectorType = Kokkos::View<double*, Layout, MemSpace>;
+  using ViewMatrixType = Kokkos::View<double**, Layout, MemSpace>;
   ViewVectorType y( "y", M );
   ViewVectorType x( "x", N );
   ViewMatrixType A( "A", M, N );

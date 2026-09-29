@@ -46,7 +46,7 @@ def main():
         )
 
     axes.axhline(1.0, color="black", linewidth=1, label="Serial")
-    axes.set_xscale("log", base=2)
+    axes.set_xscale("log", base=10)
     axes.set_yscale("log")
     axes.set_xlabel("Number of intervals")
     axes.set_ylabel("Speedup over serial")
@@ -60,4 +60,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

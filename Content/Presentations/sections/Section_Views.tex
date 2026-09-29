@@ -220,7 +220,6 @@ print_value( @bluea@blue(0,2) );
   \begin{itemize}
   \item Location: \ExerciseDirectory{02/Begin}
   \item Assignment: Change data storage from arrays to Views.
-  \item Compile and run on CPU, and then on GPU with SharedSpace.
   \end{itemize}
   \end{small}
 
@@ -238,7 +237,7 @@ cmake --build build_openmp
   \item Vary problem size: \textbf{-S \#}
   \item Vary number of rows: \textbf{-N \#}
   \item Vary repeats: \textbf{-nrepeat \#}
-  \item Compare performance of CPU vs GPU
+  \item Advanced: add `Kokkos::SharedSpace` template parameter to View's and compile for GPUs
   \end{itemize}
   \end{scriptsize}
 

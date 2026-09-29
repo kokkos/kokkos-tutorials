@@ -75,7 +75,6 @@ int main( int argc, char* argv[] )
 
   // using Layout = Kokkos::LayoutLeft;
   // using Layout = Kokkos::LayoutRight;
-  // using Layout = typename ExecSpace::array_layout;
 
   // EXERCISE give-away: Use a RangePolicy.
   // using range_policy = Kokkos::RangePolicy<ExecSpace>;

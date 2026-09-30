@@ -36,9 +36,9 @@ parallel_reduce("Label", numberOfIntervals,
 \begin{itemize}
 \item<2-> Note how the operation in the body matches the reducer op!
 \item<3-> The scalar type is used as a template argument.
-\item<4-> Many reducers available: \texttt{Sum, Prod, Min, Max, MinLoc,} see:  {\tiny \url{https://kokkos.github.io/kokkos-core-wiki/API/core/builtin_reducers.html}}
-\item<5-> Some reducers (like \texttt{MinLoc}) use special scalar types!
-\item<6-> Custom value types supported via specialization of \texttt{reduction\_identity}.
+\item<4-> Many reducers available: \texttt{\href{https://kokkos.org/kokkos-core-wiki/API/core/builtinreducers/Sum.html}{Sum}, \href{https://kokkos.org/kokkos-core-wiki/API/core/builtinreducers/Prod.html}{Prod}, \href{https://kokkos.org/kokkos-core-wiki/API/core/builtinreducers/Min.html}{Min}, \href{https://kokkos.org/kokkos-core-wiki/API/core/builtinreducers/Max.html}{Max}, \href{https://kokkos.org/kokkos-core-wiki/API/core/builtinreducers/MinLoc.html}{MinLoc},} see: \href{https://kokkos.github.io/kokkos-core-wiki/API/core/builtin_reducers.html}{Built-in Reducers}
+\item<5-> Some reducers (like \texttt{\href{https://kokkos.org/kokkos-core-wiki/API/core/builtinreducers/MinLoc.html}{MinLoc}}) use special scalar types!
+\item<6-> Custom value types supported via specialization of \texttt{\href{https://kokkos.org/kokkos-core-wiki/API/core/builtinreducers/reduction_identity.html}{reduction\_identity}}.
 \end{itemize}
 \end{frame}
 

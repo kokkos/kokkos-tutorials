@@ -23,12 +23,12 @@
 
 \textbf{Using a Reducer:}
 \begin{code}[linebackgroundcolor={
-          \btLstHL<2>{5}{red!20}
+          \btLstHL<2->{5}{red!20}
         }, keywords={parallel_reduce,double,Max}]
 double max_value = 0;
 parallel_reduce("Label", numberOfIntervals,
-  KOKKOS_LAMBDA(const int64_t i, double & valueToUpdate) {
-    double my_value = function(...);
+  @grayKOKKOS_LAMBDA(const int64_t i, double & valueToUpdate) {
+    double my_value = function(...);@gray
     if(my_value > valueToUpdate) valueToUpdate = my_value;
 }, Kokkos::Max<double>(max_value));
 \end{code}
@@ -53,14 +53,14 @@ parallel_reduce("Label", numberOfIntervals,
 	\end{itemize}
 
 \begin{code}[keywords={parallel_reduce,double,float,Max}]
-float max_value = 0;
-double sum = 0;
+float @darkgreenmax_value@darkgreen = 0;
+double @orangesum@orange = 0;
 parallel_reduce("Label", numberOfIntervals,
-    KOKKOS_LAMBDA(const int64_t i,float& tl_max,double& tl_sum){
+    KOKKOS_LAMBDA(const int64_t i,float& @darkgreentl_max@darkgreen,double& @orangetl_sum@orange){
   float a_i = a[i];
-  if(a_i > tl_max) tl_max = a_i;
-  tl_sum += a_i;
-}, Kokkos::Max<float>(max_value),sum);
+  @darkgreenif(a_i > tl_max) tl_max = a_i;@darkgreen
+  @orangetl_sum += a_i;@orange
+}, @darkgreenKokkos::Max<float>(max_value)@darkgreen,@orangesum@orange);
 \end{code}
 
 \end{frame}
@@ -80,15 +80,15 @@ parallel_reduce("Label", numberOfIntervals,
 	\end{itemize}
 
 	\begin{code}[keywords={parallel_reduce,double,View,RangePolicy,CudaSpace,HostSpace}]
-View<double,HostSpace> h_sum("sum_h");
-View<double,CudaSpace> d_sum("sum_d");
+View<double,HostSpace> @patternh_sum("sum_h")@pattern;
+View<double,CudaSpace> @patternd_sum("sum_d")@pattern;
 using policy_t = RangePolicy<Cuda>;
 
 parallel_reduce("Label", policy_t(0,N), SomeFunctor, 
-  h_sum);
+  @patternh_sum@pattern);
 
 parallel_reduce("Label", policy_t(0,N), SomeFunctor, 
-  Kokkos::Sum<double,CudaSpace>(d_sum));
+  Kokkos::Sum<double,CudaSpace>(@patternd_sum@pattern));
 \end{code}
 \end{frame}
 

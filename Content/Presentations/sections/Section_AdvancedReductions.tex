@@ -96,21 +96,21 @@ parallel_reduce("Label", policy_t(0,N), SomeFunctor,
 \textbf{Pseudocode for Kokkos implementation}
 \begin{code}[keywords={parallel_reduce,custom}]
 per_thread:
-  value& tmp=init(local_tmp);
+  value& tmp=@darkgreeninit@darkgreen(local_tmp);
   for (i in local range)
     functor(i, tmp)
-call join for merging values between threads
+call @bluejoin@blue for merging values between threads
   in the same thread group
 let one (the last) thread group merge all results
   from all thread groups
-call final(result) on one thread 
+call @orangefinal@orange(result) on one thread 
 \end{code}
 
 Three ingredients
 \begin{itemize}
-\item init (optional), default: default constructor
-\item join (required)
-\item final (optional), default: no-op
+\item \textcolor{darkgreen}{init} (optional), default: default constructor
+\item \textcolor{blue}{join} (required)
+\item \textcolor{orange}{final} (optional), default: no-op
 \end{itemize}
 
 \end{frame}
@@ -123,40 +123,9 @@ Rules for choosing reduction behavior
 \item Otherwise, assume \texttt{join} behaves like \texttt{operator+}.
 \end{enumerate}
 
-Note that the functor's \texttt{init}, \texttt{join}, \texttt{final} members must be tagged if the call operator is tagged. The reducers member functions must never be tagged.
-\end{frame}
+Note that the functor's \texttt{init}, \texttt{join}, \texttt{final} members must be tagged if the call operator is tagged. The reducers member functions must never be tagged.\\
 
-\begin{frame}[fragile]{Reducer Concept}
-\scriptsize
-\begin{code}[basicstyle=\tiny]
-class Reducer {
-  public:
-    using reducer    = Reducer;
-    using value_type = ... ;
-    using result_view_type = Kokkos::View<value_type, ... >;
-
-    KOKKOS_FUNCTION
-    void join(value_type& dest, const value_type& src) const;
-
-    //optional
-    KOKKOS_INLINE_FUNCTION
-    void init(value_type& val) const;
-   
-    //optional
-    KOKKOS_INLINE_FUNCTION
-    void final(value_type& val) const;
-
-    KOKKOS_INLINE_FUNCTION
-    value_type& reference() const;
-
-    KOKKOS_INLINE_FUNCTION
-    result_view_type view() const;
-
-    KOKKOS_INLINE_FUNCTION
-    Reducer(value_type& value_);
-
-    KOKKOS_INLINE_FUNCTION
-    Reducer(const result_view_type& value_);
-};
-\end{code}
+\begin{block}{Reducer Concept}
+  Kokkos defines a \href{https://kokkos.org/kokkos-core-wiki/API/core/builtinreducers/ReducerConcept.html}{Reducer Concept} that details the full requirements to write a customer reducer.
+\end{block}
 \end{frame}

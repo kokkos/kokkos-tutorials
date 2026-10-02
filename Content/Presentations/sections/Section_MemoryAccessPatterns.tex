@@ -242,7 +242,7 @@ operator()(int index, double & valueToUpdate) const {
 \begin{frame}[fragile]{Caching and coalescing (2)}
 
   \begin{block}{Important point}
-    For performance, accesses to views in \texttt{HostSpace} must be \textbf{cached}, while access to views in \texttt{GPUmemorySpace} must be \textbf{coalesced}.
+    For performance, accesses to views in \texttt{HostSpace} must be \textbf{cached}, while access to views in GPU memory spaces must be \textbf{coalesced}.
   \end{block}
 
   \vspace{5pt}
@@ -414,7 +414,7 @@ operator()(int index, double & valueToUpdate) const {
 
   \begin{itemize}
     \item{\textbf{HostSpace}: cached ({\color{darkgreen}good})}
-    \item{\textbf{GPUSpace}: uncoalesced ({\color{red}bad})}
+    \item{GPU spaces: uncoalesced ({\color{red}bad})}
   \end{itemize}
 
 \end{frame}

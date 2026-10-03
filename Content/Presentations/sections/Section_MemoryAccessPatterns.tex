@@ -32,7 +32,7 @@ Kokkos::parallel_reduce("Label",
   }, @orangeresult@orange);
   \end{code}
 
-  \vspace{-20pt}
+  \vspace{-18pt}
 
   \begin{center}
     \includegraphics[width=0.8\textwidth]{figures/InnerProductExample_LayoutIntro}
@@ -78,6 +78,7 @@ Kokkos::parallel_reduce("Label",
       \end{center}
   \end{columns}
 
+  Advanced topic: use the C++ standard's Layout left padded and dynamic extent to construct your \texttt{View}.
 \end{frame}
 
 %==========================================================================
@@ -103,7 +104,7 @@ View<double***, @boldLayout@bold, Space> name(...);
       \hspace{10pt} \texttt{LayoutRight}: right-most index is stride 1.}
     \item{If no layout specified, default for that memory space is used. \\
       \hspace{10pt} \texttt{LayoutLeft} for \texttt{CudaSpace}, \texttt{LayoutRight} for \texttt{HostSpace}.}
-    \item{Layouts are extensible: $\approx$ 50 lines}
+    \item{Layouts are extensible: a new custom layout can be implemented in $\approx$ 50 lines}
     \item{Advanced layouts: \texttt{LayoutStride}, \texttt{LayoutTiled}, ...}
   \end{itemize}
 
@@ -241,13 +242,13 @@ operator()(int index, double & valueToUpdate) const {
 \begin{frame}[fragile]{Caching and coalescing (2)}
 
   \begin{block}{Important point}
-    For performance, accesses to views in \texttt{HostSpace} must be \textbf{cached}, while access to views in \texttt{CudaSpace} must be \textbf{coalesced}.
+    For performance, accesses to views in \texttt{HostSpace} must be \textbf{cached}, while access to views in GPU memory spaces must be \textbf{coalesced}.
   \end{block}
 
   \vspace{5pt}
 
   \textbf{Caching}: if thread \texttt{t}'s current access is at position \texttt{i}, \\
-  \hspace{20pt} thread \texttt{t}'s next access should be at position \texttt{i+1}.
+  \hspace{20pt} thread \texttt{t}'s next access should be at position \texttt{i+1} and hit the same cache line.
 
   \vspace{5pt}
 
@@ -413,7 +414,7 @@ operator()(int index, double & valueToUpdate) const {
 
   \begin{itemize}
     \item{\textbf{HostSpace}: cached ({\color{darkgreen}good})}
-    \item{\textbf{CudaSpace}: uncoalesced ({\color{red}bad})}
+    \item{GPU spaces: uncoalesced ({\color{red}bad})}
   \end{itemize}
 
 \end{frame}
@@ -445,7 +446,7 @@ operator()(int index, double & valueToUpdate) const {
 
   \begin{itemize}
     \item{\textbf{HostSpace}: uncached ({\color{red}bad})}
-    \item{\textbf{CudaSpace}: coalesced ({\color{darkgreen}good})}
+    \item{\textbf{GPUSpace}: coalesced ({\color{darkgreen}good})}
   \end{itemize}
 
 \end{frame}
@@ -478,7 +479,7 @@ parallel_for(RangePolicy< @boldExecutionSpace@bold>(0, M),
 
   \begin{itemize}
     \item{\textbf{HostSpace}: cached ({\color{darkgreen}good})}
-    \item{\textbf{CudaSpace}: coalesced ({\color{darkgreen}good})}
+    \item{\textbf{GPUSpace}: coalesced ({\color{darkgreen}good})}
   \end{itemize}
 
 \end{frame}
@@ -518,7 +519,7 @@ parallel_for(RangePolicy< @boldExecutionSpace@bold>(0, M),
   \begin{itemize}
     \item{Every \texttt{View} has a \texttt{Layout} set at compile-time through a \textbf{template parameter}.}
     \item{\texttt{LayoutRight} and \texttt{LayoutLeft} are \textbf{most common}.}
-    \item{\texttt{Views} in \texttt{HostSpace} default to \texttt{LayoutRight} and \texttt{Views} in \texttt{CudaSpace} default to \texttt{LayoutLeft}.}
+    \item{\texttt{Views} in \texttt{HostSpace} default to \texttt{LayoutRight} and \texttt{Views} in \texttt{GPUSpace} default to \texttt{LayoutLeft}.}
     \item{Layouts are \textbf{extensible} and \textbf{flexible}.}
     %\item{Correct memory access pattern is \textbf{essential} for performance.}
     \item{For performance, memory access patterns must result in \textbf{caching} on a CPU and \textbf{coalescing} on a GPU.}

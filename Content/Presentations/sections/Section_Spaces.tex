@@ -385,7 +385,7 @@ View<double**, @boldCudaSpace@bold> view(...constructor arguments...);
 \ifmedium
 \begin{frame}[fragile]{Execution and Memory spaces (0)}
 
-  \ul{\textbf{Anatomy of a kernel launch:}}
+  \ul{\textbf{Steps of a kernel launch:}}
 
   \vspace{-10pt}
 
@@ -398,7 +398,7 @@ View<double**, @boldCudaSpace@bold> view(...constructor arguments...);
         \item{User instantiates a functor with views.}
         \item{User launches \texttt{parallel\_something}:}
         \begin{itemize}
-          \item{Functor is copied to the device.}
+          \item{Functor is copied to the device (including all views metadata).}
           \item{Kernel is run.}
           \item{Copy of functor on the device is released.}
         \end{itemize}
@@ -494,6 +494,8 @@ parallel_for("Label",N,
   });
     \end{code}
 
+    {\small Views' metadata is accessible from the functor since it gets copied, but deferenceability depends on where the data lives.}
+
     \column{.60\textwidth}
 
       \begin{center}
@@ -540,8 +542,8 @@ View<double*, @boldCudaSpace@bold> array("array", size);
 
   \vspace{11pt}
 
-  \begin{textblock*}{0.5\textwidth}(0.94\textwidth,0.382\textheight)
-    \only<2->{\texttt{fault}}
+  \begin{textblock*}{0.5\textwidth}(0.7\textwidth,0.382\textheight)
+    \only<2->{{\footnotesize\texttt{//initialization on host}}}
   \end{textblock*}
 
   \vspace{26pt}
@@ -581,7 +583,7 @@ View<double*, @boldHostSpace@bold> array("array", size);
   \vspace{3pt}
 
   \begin{textblock*}{0.5\textwidth}(0.82\textwidth,0.630\textheight)
-    \only<2->{\texttt{illegal access}}
+    \only<2->{{\footnotesize\texttt{//illegal access}}}
   \end{textblock*}
 
   \pause
@@ -646,8 +648,11 @@ parallel_reduce("Label", N,
 
   \vspace{10pt}
 
-  Cuda runtime automatically handles data movement,
+  Cuda/HIP/SYCL hardware automatically handles data movement,
   \\ at a \textbf{performance hit}.
+  \begin{block}{Rule of thumb}
+    Only initialize it once and touch once.
+  \end{block}
 
 \end{frame}
 \fi
@@ -891,7 +896,8 @@ auto @darkredhostView@darkred = @boldKokkos::create_mirror_view@bold(@darkgreenv
     \item{\texttt{create\_mirror\_view\_and\_copy} allocates data if necessary and also \textbf{copies} data.}
   \end{itemize}
 
-  Reminder: Kokkos \emph{never} performs a \textbf{hidden deep copy}.
+  Reminder: Kokkos \emph{never} performs a \textbf{hidden deep copy}.\\
+  Note: On APUs like MI300A this mode will also avoid multiple allocations.
 
   \vspace{-5pt}
 

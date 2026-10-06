@@ -68,9 +68,9 @@ int main( int argc, char* argv[] )
   // 1. Device Views
   // using ViewVectorType = Kokkos::View<???>; // Rank-1 View of double
   // using ViewMatrixType = Kokkos::View<???>; // Rank-2 View of double
-  // ViewVectorType y( "y", N );
-  // ViewVectorType x( "x", M );
-  // ViewMatrixType A( "A", N, M );
+  // ViewVectorType y( "y", M );
+  // ViewVectorType x( "x", N );
+  // ViewMatrixType A( "A", M, N );
 
   // EXERCISE: This no longer needs allocation after views introduced...
   //   Hint: If arrays are not allocated, they also do not need to be deallocated below

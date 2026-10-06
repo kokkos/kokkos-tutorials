@@ -4,8 +4,9 @@
 
 // EXERCISE 2 Goal:
 //   Replace raw allocations with Kokkos Views.
-//     1. Define views in shared space.
-//     2. Replace data access with view access operators.
+//     1. Define Views.
+//     2. Replace data access with View access operators.
+//     3. Advanced: try using Kokkos::SharedSpace as template argument and compile for GPU (CUDA, HIP, SYCL)
 //
 //   Notes: * Kokkos::parallel_for() initializations were removed to initialize on host.
 //          * Kokkos::SharedSpace allocates memory that is automatically migratable between host and device.
@@ -65,8 +66,8 @@ int main( int argc, char* argv[] )
   // EXERCISE: Create views of the right size.
 
   // 1. Device Views
-  // using ViewVectorType = Kokkos::View<double*, Kokkos::SharedSpace>;
-  // using ViewMatrixType = Kokkos::View<double**, Kokkos::SharedSpace>;
+  // using ViewVectorType = Kokkos::View<???>; // Rank-1 View of double
+  // using ViewMatrixType = Kokkos::View<???>; // Rank-2 View of double
   // ViewVectorType y( "y", M );
   // ViewVectorType x( "x", N );
   // ViewMatrixType A( "A", M, N );

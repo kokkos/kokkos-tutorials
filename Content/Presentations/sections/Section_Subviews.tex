@@ -139,6 +139,10 @@ double special_norm(View<double***> tensor, int i) {
 \end{itemize}
 \end{itemize}
 
+\begin{block}{C++ compatibility}
+  With Kokkos 5.3, you can replace \texttt{Kokkos::ALL} with \texttt{Kokkos::full\_extent}, analogous to C++26 \texttt{std::full\_extent}
+\end{block}
+
 \end{frame}
 
 \begin{frame}[fragile]{Subviews (4)}
@@ -152,18 +156,16 @@ double special_norm(View<double***> tensor, int i) {
       \pause
   \begin{itemize}
       \pause
-    \item{The return type of \texttt{Kokkos::subview()} is implementation defined for performance reasons}
+    \item{The return type of \texttt{Kokkos::subview()} is complicated for performance reasons}
       \pause
     \item{You can also use \texttt{decltype(subview(/*...*/))} if you really need to spell name of the type somewhere}
   \end{itemize}
       \pause
     \item{Use \texttt{Kokkos::pair} for partial ranges if subview created within a kernel}
       \pause
-    \item{Constructing subviews in inner loop code can have performance implications (for now\dots)}
+    \item{Constructing subviews in inner loop code can have performance implications
       \pause
     \begin{itemize}
-      \item{This will likely be far less of an issue in the future.}
-      \pause
       \item{Prioritize readability and maintainability first, then make changes only if you see a performance impact.}
       \pause
     \end{itemize}

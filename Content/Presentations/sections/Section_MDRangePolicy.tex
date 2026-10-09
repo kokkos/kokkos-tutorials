@@ -138,7 +138,7 @@ Note this changed the policy by adding a `collapse` clause.
 \begin{frame}[fragile]{MDRangePolicy (2)}
 
 \begin{block}{MDRangePolicy}
-   MDRangePolicy can parallelize tightly nested loops of 2 to 6 dimensions.
+   MDRangePolicy can parallelize tightly nested loops of 1 to 6 dimensions.
 \end{block}
 
 	\vspace{0.5cm}
@@ -256,7 +256,7 @@ MDRangePolicy provides compile time control over iteration patterns.
   \end{lstlisting}
 
   \begin{itemize}
-    \item{\small{\textbf{N: (Required)} the rank of the index space (limited from 2 to 6)}}
+    \item{\small{\textbf{N: (Required)} the rank of the index space (limited from 1 to 6)}}
     \item{\small{\textbf{IterateOuter (Optional)} iteration pattern between tiles}}
     \begin{itemize}
       \item{\small{\textbf{Options:} Iterate::Left, Iterate::Right, Iterate::Default}}

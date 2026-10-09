@@ -60,7 +60,7 @@ struct MatrixReader {
     \end{itemize}
     \item{Usages}
     \begin{itemize}
-      \item{Layout-punning: e.g., treat multidimensional View as one-dimensional views without copying}
+      \item{Layout-punning: e.g., treat multidimensional View as one-dimensional views without copying, to use scratch memory allocations (discussed later)}
       \item{Use \texttt{std::vector} or memory from CUDA library, e.g. \texttt{cuSPARSE}}
     \end{itemize}
   \end{itemize}
@@ -118,7 +118,7 @@ View<double**,LayoutRight,HostSpace>
   \pause
   \begin{code}[keywords={}]
 // Create mirror into default memory space
-using space_t = DefaultExecutionSpace::memory_space;
+using space_t = DefaultMemorySpace;
 auto a = create_mirror_view(space_t(), h_a);
 // Copy values from the host to the device
 deep_copy(a, h_a);
@@ -188,7 +188,7 @@ View<double**> h_a((double*)ptr,N,M);
     \begin{itemize}
     \item {Access externally controlled memory }
     \item {Access temporary scratch memory}
-    \item {Layout pruning - view underlying data using different layout}
+    \item {Layout punning - view underlying data using different layout}
     \end{itemize} 
   \end{itemize}
 

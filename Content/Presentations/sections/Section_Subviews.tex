@@ -163,7 +163,7 @@ double special_norm(View<double***> tensor, int i) {
       \pause
     \item{Use \texttt{Kokkos::pair} for partial ranges if subview created within a kernel}
       \pause
-    \item{Constructing subviews in inner loop code can have performance implications
+    \item{Constructing subviews in inner loop code can have performance implications}
       \pause
     \begin{itemize}
       \item{Prioritize readability and maintainability first, then make changes only if you see a performance impact.}

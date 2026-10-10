@@ -215,6 +215,7 @@ parallel_for("L",
 
 \input{../sections/Section_MDRangePolicy}
 \input{../sections/Section_Subviews}
+\input{../sections/Section_ViewAssignment}
 \input{../sections/Section_UnmanagedViews}
 \input{../sections/Section_Atomics}
 \input{../sections/Section_DualViews}
@@ -252,6 +253,11 @@ parallel_for("Label",
 View<int ***> v("v", N0, N1, N2);
 auto sv = subview(v, i0, ALL, make_pair(start,end));
 \end{code}}
+        \end{itemize}
+
+        \textbf{View Assignment}
+        \begin{itemize}
+                \item Assign views across spaces, layouts and ranks when appropriate
         \end{itemize}
 
         \vspace{10pt}

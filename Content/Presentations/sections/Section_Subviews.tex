@@ -125,7 +125,7 @@ double special_norm(View<double***> tensor, int i) {
 \item \textbf{Index}
 \begin{itemize}
   \item For every index $i$ the rank of the resulting \texttt{View} is decreased by one.
-  \item Must be between $0<=i<extent(dim)$
+  \item Must be between \texttt{0 <= i < v.extent(dim)}
 \end{itemize}
 \item \textbf{Kokkos::pair}
 \begin{itemize}
@@ -181,7 +181,7 @@ double special_norm(View<double***> tensor, int i) {
     \item Location: \ExerciseDirectory{subview/Begin}
     \item This begins with the \texttt{Solution} of 04
     \item In the parallel reduce kernel, create a subview for row j of view A
-    \item Use this subview when computing A(j,:)*x(:) rather than the matrix A
+    \item Use this subview when computing \texttt{A(j,:) \textbackslash cdot x(:)} rather than the matrix A
   \end{itemize}
   \end{small}
 

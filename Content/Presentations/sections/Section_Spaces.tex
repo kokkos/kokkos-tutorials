@@ -148,8 +148,7 @@
 
   \begin{itemize}
     \item<2->{Where will {\color{darkred!80}Host} code be run?  CPU?  GPU? \\
-        \hspace{20pt}{$\Rightarrow$} Always in the \textbf{host process} \\
-        \hspace{20pt} also known as \textbf{default host execution space}}
+        \hspace{20pt}{$\Rightarrow$} Always in the \textbf{host process}.}
     \item<3->{Where will {\color{blue!80}Parallel} code be run?  CPU?  GPU? \\
       \hspace{20pt}{$\Rightarrow$} The \textbf{default execution space}}
     \item<4->{How do I \textbf{control} where the {\color{blue!80}Parallel} body is executed? \\
@@ -173,8 +172,7 @@
       },
       frame=single
     ]
-@patternparallel_for@pattern("Label",
-  @policyRangePolicy< @boldExecutionSpace@bold >(0,numberOfIntervals)@policy,
+@patternparallel_for@pattern("Label", @policyRangePolicy< @boldExecutionSpace@bold >(0, N)@policy,
   [=] (const int64_t i) {
     /* ... body ... */
   });
@@ -185,8 +183,9 @@
       },
       frame=single
     ]
-@patternparallel_for@pattern("Label",
-  @policynumberOfIntervals@policy, // => RangePolicy<>(0,numberOfIntervals)
+@patternparallel_for@pattern("Label", @policyN@policy,
+    // N => RangePolicy<>(0, N)
+    // N => RangePolicy<DefaultExecutionSpace>(0, N)
   [=] (const int64_t i) {
     /* ... body ... */
   });
@@ -302,7 +301,7 @@ Kokkos::parallel_reduce("Label",
   \begin{center}
   \textbf{Memory space}: \\
      explicitly-manageable memory resource  \\
-     (i.e., ``place to put data'')
+     (i.e., ``place to put data'' + ``access behavior'')
   \end{center}
 
   \vspace{-20pt}
@@ -325,18 +324,21 @@ Kokkos::parallel_reduce("Label",
 
   \begin{itemize}
   \item<2->{\texttt{View<double***,}{\textit{Memory}\textbf{Space}}\texttt{> data(...);}}
-  \item<3->{Available \textbf{memory spaces}: \\
-            \hspace{20pt}\texttt{HostSpace, CudaSpace, CudaUVMSpace, ...} more} \\
-            \hspace{20pt}Portable: \texttt{SharedSpace, SharedHostPinnedSpace}
+  \item<3->{Available \textbf{memory spaces}:
+\begin{itemize}
+   \item \texttt{DefaultMemorySpace, DefaultHostMemorySpace, SharedSpace, SharedHostPinnedSpace} \\
+   \item Non-Portable: backend specific such as \texttt{CudaSpace, HipSpace, SYCLDeviceUSMSpace}
+\end{itemize}
+}
   \item<4->{Each \textbf{execution space} has a default memory space, which is used if \textbf{Space} provided is actually an execution space}
-  \item<5->{If no \texttt{Space} is provided, the view's data resides in the \textbf{default memory space} of the \textbf{default execution space}.}
+  \item<5->{If no \texttt{Space} is provided: \texttt{DefaultMemorySpace}}
   \end{itemize}
 
   \begin{uncoverenv}<6->
   \begin{code}[keywords={View,DefaultExecutionSpace,memory_space}]
   // Equivalent:
   View<double*> a("A",N);
-  View<double*,DefaultExecutionSpace::memory_space> b("B",N);
+  View<double*,DefaultMemorySpace> b("B",N);
   \end{code}
   \end{uncoverenv}
 \end{frame}
@@ -362,12 +364,12 @@ View<double**, @boldHostSpace@bold> hostView(...constructor arguments...);
   \vspace{-10pt}
   \pause
 
-  \ul{\textbf{Example: CudaSpace}}
+  \ul{\textbf{Example: SomeGPUSpace}}
 
   \vspace{-3pt}
 
   \begin{code}[keywords={}]
-View<double**, @boldCudaSpace@bold> view(...constructor arguments...);
+View<double**, @boldSomeGPUSpace@bold> view(...constructor arguments...);
   \end{code}
 
   \vspace{-18pt}

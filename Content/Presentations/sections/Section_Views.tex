@@ -213,14 +213,17 @@ print_value( @bluea@blue(0,2) );
 
   \textbf{Example}:
 
-  \begin{code}[keywords={View,extent,static_extent,data,label}]
+  \begin{code}[keywords={View,extent,static_extent,data,label,rank,is_allocated}]
 	  View<double*[5]> a("A",N0);
+	  static_assert(a.rank() == 2);
+	  static_assert(a.is_allocated());
 	  assert(a.extent(0) == N0);
 	  assert(a.extent(1) == 5);
 	  static_assert(a.static_extent(1) == 5);
-	  assert(a.data() != nullptr);
 	  assert(a.label() == "A");
   \end{code}
+
+  {\small Refer: \href{https://kokkos.org/kokkos-core-wiki/API/core/view/view.html}{https://kokkos.org/kokkos-core-wiki/API/core/view/view.html}
 
 \end{frame}
 %==========================================================================

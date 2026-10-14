@@ -1,0 +1,144 @@
+\begin{frame}[fragile]{View Assignment}
+
+  {\Huge View Assignment: Taking slices of Views}
+
+  \vspace{20pt}
+
+  \textbf{Learning objectives:}
+  \begin{itemize}
+    \item{View assignment rules}
+    \item{Understand compile time and run time incompatibilities}
+  \end{itemize}
+
+  \vspace{-20pt}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{View Assignment: Motivation}
+
+  In the design of libraries and applications a balance is struck generality and convenience vs. specificity and optimization.
+  
+
+\end{frame}
+
+
+\begin{frame}[fragile]{Aside: View Assignment (1)}
+
+  \textbf{\texttt{View::operator=()} just does the ``Right Thing''\textsuperscript{TM}}
+
+  \vspace{5pt}
+
+  \begin{itemize}
+    \item{\texttt{View<int**> a; a = View<int*[5]>("b", 4)}}
+    \pause
+    {\color{darkgreen}{$=>$ Okay}}
+    \pause
+    \item{\texttt{View<int*[5]> a; a = View<int**>("b", 4, 5)}}\\
+    \pause
+    {\color{darkgreen}{$=>$ Okay, checked at runtime}}
+    \pause
+    \item{\texttt{View<int*[5]> a; a = View<int*[3]>("b", 4)}}\\
+    \pause
+    {\color{darkred}{$=>$ Compilation error}}
+    \pause
+    \item{\texttt{View<int*[5]> a; a = View<int**>("b", 4, 3)}}\\
+    \pause
+    {\color{darkred}{$=>$ Runtime error}}
+    \pause
+    \item{\texttt{View<int*, CudaSpace> a;}\\
+    \texttt{a = View<int*, HostSpace>("b", 4)}}\\
+    \pause
+    {\color{darkred}{$=>$ Compilation error}}
+    \item{\texttt{View<int**, LayoutLeft> a;}\\
+    \texttt{a = View<int**, LayoutRight>("b", 4, 5)}}\\
+    \pause
+    {\color{darkred}{$=>$ Compilation error}}
+  \end{itemize}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Aside: View Assignment (2)}
+
+  \textbf{\texttt{View::operator=()} just does the ``Right Thing''\textsuperscript{TM}}
+
+  \vspace{5pt}
+
+  \begin{itemize}
+    \item{\texttt{View<const int*> a; a = View<int*>("b", 4)}}\\
+    \pause
+    {\color{darkgreen}{$=>$ Okay}}
+    \pause
+    \item{\texttt{View<int*> a; a = View<const int*>("b", 4)}}\\
+    \pause
+    {\color{darkred}{$=>$ Compilation error}}
+    \pause
+    \item{\texttt{View<int*[5], LayoutStride> a;}\\ \texttt{a = View<int*[5], LayoutLeft>("b", 4)}}
+    \pause
+    {\color{darkgreen}{$=>$ Okay, converting compile-time strides into runtime strides}}
+    \pause
+    \item{\texttt{View<int*[5], LayoutLeft> a;}\\ \texttt{a = View<int*[5], LayoutStride>("b", 4)}}
+    \pause
+    {\color{yellow!50!black}{$=>$ Okay, but only if strides match layout left (checked at runtime)}}
+  \end{itemize}
+
+\end{frame}
+%==========================================================================
+
+\begin{frame}[fragile]{View Assignment: subview}
+
+  {Given a \texttt{View}:}
+  \vspace{-2pt}
+
+  \lstset{mathescape, escapeinside={<@}{@>},
+          language=C,
+          keywords={}}
+
+  \begin{lstlisting}
+    Kokkos::View<int***> v("v", n0, n1, n2);
+  \end{lstlisting}
+  \vspace{-5pt}
+  \begin{itemize}
+    \item{\texttt{View<int***> a;}\\
+    \texttt{a = Kokkos::subview(v, ALL, 42, ALL);}}\\
+    \pause
+    {\color{darkred}{$=>$ Compilation error}}
+    \pause
+    \item{\texttt{View<int*> a;}\\
+    \texttt{a = Kokkos::subview(v, ALL, 5, 42);}}\\
+    \pause
+    {\color{darkgreen}{$=>$ Okay for LayoutLeft}} but {\color{darkred}{$=>$ Compilation error for LayoutRight}}
+    \pause
+    \item{\texttt{View<int**> a;}\\
+    \texttt{a = Kokkos::subview(v, ALL, 15, ALL);}}\\
+    \pause
+    {\color{darkred}{$=>$ Runtime error (!)}}
+    \pause
+    \item{\texttt{View<int**, LayoutStride> a;}\\
+    \texttt{a = Kokkos::subview(v, ALL, 15, ALL);}}\\
+    \pause
+    {\color{darkgreen}{$=>$ Okay}}
+  \end{itemize}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{View Assignment Summary}
+
+  \begin{itemize}
+    \item {\texttt{View::operator=()} just does the ``Right Thing''\textsuperscript{TM}}
+      \begin{itemize}
+      \item So generally don't worry about it at first! This is advanced stuff, and more for future reference.
+      \end{itemize}
+    \item {If \texttt{View::operator()} is not possible a more expensive multi-steps process can be available}
+      \begin{itemize}
+      \item{Understand why the one step assignment operator is not appropriate}
+      \item{Observe that multi-step processes can involve \texttt{Kokkos::deep\_copy()} and encure a higher cost}
+      \end{itemize}
+  \end{itemize}
+
+\end{frame}

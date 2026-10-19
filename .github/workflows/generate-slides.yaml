@@ -53,8 +53,6 @@ jobs:
 
     - name: Checkout source
       uses: actions/checkout@v6.0.2
-      with:
-        ref: ${{ matrix.branch }}
 
     - name: Build slides
       run: >

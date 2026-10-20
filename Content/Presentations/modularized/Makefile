@@ -34,6 +34,8 @@ module8:
 	latexmk KokkosTutorial_08_KokkosKernels
 module9:
 	latexmk KokkosTutorial_09_Fortran
+sc26:
+	latexmk KokkosTutorial_SC26
 
 all: module1 module2 module3 module4 module5 module6 module7 module8 module9
 

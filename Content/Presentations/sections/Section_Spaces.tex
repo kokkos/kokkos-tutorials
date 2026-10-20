@@ -326,7 +326,7 @@ Kokkos::parallel_reduce("Label",
   \item<2->{\texttt{View<double***,}{\textit{Memory}\textbf{Space}}\texttt{> data(...);}}
   \item<3->{Available \textbf{memory spaces}:
 \begin{itemize}
-   \item \texttt{DefaultMemorySpace, DefaultHostMemorySpace, SharedSpace, SharedHostPinnedSpace} \\
+   \item Portable: \texttt{DefaultMemorySpace, DefaultHostMemorySpace, SharedSpace, SharedHostPinnedSpace} \\
    \item Non-Portable: backend specific such as \texttt{CudaSpace, HipSpace, SYCLDeviceUSMSpace}
 \end{itemize}
 }

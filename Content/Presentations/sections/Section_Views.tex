@@ -114,7 +114,7 @@ parallel_for("Vector-Add",N, [=] (const int64_t i) {
   \vspace{0pt}
 
   \begin{block}{Important point}
-    Views are \textbf{like pointers}, so copy them in your functors.
+    Views are \textbf{like shared pointers}, so copy them in your functors.
   \end{block}
 
   \vspace{5pt}
@@ -171,12 +171,44 @@ data(i,j,k) = 5.3;
     \item{They behave like \texttt{std::shared\_ptr}}
   \end{itemize}
 
-  \pause
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile,t]{Views (4)}
+
   \textbf{Example}:
 
-  \vspace{-3pt}
+  % ---------- Top half: images ----------
+  \begin{textblock*}{0.9\textwidth}(0.05\textwidth,0.20\textheight)
+    \centering
+    \only<1>{\includegraphics[height=0.32\textheight]{figures/view-copy-a-b-diff.png}}
+    \only<2>{\includegraphics[height=0.32\textheight]{figures/view-copy-a-b-same.png}}
+    \only<3->{\includegraphics[height=0.32\textheight]{figures/view-copy-a-b-c.png}}
+  \end{textblock*}
 
-  \begin{code}[keywords={}]
+  % ---------- Bottom half: code ----------
+  \begin{textblock*}{0.95\textwidth}(0.05\textwidth,0.56\textheight)
+    \begin{onlyenv}<1>
+      \begin{code}[keywords={}]
+View<double*[5]> @bluea@blue("a", N), @darkgreenb@darkgreen("b", K);
+      \end{code}
+    \end{onlyenv}
+    \begin{onlyenv}<2>
+      \begin{code}[keywords={}]
+View<double*[5]> @bluea@blue("a", N), @darkgreenb@darkgreen("b", K);
+@bluea@blue = @darkgreenb@darkgreen;
+      \end{code}
+    \end{onlyenv}
+    \begin{onlyenv}<3>
+      \begin{code}[keywords={}]
+View<double*[5]> @bluea@blue("a", N), @darkgreenb@darkgreen("b", K);
+@bluea@blue = @darkgreenb@darkgreen;
+View<double**> @darkredc@darkred(@darkgreenb@darkgreen);
+      \end{code}
+    \end{onlyenv}
+    \begin{onlyenv}<4->
+      \begin{code}[keywords={}]
 View<double*[5]> @bluea@blue("a", N), @darkgreenb@darkgreen("b", K);
 @bluea@blue = @darkgreenb@darkgreen;
 View<double**> @darkredc@darkred(@darkgreenb@darkgreen);
@@ -184,21 +216,25 @@ View<double**> @darkredc@darkred(@darkgreenb@darkgreen);
 @darkgreenb@darkgreen(0,2) = 2;
 @darkredc@darkred(0,2) = 3;
 print_value( @bluea@blue(0,2) );
-  \end{code}
-
-  \begin{textblock*}{0.5\textwidth}(0.6\textwidth,0.78\textheight)
-    \onslide<2->{What gets printed?}
+      \end{code}
+    \end{onlyenv}
   \end{textblock*}
 
+  % ---------- Question (step 4) ----------
+  \begin{textblock*}{0.5\textwidth}(0.6\textwidth,0.78\textheight)
+    \onslide<4->{What gets printed?}
+  \end{textblock*}
+
+  % ---------- Answer (step 5) ----------
   \begin{textblock*}{0.5\textwidth}(0.65\textwidth,0.83\textheight)
-    \onslide<3->{\texttt{3.0}}
+    \onslide<5->{\texttt{3.0}}
   \end{textblock*}
 
 \end{frame}
 
 %==========================================================================
 
-\begin{frame}[fragile]{Views (4)}
+\begin{frame}[fragile]{Views (5)}
 
   \ul{\textbf{View} Properties:}
 

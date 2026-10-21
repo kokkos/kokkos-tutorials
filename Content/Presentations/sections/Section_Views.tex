@@ -105,7 +105,7 @@ struct Functor {
 @gray...populate x, y... @gray
 
 parallel_for("Vector-Add",N, [=] (const int64_t i) {
-    // Views x and y are captured by value (shallow copy)
+    // Views x and y captured by value; data not copied
     y(i) += x(i);
   });
   \end{code}
@@ -165,10 +165,12 @@ data(i,j,k) = 5.3;
   \begin{itemize}
     \item{Allocations only happen when \emph{explicitly} specified. \\
           \hspace{20pt}i.e., there are \textbf{no hidden allocations}.}
-    \item{Copy construction and assignment are \textbf{shallow} (like pointers).\\
-          \hspace{20pt}so, you pass \texttt{Views} by value, \emph{not} by reference}
+    \item{Behaviour is like \texttt{std::shared\_ptr}. \\
+          \hspace{20pt}i.e., shared ownership semantics.}
     \item{Reference counting is used for \textbf{automatic deallocation.}}
-    \item{They behave like \texttt{std::shared\_ptr}}
+    \item{Copy construction and assignment are \textbf{shallow}. \\
+          \hspace{20pt}i.e., the data pointed to is not copied.}
+    \item{For clear semantics: pass \texttt{Views} by value, \emph{not} by reference}.
   \end{itemize}
 
 \end{frame}

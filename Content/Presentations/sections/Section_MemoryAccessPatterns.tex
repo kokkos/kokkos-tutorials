@@ -163,7 +163,7 @@ View<double***, @boldLayout@bold, Space> name(...);
 
   \begin{code}[keywords={}]
 operator()(int index, double & valueToUpdate) const {
-  const double d = _data(index);
+  const double d = data_(index);
   valueToUpdate += d;
 }
   \end{code}
@@ -341,7 +341,7 @@ Kokkos::parallel_reduce("Label",
 
   \begin{code}[keywords={}]
 operator()(int index, double & valueToUpdate) const {
-  const double d = _data(index);
+  const double d = data_(index);
   valueToUpdate += d;
 }
   \end{code}

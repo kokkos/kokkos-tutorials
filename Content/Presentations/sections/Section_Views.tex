@@ -42,9 +42,9 @@ parallel_for("Vector-Add",N, [=] (const int64_t i) {
       frame=single
     ]
 struct Functor {
-  double *_x, *_y, a;
+  double *x_, *y_, a;
   void operator()(const int64_t i) const {
-    _y[i] += _x[i];
+    y_[i] += x_[i];
   }
 };
   \end{code}

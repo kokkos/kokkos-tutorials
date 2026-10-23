@@ -176,8 +176,7 @@ of maintaining AI-generated code in scientific HPC applications
     % Left column
     \begin{column}{0.48\textwidth}
 	Teams contributing to Kokkos
-    \includegraphics[width=0.9\textwidth]{figures/Kokkos-Team-Orgs-2025}
-    
+    \includegraphics[width=0.9\textwidth]{figures/Kokkos-Team-Orgs-2025}    
      \end{column}
 \hfill
     % Right column
@@ -251,7 +250,7 @@ Significant diversifying of user base over the last few years
 // Kokkos today
 Kokkos::atomic_add(&a[i],5.0);
 
-// atomic_ref in ISO C\texttt{++}20
+// atomic_ref in ISO C++20
 std::atomic_ref(a[i]) += 5.0;
   \end{code}
 \end{frame}
@@ -279,7 +278,7 @@ std::atomic_ref(a[i]) += 5.0;
 // Kokkos today
 View<float**[5],LayoutLeft> a("A",10,12); a(3,5,1) = 5;
 
-// mdspan in ISO C\texttt{++}23
+// mdspan in ISO C++23
 using ext = extents<int,dynamic_extent,dynamic_extent,5>;
 mdspan<float,ext,layout_left> a(ptr,10,12); a[3,5,1]+=5;
   \end{code}

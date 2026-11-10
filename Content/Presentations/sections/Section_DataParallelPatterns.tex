@@ -948,9 +948,9 @@ int main(int argc, char* argv[]) {
   \begin{small}
   \begin{code}
   # if the architecture autodetection fails configure with
-  # -DKokkos_ARCH_VOLTA70=ON for V100
-  # refer to the documentation for the complete list of supported NVIDIA GPU
-  # architectures and corresponding flags, or use ccmake to discover options
+  # -DKokkos_ARCH_VOLTA70=ON for V100; refer to the documentation
+  # for the complete list of supported NVIDIA GPU architectures
+  # and corresponding flags, or use ccmake to discover options
     cmake -B build-cuda -DKokkos_ENABLE_CUDA=ON
     cmake --build build-cuda
   \end{code}

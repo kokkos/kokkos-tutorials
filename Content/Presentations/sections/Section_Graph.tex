@@ -1,0 +1,207 @@
+
+%==========================================================================
+
+\begin{frame}[fragile]
+
+  {\Huge Graphs}
+
+  \vspace{10pt}
+
+	{\large Structured Concurrency with Graphs.}
+
+  \vspace{20pt}
+
+  \textbf{Learning objectives:}
+  \begin{itemize}
+    \item {How to express dependencies between kernels with Graphs.}
+    \item {The Graph phases: construction and use.}
+    \item {Why Graphs can help with latency limited usecases.}
+  \end{itemize}
+
+  \vspace{-20pt}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{What Are Graphs}
+\textbf{Graphs as expression of Kernel dependencies}
+
+\begin{itemize}
+  \item{Ordering kernel execution so far: fence execution space instances in the right order.}
+  \item{Graphs express this more directly}
+  \item{Graphs are preconstructed, and then (repeatedly) submitted in their entirety for execution.}
+  \item{Graphs can only be created on the host}
+\end{itemize}
+
+\pause
+
+\textbf{Important Concepts:}
+
+\begin{itemize}
+  \item{Graph: the entire object}
+  \item{Node: dependency points in the graph}
+  \item{Root-Node: the starting point for the graph construction.}
+\end{itemize}
+
+%\pause
+%\begin{block}{Important Point}
+%  Execution Spaces execute operations in dispatch order.
+%\end{block}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Creating Graphs}
+\textbf{Creating a Graph via Scoped Setting}
+
+\begin{itemize}
+  \item{Scoping prevents mistakes}
+	  \begin{itemize}
+		  \item{Disallow modification of captured objects}
+	  \end{itemize}
+  \item{But less flexible when used in complex settings}
+\end{itemize}
+
+\pause
+\begin{code}[linebackgroundcolor={},keywords={create_graph}]
+auto graph = create_graph([&](const auto& root_node) {
+  // build the graph
+  ...
+});
+graph.submit();
+\end{code}
+\end{frame}
+\begin{frame}[fragile]{Creating Graphs}
+  \textbf{Creation via raw graph object}
+\begin{itemize}
+		  \item{More flexibility in terms of creating the graph in complex software}
+		  \item{Need to be careful about capture semantics}
+                  \item{Need to explicitly instantiate to be able to submit}
+\end{itemize}
+
+\begin{code}[linebackgroundcolor={},keywords={Graph}]
+Kokkos::Experimental::Graph graph;
+auto root_node = graph.root_node();
+
+// build the graph
+...
+
+graph.instantiate();
+graph.submit();
+\end{code}
+
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{The Node Types}
+\textbf{Attach nodes to each other - starting with root\_node}
+\begin{itemize}
+  \item{\texttt{then\_parallel\_for}: same as \texttt{parallel\_for}}
+  \item{\texttt{then\_parallel\_reduce}: same as \texttt{parallel\_reduce}, but only \texttt{View} results}
+  \item{\texttt{then}: attach a single work item}
+  \item{\texttt{then\_host}: attach a single work item executing on host}
+  \item{\texttt{when\_all}: a merge node - node depending on multiple previous ones}
+\end{itemize}
+\begin{code}[linebackgroundcolor={},keywords={}]
+auto node_A = root_node.then_paralle_for("A", RangePolicy{0,N}, F_A);
+auto node_B1 = node_A.then_paralle_reduce("B1", RangePolicy{0,N}, F_B, result_view_B);
+auto node_B2 = node_A.then("B2",KOKKOS_LAMBDA() { ... });
+auto node_B_merge = when_all(node_B1, node_B2);
+auto node_C = node_B_merge.then_host("C", []() { printf("Host\n"); });
+\end{code}
+\end{frame}
+%==========================================================================
+
+\begin{frame}[fragile]{Graphs and Execution Spaces}
+  \textbf{When not otherwise specified: DefaultExecutionSpace}
+  \begin{itemize}
+    \item{Specify Graph execution space type as template parameter}
+    \item{Submit to specific instance in \texttt{submit}}
+    \item{The graph is sequenced with other work in its submitted to instance}
+    \item{Do NOT! pass execution space instances to policies for nodes.}
+    \item{Supports multi-gpu too (ask for more details)}
+  \end{itemize}
+
+\begin{code}[linebackgroundcolor={},keywords={Graph,ExecutionSpace, exec_instance}]
+Kokkos::Experimental::Graph<ExecutionSpace> graph;
+auto root_node = graph.root_node();
+
+// build the graph
+...
+
+graph.instantiate();
+graph.submit(exec_instance);
+\end{code}
+
+\end{frame}
+%==========================================================================
+
+\begin{frame}[fragile]{Pitfalls}
+  \textbf{No Execution During Constructions - Fixed Object After!}
+  \begin{itemize}
+    \item{During graph construction nodes are NOT executed}
+    \item{The functors or lambdas are copied into graph during construction - and not updated later!}
+  \end{itemize}
+\vspace{-0.7cm}
+\begin{code}[linebackgroundcolor={},keywords={}]
+
+auto graph = create_graph([&](const auto& root_node) {
+  Kokkos::View<int, SharedSpace> value("Value");
+  value() = 1;
+  auto node_A = root_node.then("A", KOKKOS_LAMBDA() {
+    printf("A %i;\n",value()); value() += 3;
+  });
+  Kokkos::fence();
+  auto scalar = value();
+  printf("H %i;\n", scalar);
+  return node_B = node_A.then("B", KOKKOS_LAMBDA() {
+     printf("B %i %i;\n",scalar, value()); value() += 7;
+    });
+});
+graph.submit();
+graph.submit();
+\end{code}
+
+This prints: \texttt{H 1; A 1; B 1 4; A 11; B 1 14;}
+\end{frame}
+
+\begin{frame}[fragile]{Exercise: Execution Space Instances}
+\textbf{Simulate MPI communication behavior with N neihbors}
+\begin{code}
+for(int n=0; n<neighbors; n++) {
+  auto my_send_buffer = subview(my_send_buffer, n, ALL);
+  auto my_recv_buffer = subview(my_recv_buffer, n, ALL);
+  auto my_idxs = subview(idxs, n, ALL);
+  pack_buffers(data, my_idxs, my_send_buffer);
+  exchange_messages(my_send_buffer, my_recv_buffer);
+  unpack_buffers(data, my_recv_buffer);
+}
+\end{code}
+
+
+  \textbf{Details}:
+  \begin{small}
+  \begin{itemize}
+\item Location: \ExerciseDirectory{graph}
+\item Create a graph
+\item Pass nodes into the functions
+\item Use a host node to print a message during exchange
+\end{itemize}
+  \end{small}
+
+\ul{\textbf{Things to try:}}
+  \begin{small}
+  \begin{itemize}
+  \item Vary problem size, number of neighors and instances (-S; -N; -I)
+  \end{itemize}
+  \end{small}
+
+\end{frame}
+
+
+%==========================================================================
+

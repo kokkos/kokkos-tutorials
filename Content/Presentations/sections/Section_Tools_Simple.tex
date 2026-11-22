@@ -78,7 +78,7 @@
 
   \begin{itemize}
     \item Knows about parallel dispatch
-    \item Knows about allocations, deallocations and deep\_copy
+    \item Knows about allocations, deallocations and \texttt{deep\_copy}
     \item Provides region markers
     \item Leverages naming information (kernels, Views)
   \end{itemize}
@@ -123,14 +123,13 @@ Download tools from \url{https://github.com/kokkos/kokkos-tools}
       \item Use the same tool for CUDA and OpenMP code for example.
      \end{itemize}
   \item We recommend you build the tools with CMake
-\begin{lstlisting}
+\begin{minted}[fontsize=\scriptsize]{bash}
 cd kokkos-tools && cmake -B build
 cmake --build build --parallel 4
 cmake --install build --prefix /where/to/install/the/tools
-\end{lstlisting}
+\end{minted}
 \end{itemize}
 
-\vspace{5pt}
 Loading Tools:
 \begin{itemize}
   \item Set \texttt{KOKKOS\_TOOLS\_LIBS} environment variable to the full path to the shared library of the tool.
@@ -215,13 +214,12 @@ double, void>, Kokkos::Cuda, Kokkos::InvalidType, Kokkos::RangePolicy>)
 \begin{itemize}
 \item Simple tool producing a summary similar to nvprof
 \item Good way to get a rough overview of whats going on
-\item Writes a file \texttt{HOSTNAME-PROCESSID.dat} per process
-\item Use the reader accompanying the tool to read the data
+\item Ordered by sum of time spend in kernel
 \end{itemize}
 
 Usage:
 
-\begin{code}[mathescape=false]
+\begin{minted}[fontsize=\footnotesize]{bash}
   git clone git@github.com:kokkos/kokkos-tools
   cd kokkos-tools/profiling/simple_kernel_timer
   make
@@ -229,8 +227,27 @@ Usage:
   export PATH=${PATH}:${PWD}
   cd ${WORKDIR}
   ./text.cuda
+\end{minted}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{An Example Code}
+\textbf{Lets use SimpleKernelTimer from Kokkos Tools:}
+
+\begin{itemize}
+\item Can writes a file \texttt{HOSTNAME-PROCESSID.dat} per process
+\item Can also export result in \texttt{JSON} form
+\item Use the reader accompanying the tool to read the data
+\end{itemize}
+
+Usage:
+
+\begin{minted}[fontsize=\footnotesize]{bash}
+  ./text.cuda
   kp_reader *.dat
-\end{code}
+\end{minted}
 
 \end{frame}
 
@@ -239,38 +256,39 @@ Usage:
 \begin{frame}[fragile]{An Example Code}
 
 Output from SimpleKernelTimer:
-\includegraphics[width=0.85\textwidth]{../figures/tools-kerneltimer-simple-code}
+\begin{minted}[fontsize=\tiny]{text}
+   (Type)   Total Time, Call Count, Avg. Time per Call, %Total Time in Kernels, %Total Program Time
+-------------------------------------------------------------------------
+Kernels: 
 
+- K_2
+ (ParRed)   0.007851 32 0.000245 43.356726 11.332085
+- Kokkos::Impl::hostspace_parallel_zeromemset
+ (ParFor)   0.004765 2 0.002383 26.315027 6.877921
+- Kokkos::View::initialization [Tmp] via memset
+ (ParFor)   0.003572 32 0.000112 19.723762 5.155171
+- K_1
+ (ParScan)  0.000987 32 0.000031 5.451026 1.424727
+- Init_A
+ (ParFor)   0.000831 1 0.000831 4.589922 1.199661
+- Kokkos::View::initialization [A] via memset
+ (ParFor)   0.000102 1 0.000102 0.563536 0.147291
+
+-------------------------------------------------------------------------
+Summary:
+
+Total Execution Time (incl. Kokkos + non-Kokkos):                   0.06928 seconds
+Total Time in Kokkos kernels:                                       0.01811 seconds
+   -> Time outside Kokkos kernels:                                  0.05117 seconds
+   -> Percentage in Kokkos kernels:                                   26.14 %
+Total Calls to Kokkos Kernels:                                          100
+-------------------------------------------------------------------------
+\end{minted}
 \pause
-\vspace{5pt}
-Will introduce \textit{Regions} later.
-
 \begin{block}{Kernel Naming}
 Naming Kernels avoid seeing confusing Profiler output!
 \end{block}
 
-%\begin{code}[keywords={popRegion,pushRegion,Profiling,parallel_for,deep_copy,parallel_scan,parallel_reduce,K_1,K_2,Init_A,tmp,a,h_a}]
-%Regions:
-%- Iterate (REGION)   0.007105 1 0.007105 202.569506 67.768858
-%- Setup (REGION)   0.001906 1 0.001906 54.340290 18.179337
-%
-%-------------------------------------------------------------------------
-%Kernels:
-%- K_1 (ParScan)  0.001583 10 0.000158 45.136293 15.100175
-%- Kokkos::View::initialization [A_mirror] (ParFor)   0.000809 1 0.000809 23.064374 7.716099
-%- Kokkos::View::initialization [Tmp] (ParFor)   0.000419 10 0.000042 11.943444 3.995634
-%- K_2 (ParRed)   0.000386 10 0.000039 11.018965 3.686353
-%- Init_A (ParFor)   0.000238 1 0.000238 6.784039 2.269575
-%- Kokkos::View::initialization [A] (ParFor)   0.000072 1 0.000072 2.052886 0.686785
-%
-%-------------------------------------------------------------------------
-%Summary:
-%Total Execution Time (incl. Kokkos + non-Kokkos): 0.01048 s
-%Total Time in Kokkos kernels:                     0.00351 s
-%   -> Time outside Kokkos kernels:                0.00698 s
-%   -> Percentage in Kokkos kernels:               33.45 %
-%Total Calls to Kokkos Kernels:                    33
-%\end{code}
 \end{frame}
 
 %==========================================================================
@@ -310,7 +328,19 @@ Three simple tools for understanding memory utilization:
   \end{itemize}
 \end{itemize}
 
-\includegraphics[width=0.8\textwidth]{../figures/tools-memevents-simple-code}
+\begin{minted}[fontsize=\tiny]{text}
+# Memory Events
+# Time     Ptr                  Size        MemSpace      Op         Name
+0.000034   0x7f5a4c200000       33554432              HIP Allocate   A
+0.000265   0x7f5a4a1ff040       33554432             Host Allocate   A_mirror
+0.049505   0x7f5a47600000       33554432              HIP Allocate   Tmp
+0.051560   0x7f5a47600000      -33554432              HIP DeAllocate Tmp
+...
+0.067489   0x7f5a47600000       33554432              HIP Allocate   Tmp
+0.067866   0x7f5a47600000      -33554432              HIP DeAllocate Tmp
+0.067917   0x7f5a4a1ff040      -33554432             Host DeAllocate A_mirror
+0.070094   0x7f5a4c200000      -33554432              HIP DeAllocate A
+\end{minted}
 \end{frame}
 
 %==========================================================================
@@ -331,11 +361,11 @@ Region Markers are helpful to:
 \pause
 \vspace{10pt}
 Simple Push/Pop interface:
-\begin{code}
+\begin{minted}[fontsize=\footnotesize]{cpp}
   Kokkos::Profiling::pushRegion("Label");
-  ...
+  /*...*/
   Kokkos::Profiling::popRegion();
-\end{code}
+\end{minted}
 \end{frame}
 
 %==========================================================================

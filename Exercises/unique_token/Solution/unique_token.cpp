@@ -90,7 +90,7 @@ int main(int argc, char* argv[]) {
     Kokkos::deep_copy(values,values_h);
 
     double time_dup = scatter_add_loop(values,results,D);
-    std::cout << "Time Duplicated: " << N << " " << M << " " << time_dup << std::endl;
+    printf("Time Duplicated: %d %d %d %lf\n",N,M,D,time_dup);
 
   }
   Kokkos::finalize();

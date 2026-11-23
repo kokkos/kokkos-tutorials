@@ -13,9 +13,6 @@ backend="$6"
 # TODO: advanced_reductions seems broken
 # TODO: hpcbind does not use cmake
 # TODO: instances does not use cmake
-# TODO: parallel_scan seems broken
-# TODO: simd_warp seems broken
-# TODO: subview seems broken
 # TODO: vectorshift needs Kokkos Remote Spaces
 # TODO: kokkoskernels/CGSolve_SpILUKprecond needs to know where Kokkos Kernels source directory is
 # TODO: kokkoskernels/SpILUK needs to know where Kokkos Kernels source directory is
@@ -33,9 +30,11 @@ kokkoskernels/InnerProduct
 mdrange
 mpi_heat_conduction
 mpi_pack_unpack
+parallel_scan
 random_number
 scatter_view
 simd
+subview
 team_policy
 team_scratch_memory
 team_vector_loop

@@ -21,56 +21,145 @@
 %==========================================================================
 
 \begin{frame}[fragile]{Using Third Party Tools}
-Kokkos Tools can also be used to interface and augment existing profiling tools.
 
-\begin{itemize}
-  \item Provide context information like Kernel names
-  \item Turn data collection on and off in a tool independent way
-\end{itemize}
+  Kokkos Tools can also interface with and augment existing profiling tools.
 
-\vspace{10pt}
-There are two ways this happens:
-\begin{itemize}
-  \item Load a specific connector tool like \texttt{nvtx-connector}
   \begin{itemize}
-     \item For example for Nsight Compute and VTune
+    \item Provide context information like kernel names
+    \item Turn data collection on and off in a tool-independent way
   \end{itemize}
-  \item Tools themselves know about Kokkos instrumentation
+
+  \vspace{10pt}
+  There are two ways this happens:
   \begin{itemize}
-     \item For example Tau
+    \item Load a specific connector tool
+    \begin{itemize}
+      \item \texttt{nvtx-connector} for Nsight Systems and Nsight Compute
+      \item \texttt{roctx-connector} for AMD tools, \texttt{vtune-connector} for VTune
+    \end{itemize}
+    \item Tools themselves know about Kokkos instrumentation
+    \begin{itemize}
+      \item For example TAU
+    \end{itemize}
   \end{itemize}
-\end{itemize}
+
 \end{frame}
 
 %==========================================================================
 
-\begin{frame}[fragile]{Connecting to Tools - Nsight Compute}
-\textbf{Use the \texttt{nvtx-connector} to interact with NVIDIA tools}
+\begin{frame}{NVTX connector for NVIDIA tools}
+  \textbf{Translates KokkosP hooks into NVTX instrumentation} (NVIDIA Tools eXtension)
 
-\vspace{10pt}
-Translates KokkosP hooks into NVTX instrumentation
-\begin{itemize}
-\item Works with all NVIDIA tools which understand NVTX
-\item Translates Regions and Kernel Dispatches
-\end{itemize}
-
-\pause
-\vspace{10pt}
-Initially wasn't very useful since regions are shown independently of kernels
-
-\pause
-\vspace{15pt}
-\textbf{But CUDA 11 added renaming of Kernels based on Kokkos User feedback!}
-\end{frame}
-
-\begin{frame}[fragile]{Connecting to Tools - Nsight Compute}
-  To enable kernel renaming you need to:
   \begin{itemize}
-    \item Load the nvprof-connector via setting \texttt{KOKKOS\_TOOLS\_LIBS} in the run configuration.
-    \item Go to \texttt{Tools > Preferences > Rename CUDA Kernels by NVTX} and set it on.
+    \item Kokkos regions and kernel dispatches become NVTX ranges
+    \item Works with all NVIDIA tools which understand NVTX
+    \item Equivalent \texttt{roctx-connector} for AMD
   \end{itemize}
 
-  This does a few things:
+  \pause
+  \vspace{10pt}
+  \textbf{Since CUDA 11, kernels can be renamed after their NVTX label}
+  \begin{itemize}
+    \item Added based on Kokkos user feedback
+    \item Kokkos labels replace obscure internal function names
+    \item Translates Regions and Kernel Dispatches
+  \end{itemize}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{NVTX connector and Nsight Systems}
+
+  Analyze the whole program
+  \vspace{5pt}
+
+  \begin{columns}
+    \begin{column}{0.5\linewidth}
+      \begin{minted}[autogobble,breaklines,fontsize=\scriptsize,breakafter={=}]{sh}
+        nsys profile -o report \ 
+          ./my_program \
+            --kokkos-tools-libs=/path/to/libkp_nvtx_connector.so
+      \end{minted}
+      \vspace{5pt}
+      \begin{minted}[autogobble,breaklines,fontsize=\scriptsize]{text}
+        KokkosP: NVTX Analyzer Connector \
+          (sequence is 0, version: 20240906)
+      \end{minted}
+      \vspace{5pt}
+      \begin{minted}[autogobble,breaklines,fontsize=\scriptsize]{sh}
+        nsys-ui report.nsys-rep
+      \end{minted}
+    \end{column}
+    \begin{column}{0.5\linewidth}
+      \begin{itemize}
+        \item Run the program with the argument through \texttt{nsys}
+        \item Do not run your program for too long when profiling!
+        \item About 10 iterations is enough
+        \item Open the generated report with \texttt{nsys-ui}
+      \end{itemize}
+    \end{column}
+  \end{columns}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}{Nsight Systems overview}
+
+  \begin{columns}
+    \begin{column}{0.65\linewidth}
+      \includegraphics[width=\linewidth]{../figures/nsight_systems_example.png}
+    \end{column}
+    \begin{column}{0.35\linewidth}
+      \begin{itemize}
+        \item Activity against execution time
+        \item Cuda activity
+        \begin{itemize}
+          \item Kernels
+          \item Memory
+        \end{itemize}
+        \item NVTX
+        \begin{itemize}
+          \item Parallel constructs
+          \item Fences
+          \item Regions
+        \end{itemize}
+        \item Cuda API calls
+      \end{itemize}
+    \end{column}
+  \end{columns}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}{Display NVTX name of kernels in Nsight Systems}
+
+  \begin{columns}
+    \begin{column}{0.5\linewidth}
+      \begin{itemize}
+        \item Kernels are named after function name, which for Kokkos is an obscure internal name
+        \item Set to rename the kernels after the NVTX name
+        \begin{enumerate}
+          \item Tools $\rightarrow$ Options
+          \item Behavior $\rightarrow$ Report
+          \item Set "Rename CUDA Kernels by NVTX" to \emph{Yes}
+          \item Re-open the report
+        \end{enumerate}
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.5\linewidth}
+      \includegraphics[width=\linewidth]{../figures/nsight_systems_options.png}
+    \end{column}
+  \end{columns}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Display NVTX name of kernels in Nsight Systems}
+
   \begin{itemize}
     \item User Labels are now used as the primary name.
     \item You can still expand the row to see which actual kernels are grouped under it.
@@ -79,10 +168,75 @@ Initially wasn't very useful since regions are shown independently of kernels
     \end{itemize}
     \item The bars are now named \texttt{Label/GLOBAL\_FUNCTION\_NAME}.
   \end{itemize}
+
+  \vspace{10pt}
   \includegraphics[width=\textwidth]{../figures/tools-simple-example-nvprof-zoomin.png}
+
 \end{frame}
 
+%==========================================================================
 
+\begin{frame}[fragile]{NVTX connector and Nsight Compute}
+
+  Kernel by kernel analysis
+  \vspace{5pt}
+
+  \begin{columns}
+    \begin{column}{0.5\linewidth}
+      \begin{minted}[autogobble,breaklines,fontsize=\scriptsize,breakafter={=}]{sh}
+        ncu -o report --nvtx \
+          --nvtx-include "<NVTX region>/" \
+          --set detailed ./my_program \
+            --kokkos-tools-libs=/path/to/libkp_nvtx_connector.so
+      \end{minted}
+      \vspace{5pt}
+      \begin{minted}[autogobble,breaklines,fontsize=\scriptsize]{text}
+        KokkosP: NVTX Analyzer Connector \
+          (sequence is 0, version: 20240906)
+      \end{minted}
+      \vspace{5pt}
+      \begin{minted}[autogobble,breaklines,fontsize=\scriptsize]{sh}
+        ncu-ui report.ncu-rep
+      \end{minted}
+    \end{column}
+    \begin{column}{0.5\linewidth}
+      \begin{itemize}
+        \item Run the program with the argument through \texttt{ncu}
+        \item Use NVTX region to profile only certain kernels
+        \item Set of metrics to collect
+        \item The more the metrics, the slower the profiling
+        \item Run for about 10 iterations
+        \item Open the generated report with \texttt{ncu-ui}
+      \end{itemize}
+    \end{column}
+  \end{columns}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}{Nsight Compute overview}
+
+  \begin{columns}
+    \begin{column}{0.65\linewidth}
+      \includegraphics[width=\linewidth]{../figures/nsight_compute_example.png}
+    \end{column}
+    \begin{column}{0.35\linewidth}
+      \begin{itemize}
+        \item Details of each kernel
+        \item Many metrics
+        \begin{itemize}
+          \item Speed of light
+          \item Occupancy
+          \item ...
+        \end{itemize}
+        \item Can give suggestions
+        \item Check online resources!
+      \end{itemize}
+    \end{column}
+  \end{columns}
+
+\end{frame}
 
 %==========================================================================
 

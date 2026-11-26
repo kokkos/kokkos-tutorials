@@ -52,7 +52,7 @@
 
   \begin{itemize}
     \item Kokkos regions and kernel dispatches become NVTX ranges
-    \item Works with all NVIDIA tools which understand NVTX
+    \item Works with all NVIDIA tools that understand NVTX
     \item Equivalent \texttt{roctx-connector} for AMD
   \end{itemize}
 
@@ -77,13 +77,13 @@
   \begin{columns}
     \begin{column}{0.5\linewidth}
       \begin{minted}[autogobble,breaklines,fontsize=\scriptsize,breakafter={=}]{sh}
-      nsys profile -o report \ 
+      nsys profile -o report \
         ./my_program \
           --kokkos-tools-libs=/path/to/libkp_nvtx_connector.so
       \end{minted}
       \vspace{5pt}
       \begin{minted}[autogobble,breaklines,fontsize=\scriptsize]{text}
-      KokkosP: NVTX Analyzer Connector \
+      KokkosP: NVTX Analyzer Connector
         (sequence is 0, version: 20240906)
       \end{minted}
       \vspace{5pt}
@@ -114,7 +114,7 @@
     \begin{column}{0.35\linewidth}
       \begin{itemize}
         \item Activity against execution time
-        \item Cuda activity
+        \item CUDA activity
         \begin{itemize}
           \item Kernels
           \item Memory
@@ -125,7 +125,7 @@
           \item Fences
           \item Regions
         \end{itemize}
-        \item Cuda API calls
+        \item CUDA API calls
       \end{itemize}
     \end{column}
   \end{columns}
@@ -139,7 +139,7 @@
   \begin{columns}
     \begin{column}{0.5\linewidth}
       \begin{itemize}
-        \item Kernels are named after function name, which for Kokkos is an obscure internal name
+        \item Kernels are named after their function name, which for Kokkos is an obscure internal name
         \item Set to rename the kernels after the NVTX name
         \begin{enumerate}
           \item Tools $\rightarrow$ Options
@@ -191,7 +191,7 @@
       \end{minted}
       \vspace{5pt}
       \begin{minted}[autogobble,breaklines,fontsize=\scriptsize]{text}
-      KokkosP: NVTX Analyzer Connector \
+      KokkosP: NVTX Analyzer Connector
         (sequence is 0, version: 20240906)
       \end{minted}
       \vspace{5pt}

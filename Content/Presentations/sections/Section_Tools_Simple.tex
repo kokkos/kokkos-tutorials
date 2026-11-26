@@ -228,7 +228,7 @@ Usage:
   git clone https://github.com/kokkos/kokkos-tools.git
   cd kokkos-tools/profiling/simple-kernel-timer
   make
-  export KOKKOS_TOOLS_LIBS=${PWD}/kp_kernel_timer.so
+  export KOKKOS_TOOLS_LIBS=${PWD}/libkp_kernel_timer.so
   export PATH=${PATH}:${PWD}
   cd ${WORKDIR}
   ./test.hip
@@ -239,30 +239,11 @@ Usage:
 %==========================================================================
 
 \begin{frame}[fragile]{An Example Code}
-\textbf{Let's use SimpleKernelTimer from Kokkos Tools:}
-
-\begin{itemize}
-\item Can write a file \texttt{HOSTNAME-PROCESSID.dat} per process
-\item Can also export results as \texttt{JSON}
-\item Use the reader accompanying the tool to read the data
-\end{itemize}
-
-Usage:
-
-\begin{minted}[fontsize=\footnotesize]{bash}
-  export KOKKOS_TOOLS_TIMER_BINARY=1  # or KOKKOS_TOOLS_TIMER_JSON=1
-  ./test.hip
-  kp_reader *.dat
-\end{minted}
-
-\end{frame}
-
-%==========================================================================
-
-\begin{frame}[fragile]{An Example Code}
 
 Output from SimpleKernelTimer:
 \begin{minted}[bgcolor=lightlightgray,fontsize=\tiny]{text}
+KokkosP: Simple Kernel Timer Library Initialized (sequence is 0, version: 20261022)
+
 (Type)   Total Time, Call Count, Avg. Time per Call, %Total Time in Kernels, %Total Program Time
 -------------------------------------------------------------------------
 Kernels:
@@ -312,6 +293,27 @@ Total Calls to Kokkos Kernels:                                           99
   \item Fraction of time spent in Kokkos kernels
   \item Number of calls to Kokkos kernels
 \end{itemize}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{An Example Code}
+\textbf{Exporting SimpleKernelTimer results:}
+
+\begin{itemize}
+\item Can write a file \texttt{HOSTNAME-PROCESSID.dat} per process
+\item Can also export results as \texttt{JSON}
+\item Use the reader accompanying the tool to read the data
+\end{itemize}
+
+Usage:
+
+\begin{minted}[fontsize=\footnotesize]{bash}
+  export KOKKOS_TOOLS_TIMER_BINARY=1  # or KOKKOS_TOOLS_TIMER_JSON=1
+  ./test.hip
+  kp_reader *.dat
+\end{minted}
 
 \end{frame}
 
@@ -425,14 +427,14 @@ The simplest tool to leverage regions is the \textbf{Space Time Stack}:
 \begin{itemize}
   \item \textbf{Bottom Up} and \textbf{Top Down} data representation
   \item Can do MPI aggregation if compiled with MPI support
-  \item Also aggregates memory utilization info.
 \end{itemize}
 
 \begin{minted}[bgcolor=lightlightgray,fontsize=\tiny]{text}
 BEGIN KOKKOS PROFILING REPORT:
 TOTAL TIME: 0.0293998 seconds
 TOP-DOWN TIME TREE:
-<average time> <percent of total time> <percent time in Kokkos> <percent MPI imbalance> <remainder> <kernels per second> <number of calls> <name> [type]
+<average time> <percent of total time> <percent time in Kokkos> <percent MPI imbalance> 
+<remainder> <kernels per second> <number of calls> <name> [type]
 ===================
 |-> 1.48e-02 sec 50.5% 100.0% 0.0% 0.0% 1.35e+02 1 Setup [region]
 |   |-> 1.47e-02 sec 50.2% 100.0% 0.0% ------ 1 "A"="A_mirror" (HIP->HOST) [copy]
@@ -454,12 +456,10 @@ END KOKKOS PROFILING REPORT.
 
 %==========================================================================
 
-\begin{frame}[fragile]{Space Time Stack}
+\begin{frame}[fragile]{Space Time Stack - Memory}
 The simplest tool to leverage regions is the \textbf{Space Time Stack}:
 
 \begin{itemize}
-  \item \textbf{Bottom Up} and \textbf{Top Down} data representation
-  \item Can do MPI aggregation if compiled with MPI support
   \item Also aggregates memory utilization info.
 \end{itemize}
 

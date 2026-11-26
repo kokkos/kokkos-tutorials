@@ -65,7 +65,7 @@
   Most profiling tools have an instrumentation interface
 
   \begin{itemize}
-    \item E.g. nvtx for NVIDIA, ITT for Intel.
+    \item E.g. nvtx for NVIDIA, ROCTx for AMD, ITT for Intel.
     \item Allows to name regions
     \item Sometimes can mark up memory operations.
   \end{itemize}
@@ -78,7 +78,7 @@
 
   \begin{itemize}
     \item Knows about parallel dispatch
-    \item Knows about allocations, deallocations and deep\_copy
+    \item Knows about allocations, deallocations and \texttt{deep\_copy}
     \item Provides region markers
     \item Leverages naming information (kernels, Views)
   \end{itemize}
@@ -88,7 +88,7 @@
 %==========================================================================
 
 \begin{frame}[fragile]{The Kokkos Tools}
-  There are two components to Kokkos Tools: the KokkosP instrumentation interface and the actual Tools. 
+  There are two components to Kokkos Tools: the KokkosP instrumentation interface and the actual Tools.
 
   \vspace{10pt}
   \textbf{KokkosP Interface}
@@ -106,7 +106,7 @@
     \item Are loaded at runtime by Kokkos.
     \begin{itemize}
       \item Set \texttt{KOKKOS\_TOOLS\_LIBS} environment variable to load a shared library.
-      \item Compile tools into the executable and use the API callback setting mechanism. 
+      \item Compile tools into the executable and use the API callback setting mechanism.
     \end{itemize}
   \end{itemize}
 \end{frame}
@@ -114,7 +114,11 @@
 %==========================================================================
 
 \begin{frame}[fragile]{How does it Work}
-Download tools from \url{https://github.com/kokkos/kokkos-tools}
+\begin{itemize}
+    \item Library of the Kokkos ecosystem
+    \item Download from \url{https://github.com/kokkos/kokkos-tools}
+    \item Documentation \url{https://github.com/kokkos/kokkos-tools/wiki}
+\end{itemize}
 
 \begin{itemize}
   \item Tools are largely independent of the Kokkos configuration
@@ -123,24 +127,28 @@ Download tools from \url{https://github.com/kokkos/kokkos-tools}
       \item Use the same tool for CUDA and OpenMP code for example.
      \end{itemize}
   \item We recommend you build the tools with CMake
-\begin{lstlisting}
+\begin{minted}[fontsize=\footnotesize]{bash}
 cd kokkos-tools && cmake -B build
 cmake --build build --parallel 4
 cmake --install build --prefix /where/to/install/the/tools
-\end{lstlisting}
+\end{minted}
 \end{itemize}
 
-\vspace{5pt}
-Loading Tools:
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{How does it Work}
+
+Using Tools:
 \begin{itemize}
   \item Set \texttt{KOKKOS\_TOOLS\_LIBS} environment variable to the full path to the shared library of the tool.
+  \item Pass the path of the library to \texttt{--kokkos-tools-libs} argument of the program
   \item Kokkos dynamically loads symbols from the library during \texttt{initialize} and fills function pointers.
   \item If no tool is loaded the overhead is a function pointer comparison to \texttt{nullptr}.
 \end{itemize}
 
 \end{frame}
-
-
 
 %==========================================================================
 
@@ -149,14 +157,11 @@ Loading Tools:
 View<double*> a("A",N);
 View<double*, HostSpace> h_a = create_mirror_view(a);
 
-Profiling::pushRegion("Setup");
 parallel_for("Init_A",RangePolicy<h_exec_t>(0,N),
   KOKKOS_LAMBDA(int i) { h_a(i) = i; });
 deep_copy(a,h_a);
-Profiling::popRegion();
 
-Profiling::pushRegion("Iterate");
-for(int r=0; r<10; r++) {
+for(int r=0; r<32; r++) {
   View<double*> tmp("Tmp",N);
   parallel_scan("K_1",RangePolicy<exec_t>(0,N),
     KOKKOS_LAMBDA(int i, double& lsum, bool f) {
@@ -168,7 +173,6 @@ for(int r=0; r<10; r++) {
     lsum += tmp(i);
   },sum);
 }
-Profiling::popRegion();
 \end{code}
 \end{frame}
 
@@ -210,27 +214,25 @@ double, void>, Kokkos::Cuda, Kokkos::InvalidType, Kokkos::RangePolicy>)
 
 \pause
 \vspace{10pt}
-\textbf{Lets use SimpleKernelTimer from Kokkos Tools:}
+\textbf{Let's use SimpleKernelTimer from Kokkos Tools:}
 
 \begin{itemize}
 \item Simple tool producing a summary similar to nvprof
 \item Good way to get a rough overview of whats going on
-\item Writes a file \texttt{HOSTNAME-PROCESSID.dat} per process
-\item Use the reader accompanying the tool to read the data
+\item Sorted by total time spent in each kernel
 \end{itemize}
 
 Usage:
 
-\begin{code}[mathescape=false]
-  git clone git@github.com:kokkos/kokkos-tools
-  cd kokkos-tools/profiling/simple_kernel_timer
+\begin{minted}[fontsize=\footnotesize]{bash}
+  git clone https://github.com/kokkos/kokkos-tools.git
+  cd kokkos-tools/profiling/simple-kernel-timer
   make
-  export KOKKOS_TOOLS_LIBS=${PWD}/kp_kernel_timer.so
+  export KOKKOS_TOOLS_LIBS=${PWD}/libkp_kernel_timer.so
   export PATH=${PATH}:${PWD}
   cd ${WORKDIR}
-  ./text.cuda
-  kp_reader *.dat
-\end{code}
+  ./test.hip
+\end{minted}
 
 \end{frame}
 
@@ -239,45 +241,169 @@ Usage:
 \begin{frame}[fragile]{An Example Code}
 
 Output from SimpleKernelTimer:
-\includegraphics[width=0.85\textwidth]{../figures/tools-kerneltimer-simple-code}
+\begin{minted}[bgcolor=lightlightgray,fontsize=\tiny]{text}
+KokkosP: Simple Kernel Timer Library Initialized (sequence is 0, version: 20261022)
+
+(Type)   Total Time, Call Count, Avg. Time per Call, %Total Time in Kernels, %Total Program Time
+-------------------------------------------------------------------------
+Kernels:
+
+- K_2
+ (ParRed)   0.004935 32 0.000154 48.719458 16.531678
+- Kokkos::View::initialization [Tmp] via memset
+ (ParFor)   0.002148 32 0.000067 21.208983 7.196716
+- Kokkos::View::initialization [A_mirror] via memset
+ (ParFor)   0.001821 1 0.001821 17.977026 6.100035
+- K_1
+ (ParScan)  0.001037 32 0.000032 10.237277 3.473753
+- Init_A
+ (ParFor)   0.000118 1 0.000118 1.165199 0.395380
+- Kokkos::View::initialization [A] via memset
+ (ParFor)   0.000070 1 0.000070 0.692058 0.234832
+
+-------------------------------------------------------------------------
+\end{minted}
 
 \pause
-\vspace{5pt}
-Will introduce \textit{Regions} later.
 
 \begin{block}{Kernel Naming}
 Naming Kernels avoid seeing confusing Profiler output!
 \end{block}
 
-%\begin{code}[keywords={popRegion,pushRegion,Profiling,parallel_for,deep_copy,parallel_scan,parallel_reduce,K_1,K_2,Init_A,tmp,a,h_a}]
-%Regions:
-%- Iterate (REGION)   0.007105 1 0.007105 202.569506 67.768858
-%- Setup (REGION)   0.001906 1 0.001906 54.340290 18.179337
-%
-%-------------------------------------------------------------------------
-%Kernels:
-%- K_1 (ParScan)  0.001583 10 0.000158 45.136293 15.100175
-%- Kokkos::View::initialization [A_mirror] (ParFor)   0.000809 1 0.000809 23.064374 7.716099
-%- Kokkos::View::initialization [Tmp] (ParFor)   0.000419 10 0.000042 11.943444 3.995634
-%- K_2 (ParRed)   0.000386 10 0.000039 11.018965 3.686353
-%- Init_A (ParFor)   0.000238 1 0.000238 6.784039 2.269575
-%- Kokkos::View::initialization [A] (ParFor)   0.000072 1 0.000072 2.052886 0.686785
-%
-%-------------------------------------------------------------------------
-%Summary:
-%Total Execution Time (incl. Kokkos + non-Kokkos): 0.01048 s
-%Total Time in Kokkos kernels:                     0.00351 s
-%   -> Time outside Kokkos kernels:                0.00698 s
-%   -> Percentage in Kokkos kernels:               33.45 %
-%Total Calls to Kokkos Kernels:                    33
-%\end{code}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{An Example Code}
+
+Output from SimpleKernelTimer:
+\begin{minted}[bgcolor=lightlightgray,fontsize=\tiny]{text}
+-------------------------------------------------------------------------
+Summary:
+
+Total Execution Time (incl. Kokkos + non-Kokkos):                   0.02985 seconds
+Total Time in Kokkos kernels:                                       0.01013 seconds
+   -> Time outside Kokkos kernels:                                  0.01972 seconds
+   -> Percentage in Kokkos kernels:                                   33.93 %
+Total Calls to Kokkos Kernels:                                           99
+-------------------------------------------------------------------------
+\end{minted}
+
+\begin{itemize}
+  \item Fraction of time spent in Kokkos kernels
+  \item Number of calls to Kokkos kernels
+\end{itemize}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{An Example Code}
+\textbf{Exporting SimpleKernelTimer results:}
+
+\begin{itemize}
+\item Can write a file \texttt{HOSTNAME-PROCESSID.dat} per process
+\item Can also export results as \texttt{JSON}
+\item Use the reader accompanying the tool to read the data
+\end{itemize}
+
+Usage:
+
+\begin{minted}[fontsize=\footnotesize]{bash}
+  export KOKKOS_TOOLS_TIMER_BINARY=1  # or KOKKOS_TOOLS_TIMER_JSON=1
+  ./test.hip
+  kp_reader *.dat
+\end{minted}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Push/Pop Regions}
+  \textbf{Adding region markers to capture more code structure}
+
+Region Markers are helpful to:
+\begin{itemize}
+  \item Find where time is spent outside of kernels.
+  \item Group Kernels which belong together.
+  \item Structure code profiles.
+  \begin{itemize}
+     \item For example bracket \textit{setup} or \textit{solve} phase.
+  \end{itemize}
+  \item Regions can be nested
+\end{itemize}
+
+\pause
+\vspace{10pt}
+Simple Push/Pop interface:
+\begin{minted}[fontsize=\footnotesize]{cpp}
+  Kokkos::Profiling::pushRegion("Label");
+  /*...*/
+  Kokkos::Profiling::popRegion();
+\end{minted}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{An Example Code}
+\begin{code}[keywords={popRegion,pushRegion,Profiling,parallel_for,deep_copy,parallel_scan,parallel_reduce,K_1,K_2,Init_A,tmp,a,h_a},linebackgroundcolor={\btLstHL{4,8,10,23}{bodyColor}}]
+View<double*> a("A",N);
+View<double*, HostSpace> h_a = create_mirror_view(a);
+
+Profiling::pushRegion("Setup");
+parallel_for("Init_A",RangePolicy<h_exec_t>(0,N),
+  KOKKOS_LAMBDA(int i) { h_a(i) = i; });
+deep_copy(a,h_a);
+Profiling::popRegion();
+
+Profiling::pushRegion("Iterate");
+for(int r=0; r<32; r++) {
+  View<double*> tmp("Tmp",N);
+  parallel_scan("K_1",RangePolicy<exec_t>(0,N),
+    KOKKOS_LAMBDA(int i, double& lsum, bool f) {
+      if(f) tmp(i) = lsum;
+      lsum += a(i);
+  });
+  double sum;
+  parallel_reduce("K_2",N, KOKKOS_LAMBDA(int i, double& lsum) {
+    lsum += tmp(i);
+  },sum);
+}
+Profiling::popRegion();
+\end{code}
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{An Example Code}
+
+Output from SimpleKernelTimer:
+\begin{minted}[bgcolor=lightlightgray,fontsize=\tiny]{text}
+(Type)   Total Time, Call Count, Avg. Time per Call, %Total Time in Kernels, %Total Program Time
+-------------------------------------------------------------------------
+
+Regions:
+
+- Setup
+ (Region)   0.014938 1 0.014938 147.483640 50.044730
+- Iterate
+ (Region)   0.012362 1 0.012362 122.051692 41.415061
+
+-------------------------------------------------------------------------
+\end{minted}
+
+\begin{itemize}
+  \item Regions are named after the label passed to \texttt{pushRegion}
+  \item Sorted by total duration
+\end{itemize}
+
 \end{frame}
 
 %==========================================================================
 
 \begin{frame}[fragile]{Revisiting Tpetra}
 
-Lets look at Tpetra again with the Simple Kernel Timer Loaded:
+Let's look at Tpetra again with the Simple Kernel Timer Loaded:
 
 \vspace{10pt}
 At the top we get Region output:
@@ -289,53 +415,8 @@ At the top we get Region output:
 
 \begin{frame}[fragile]{Revisiting Tpetra}
 
-
 Then we get kernel output:
 \includegraphics[width=\textwidth]{../figures/tools-tpetra-kernels}
-\end{frame}
-
-%==========================================================================
-
-\begin{frame}[fragile]{Memory Utilization}
-\textbf{Understanding MemorySpace Utilization is critical}
-
-\vspace{10pt}
-Three simple tools for understanding memory utilization:
-\begin{itemize}
-  \item MemoryHighWaterMark: just the maximum utilization for each memory space.
-  \item MemoryUsage: Timeline of memory usage.
-  \item MemoryEvents: allocation, deallocation and deep\_copy.
-  \begin{itemize}
-    \item Name, Memory Space, Pointer, Size
-  \end{itemize}
-\end{itemize}
-
-\includegraphics[width=0.8\textwidth]{../figures/tools-memevents-simple-code}
-\end{frame}
-
-%==========================================================================
-
-\begin{frame}[fragile]{Push/Pop Regions}
-	\textbf{Adding region markers to capture more code structure}
-
-Region Markers are helpful to:
-\begin{itemize}
-  \item Find where time is spent outside of kernels.
-  \item Group Kernels which belong together.
-  \item Structure code profiles.
-  \begin{itemize}
-     \item For example bracket \textit{setup} or \textit{solve} phase. 
-  \end{itemize}
-\end{itemize}
-
-\pause
-\vspace{10pt}
-Simple Push/Pop interface:
-\begin{code}
-  Kokkos::Profiling::pushRegion("Label");
-  ...
-  Kokkos::Profiling::popRegion();
-\end{code}
 \end{frame}
 
 %==========================================================================
@@ -346,11 +427,95 @@ The simplest tool to leverage regions is the \textbf{Space Time Stack}:
 \begin{itemize}
   \item \textbf{Bottom Up} and \textbf{Top Down} data representation
   \item Can do MPI aggregation if compiled with MPI support
+\end{itemize}
+
+\begin{minted}[bgcolor=lightlightgray,fontsize=\tiny]{text}
+BEGIN KOKKOS PROFILING REPORT:
+TOTAL TIME: 0.0293998 seconds
+TOP-DOWN TIME TREE:
+<average time> <percent of total time> <percent time in Kokkos> <percent MPI imbalance> 
+<remainder> <kernels per second> <number of calls> <name> [type]
+===================
+|-> 1.48e-02 sec 50.5% 100.0% 0.0% 0.0% 1.35e+02 1 Setup [region]
+|   |-> 1.47e-02 sec 50.2% 100.0% 0.0% ------ 1 "A"="A_mirror" (HIP->HOST) [copy]
+|   |-> 8.96e-05 sec 0.3% 100.0% 0.0% ------ 1 Init_A [for]
+|-> 1.18e-02 sec 40.3% 62.8% 0.0% 37.2% 8.11e+03 1 Iterate [region]
+|   |-> 4.51e-03 sec 15.3% 100.0% 0.0% ------ 32 K_2 [reduce]
+|   |-> 1.99e-03 sec 6.8% 100.0% 0.0% ------ 32 Kokkos::View::initialization [Tmp] via memset [for]
+|   |-> 9.38e-04 sec 3.2% 100.0% 0.0% ------ 32 K_1 [scan]
+|-> 1.85e-03 sec 6.3% 100.0% 0.0% ------ 1 Kokkos::View::initialization [A_mirror] via memset [for]
+|-> 7.57e-05 sec 0.3% 100.0% 0.0% ------ 1 Kokkos::View::initialization [A] via memset [for]
+
+BOTTOM-UP TIME TREE:
+...
+
+END KOKKOS PROFILING REPORT.
+\end{minted}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Space Time Stack - Memory}
+The simplest tool to leverage regions is the \textbf{Space Time Stack}:
+
+\begin{itemize}
   \item Also aggregates memory utilization info.
 \end{itemize}
 
-\includegraphics[width=\textwidth]{../figures/tools-sts-bup2-simple-code}
+\begin{minted}[bgcolor=lightlightgray,fontsize=\tiny]{text}
+BEGIN KOKKOS PROFILING REPORT:
+...
 
+KOKKOS HOST SPACE:
+===================
+MAX MEMORY ALLOCATED: 7812.5 kB
+ALLOCATIONS AT TIME OF HIGH WATER MARK:
+  100.0% A_mirror
+
+KOKKOS HIP SPACE:
+===================
+MAX MEMORY ALLOCATED: 15625.0 kB
+ALLOCATIONS AT TIME OF HIGH WATER MARK:
+  50.0% Iterate/Tmp
+  50.0% A
+
+Host process high water mark memory consumption: 205428 kB
+
+END KOKKOS PROFILING REPORT.
+\end{minted}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Memory Utilization}
+\textbf{Understanding MemorySpace Utilization is critical}
+
+\vspace{5pt}
+Three simple tools for understanding memory utilization:
+\begin{itemize}
+  \item MemoryHighWaterMark: just the maximum utilization for each memory space.
+  \item MemoryUsage: Timeline of memory usage.
+  \item MemoryEvents: allocation, deallocation and \texttt{deep\_copy}.
+  \begin{itemize}
+    \item Name, Memory Space, Pointer, Size
+  \end{itemize}
+\end{itemize}
+
+\begin{minted}[bgcolor=lightlightgray,fontsize=\tiny]{text}
+# Memory Events
+# Time     Ptr                  Size        MemSpace      Op         Name
+0.000028   0x7f4308400000        8000000              HIP Allocate   A
+0.000207   0x7f4301e5e040        8000000             Host Allocate   A_mirror
+0.016778   0x7f4300400000        8000000              HIP Allocate   Tmp
+0.017942   0x7f4300400000       -8000000              HIP DeAllocate Tmp
+...
+0.027508   0x7f4300400000        8000000              HIP Allocate   Tmp
+0.027755   0x7f4300400000       -8000000              HIP DeAllocate Tmp
+0.027807   0x7f4301e5e040       -8000000             Host DeAllocate A_mirror
+0.028043   0x7f4308400000       -8000000              HIP DeAllocate A
+\end{minted}
 \end{frame}
 
 %==========================================================================

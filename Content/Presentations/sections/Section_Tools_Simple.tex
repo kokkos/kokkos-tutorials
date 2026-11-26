@@ -419,6 +419,76 @@ Then we get kernel output:
 
 %==========================================================================
 
+\begin{frame}[fragile]{Space Time Stack}
+The simplest tool to leverage regions is the \textbf{Space Time Stack}:
+
+\begin{itemize}
+  \item \textbf{Bottom Up} and \textbf{Top Down} data representation
+  \item Can do MPI aggregation if compiled with MPI support
+  \item Also aggregates memory utilization info.
+\end{itemize}
+
+\begin{minted}[bgcolor=lightlightgray,fontsize=\tiny]{text}
+BEGIN KOKKOS PROFILING REPORT:
+TOTAL TIME: 0.0293998 seconds
+TOP-DOWN TIME TREE:
+<average time> <percent of total time> <percent time in Kokkos> <percent MPI imbalance> <remainder> <kernels per second> <number of calls> <name> [type]
+===================
+|-> 1.48e-02 sec 50.5% 100.0% 0.0% 0.0% 1.35e+02 1 Setup [region]
+|   |-> 1.47e-02 sec 50.2% 100.0% 0.0% ------ 1 "A"="A_mirror" (HIP->HOST) [copy]
+|   |-> 8.96e-05 sec 0.3% 100.0% 0.0% ------ 1 Init_A [for]
+|-> 1.18e-02 sec 40.3% 62.8% 0.0% 37.2% 8.11e+03 1 Iterate [region]
+|   |-> 4.51e-03 sec 15.3% 100.0% 0.0% ------ 32 K_2 [reduce]
+|   |-> 1.99e-03 sec 6.8% 100.0% 0.0% ------ 32 Kokkos::View::initialization [Tmp] via memset [for]
+|   |-> 9.38e-04 sec 3.2% 100.0% 0.0% ------ 32 K_1 [scan]
+|-> 1.85e-03 sec 6.3% 100.0% 0.0% ------ 1 Kokkos::View::initialization [A_mirror] via memset [for]
+|-> 7.57e-05 sec 0.3% 100.0% 0.0% ------ 1 Kokkos::View::initialization [A] via memset [for]
+
+BOTTOM-UP TIME TREE:
+...
+
+END KOKKOS PROFILING REPORT.
+\end{minted}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{Space Time Stack}
+The simplest tool to leverage regions is the \textbf{Space Time Stack}:
+
+\begin{itemize}
+  \item \textbf{Bottom Up} and \textbf{Top Down} data representation
+  \item Can do MPI aggregation if compiled with MPI support
+  \item Also aggregates memory utilization info.
+\end{itemize}
+
+\begin{minted}[bgcolor=lightlightgray,fontsize=\tiny]{text}
+BEGIN KOKKOS PROFILING REPORT:
+...
+
+KOKKOS HOST SPACE:
+===================
+MAX MEMORY ALLOCATED: 7812.5 kB
+ALLOCATIONS AT TIME OF HIGH WATER MARK:
+  100.0% A_mirror
+
+KOKKOS HIP SPACE:
+===================
+MAX MEMORY ALLOCATED: 15625.0 kB
+ALLOCATIONS AT TIME OF HIGH WATER MARK:
+  50.0% Iterate/Tmp
+  50.0% A
+
+Host process high water mark memory consumption: 205428 kB
+
+END KOKKOS PROFILING REPORT.
+\end{minted}
+
+\end{frame}
+
+%==========================================================================
+
 \begin{frame}[fragile]{Memory Utilization}
 \textbf{Understanding MemorySpace Utilization is critical}
 
@@ -447,21 +517,6 @@ Three simple tools for understanding memory utilization:
 0.028043   0x7f4308400000       -8000000              HIP DeAllocate A
 \end{minted}
 \end{frame}
-
-%==========================================================================
-
-% \begin{frame}[fragile]{Space Time Stack}
-% The simplest tool to leverage regions is the \textbf{Space Time Stack}:
-% 
-% \begin{itemize}
-%   \item \textbf{Bottom Up} and \textbf{Top Down} data representation
-%   \item Can do MPI aggregation if compiled with MPI support
-%   \item Also aggregates memory utilization info.
-% \end{itemize}
-% 
-% \includegraphics[width=\textwidth]{../figures/tools-sts-bup2-simple-code}
-% 
-% \end{frame}
 
 %==========================================================================
 
@@ -593,7 +648,7 @@ Analyse a MiniMD variant with a serious performance issue.
   \item The interface is \textbf{always available} - even in release builds.
   \item Zero overhead if no tool is loaded during the run.
   \item Dynamically load a tool via setting \texttt{KOKKOS\_TOOLS\_LIBS} environment variable.
-  \item Set callbacks directly in code for tools compiled into the executable.
+  \item Set callbacks directly in code for tools compiled into the executable. 
 \end{itemize}
 \end{frame}
 

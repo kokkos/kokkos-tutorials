@@ -77,18 +77,18 @@
   \begin{columns}
     \begin{column}{0.5\linewidth}
       \begin{minted}[autogobble,breaklines,fontsize=\scriptsize,breakafter={=}]{sh}
-        nsys profile -o report \ 
-          ./my_program \
-            --kokkos-tools-libs=/path/to/libkp_nvtx_connector.so
+      nsys profile -o report \ 
+        ./my_program \
+          --kokkos-tools-libs=/path/to/libkp_nvtx_connector.so
       \end{minted}
       \vspace{5pt}
       \begin{minted}[autogobble,breaklines,fontsize=\scriptsize]{text}
-        KokkosP: NVTX Analyzer Connector \
-          (sequence is 0, version: 20240906)
+      KokkosP: NVTX Analyzer Connector \
+        (sequence is 0, version: 20240906)
       \end{minted}
       \vspace{5pt}
       \begin{minted}[autogobble,breaklines,fontsize=\scriptsize]{sh}
-        nsys-ui report.nsys-rep
+      nsys-ui report.nsys-rep
       \end{minted}
     \end{column}
     \begin{column}{0.5\linewidth}
@@ -184,19 +184,19 @@
   \begin{columns}
     \begin{column}{0.5\linewidth}
       \begin{minted}[autogobble,breaklines,fontsize=\scriptsize,breakafter={=}]{sh}
-        ncu -o report --nvtx \
-          --nvtx-include "<NVTX region>/" \
-          --set detailed ./my_program \
-            --kokkos-tools-libs=/path/to/libkp_nvtx_connector.so
+      ncu -o report --nvtx \
+        --nvtx-include "<NVTX region>/" \
+        --set detailed ./my_program \
+          --kokkos-tools-libs=/path/to/libkp_nvtx_connector.so
       \end{minted}
       \vspace{5pt}
       \begin{minted}[autogobble,breaklines,fontsize=\scriptsize]{text}
-        KokkosP: NVTX Analyzer Connector \
-          (sequence is 0, version: 20240906)
+      KokkosP: NVTX Analyzer Connector \
+        (sequence is 0, version: 20240906)
       \end{minted}
       \vspace{5pt}
       \begin{minted}[autogobble,breaklines,fontsize=\scriptsize]{sh}
-        ncu-ui report.ncu-rep
+      ncu-ui report.ncu-rep
       \end{minted}
     \end{column}
     \begin{column}{0.5\linewidth}
